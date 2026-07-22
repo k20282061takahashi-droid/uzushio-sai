@@ -20,8 +20,10 @@ export default function TimelinePage() {
         {days.map((day, i) => (
           <button
             key={day.date}
-            className={`flex-1 rounded-full py-2 text-sm font-bold transition-transform active:scale-95 ${
-              i === 0 ? "bg-sky-500/30 text-sky-300" : "bg-white/5 text-slate-400"
+            className={`flex-1 rounded-full border py-2 text-sm font-bold transition-transform active:scale-95 ${
+              i === 0
+                ? "border-white/40 bg-white/10 text-white"
+                : "border-white/10 bg-white/5 text-zinc-400"
             }`}
           >
             {day.label} {day.date}

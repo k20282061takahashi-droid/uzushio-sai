@@ -18,10 +18,10 @@ export default function BottomNav() {
   );
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-slate-900/90 backdrop-blur-md">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/15 bg-zinc-950/90 backdrop-blur-md">
       <div className="relative mx-auto max-w-md">
         <div
-          className="absolute top-0 h-0.5 bg-sky-400 transition-transform duration-300 ease-out"
+          className="absolute top-0 h-0.5 bg-white transition-transform duration-300 ease-out"
           style={{
             width: `${100 / items.length}%`,
             transform: `translateX(${activeIndex * 100}%)`,
@@ -35,11 +35,11 @@ export default function BottomNav() {
                 <Link
                   href={item.href}
                   className={`flex flex-col items-center gap-1 py-2.5 text-xs transition-transform duration-150 ease-out active:scale-90 ${
-                    isActive ? "text-sky-300" : "text-slate-400"
+                    isActive ? "text-white" : "text-zinc-500"
                   }`}
                 >
                   <span
-                    className={`text-xl transition-transform duration-200 ${
+                    className={`text-xl grayscale transition-transform duration-200 ${
                       isActive ? "-translate-y-0.5 scale-110" : ""
                     }`}
                   >

@@ -25,9 +25,9 @@ export default function StampPage() {
         {Array.from({ length: total }).map((_, i) => (
           <div
             key={i}
-            className={`flex aspect-square items-center justify-center rounded-full border text-lg transition-transform duration-300 ${
+            className={`flex aspect-square items-center justify-center rounded-full border text-lg grayscale transition-transform duration-300 ${
               i < collected
-                ? "border-amber-300/60 bg-amber-400/20 scale-100"
+                ? "border-white/50 bg-white/15 scale-100"
                 : "border-white/10 bg-white/5 scale-90 opacity-50"
             }`}
           >
@@ -38,10 +38,10 @@ export default function StampPage() {
 
       <button
         onClick={() => setScanning((s) => !s)}
-        className={`animate-fade-in-up w-full rounded-2xl py-4 text-center text-lg font-bold transition-all active:scale-95 ${
+        className={`animate-fade-in-up w-full rounded-2xl border py-4 text-center text-lg font-bold transition-all active:scale-95 ${
           scanning
-            ? "bg-red-500/20 text-red-300"
-            : "bg-sky-500/20 text-sky-300"
+            ? "border-white/50 bg-white/15 text-white"
+            : "border-white/30 bg-white/5 text-white"
         }`}
         style={{ animationDelay: "120ms" }}
       >

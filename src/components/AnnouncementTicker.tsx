@@ -22,9 +22,9 @@ export default function AnnouncementTicker() {
   return (
     <Link
       href="/announcements"
-      className="flex h-9 items-center gap-2 overflow-hidden rounded-full border border-white/10 bg-white/5 px-3 text-xs transition-transform active:scale-95"
+      className="flex h-9 items-center gap-2 overflow-hidden rounded-full border border-white/20 bg-white/5 px-3 text-xs transition-transform active:scale-95"
     >
-      <span className="shrink-0 rounded-full bg-sky-500/20 px-2 py-0.5 font-bold text-sky-300">
+      <span className="shrink-0 rounded-full border border-white/30 px-2 py-0.5 font-bold text-white">
         お知らせ
       </span>
       <span className="relative h-4 flex-1 overflow-hidden">

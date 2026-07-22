@@ -28,10 +28,10 @@ function MapContent() {
           <button
             key={area.id}
             onClick={() => setActiveArea(area.id)}
-            className={`rounded-full px-2 py-2 text-xs font-bold transition-transform active:scale-90 ${
+            className={`rounded-full border px-2 py-2 text-xs font-bold transition-transform active:scale-90 ${
               activeArea === area.id
-                ? "bg-sky-500/30 text-sky-300"
-                : "bg-white/5 text-slate-400"
+                ? "border-white/40 bg-white/10 text-white"
+                : "border-white/10 bg-white/5 text-zinc-400"
             }`}
           >
             {area.name}
@@ -45,10 +45,10 @@ function MapContent() {
             <button
               key={floor}
               onClick={() => setActiveFloor(floor)}
-              className={`h-9 w-9 rounded-full text-sm font-bold transition-transform active:scale-90 ${
+              className={`h-9 w-9 rounded-full border text-sm font-bold transition-transform active:scale-90 ${
                 activeFloor === floor
-                  ? "bg-sky-500/30 text-sky-300"
-                  : "bg-white/5 text-slate-400"
+                  ? "border-white/40 bg-white/10 text-white"
+                  : "border-white/10 bg-white/5 text-zinc-400"
               }`}
             >
               {floor === -1 ? "B1" : `${floor}F`}
