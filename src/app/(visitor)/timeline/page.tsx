@@ -30,6 +30,8 @@ const eventsByDay: EventItem[][] = [
 ];
 
 const PX_PER_MIN = 1.8;
+const TIMELINE_START = 9 * 60; // 9:00
+const TIMELINE_END = 16 * 60; // 16:00
 
 function formatTime(min: number) {
   const h = Math.floor(min / 60);
@@ -44,17 +46,13 @@ export default function TimelinePage() {
   const events = eventsByDay[dayIndex];
 
   const { hourMarks, axisStart, totalHeight, venues } = useMemo(() => {
-    const starts = events.map((e) => e.start);
-    const ends = events.map((e) => e.end);
-    const rangeStart = Math.floor(Math.min(...starts) / 60) * 60;
-    const rangeEnd = Math.ceil(Math.max(...ends) / 60) * 60;
     const marks: number[] = [];
-    for (let h = rangeStart; h <= rangeEnd; h += 60) marks.push(h);
+    for (let h = TIMELINE_START; h <= TIMELINE_END; h += 60) marks.push(h);
     const uniqueVenues = Array.from(new Set(events.map((e) => e.venue)));
     return {
       hourMarks: marks,
-      axisStart: rangeStart,
-      totalHeight: (rangeEnd - rangeStart) * PX_PER_MIN,
+      axisStart: TIMELINE_START,
+      totalHeight: (TIMELINE_END - TIMELINE_START) * PX_PER_MIN,
       venues: uniqueVenues,
     };
   }, [events]);

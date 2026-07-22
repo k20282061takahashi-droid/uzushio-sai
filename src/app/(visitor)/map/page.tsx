@@ -31,86 +31,89 @@ function MapContent() {
   );
 
   return (
-    <div className="mx-auto max-w-md px-4 pt-8">
-      <h1 className="animate-fade-in-up mb-4 text-2xl font-bold">校内マップ</h1>
-
-      <div className="animate-fade-in-up mb-4 grid grid-cols-4 gap-2" style={{ animationDelay: "40ms" }}>
-        {areas.map((area) => (
-          <button
-            key={area.id}
-            onClick={() => setActiveArea(area.id)}
-            className={`rounded-full border px-2 py-2 text-xs font-bold transition-transform active:scale-90 ${
-              activeArea === area.id
-                ? "border-white/40 bg-white/10 text-white"
-                : "border-white/10 bg-white/5 text-zinc-400"
-            }`}
-          >
-            {area.name}
-          </button>
-        ))}
-      </div>
-
-      <p className="animate-fade-in-up mb-2 text-[11px] text-zinc-500" style={{ animationDelay: "100ms" }}>
-        ピンチ／Ctrl+ホイールで拡大縮小、ドラッグで移動できます
-      </p>
-
-      <div className="animate-fade-in-up relative" style={{ animationDelay: "80ms" }}>
-        <PannableZoom className="aspect-square w-full rounded-2xl border border-white/15 bg-zinc-900">
-          <div className="relative h-full w-full">
-            {rooms.length === 0 && (
-              <p className="absolute inset-0 flex items-center justify-center text-sm text-zinc-500">
-                このフロアの企画情報は準備中です
-              </p>
-            )}
-            {rooms.map((room) => (
-              <button
-                key={room.id}
-                onClick={() => setSelected(room)}
-                className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
-                style={{ left: `${room.x}%`, top: `${room.y}%` }}
-              >
-                <span
-                  className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-white/70 text-xs font-bold text-white shadow-lg"
-                  style={{ backgroundColor: waitColor(room.waitMinutes) }}
-                >
-                  {room.waitMinutes}分
-                </span>
-                <span className="mt-1 max-w-[70px] truncate rounded bg-black/60 px-1 text-[9px] text-white">
-                  {room.name}
-                </span>
-              </button>
-            ))}
-          </div>
-        </PannableZoom>
-
-        {hasFloors && (
-          <FloorSlider
-            floors={floors}
-            value={activeFloor}
-            onChange={setActiveFloor}
-            className="bottom-4"
-          />
-        )}
-      </div>
-
-      <DetailSheet open={selected != null} onClose={() => setSelected(null)}>
-        {selected && (
-          <div>
-            <p className="mb-1 text-xs text-zinc-400">{selected.category}</p>
-            <h2 className="mb-2 text-xl font-bold">{selected.name}</h2>
-            <p className="mb-4 text-sm text-zinc-300">{selected.description}</p>
-            <div className="flex items-center gap-2">
+    <>
+    <div
+      className="fixed inset-x-0 top-0"
+      style={{ bottom: "calc(69px + max(env(safe-area-inset-bottom), 10px))" }}
+    >
+      <PannableZoom className="h-full w-full bg-zinc-900">
+        <div className="relative h-full w-full">
+          {rooms.length === 0 && (
+            <p className="absolute inset-0 flex items-center justify-center text-sm text-zinc-500">
+              このフロアの企画情報は準備中です
+            </p>
+          )}
+          {rooms.map((room) => (
+            <button
+              key={room.id}
+              onClick={() => setSelected(room)}
+              className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
+              style={{ left: `${room.x}%`, top: `${room.y}%` }}
+            >
               <span
-                className="rounded-full px-3 py-1 text-sm font-bold text-white"
-                style={{ backgroundColor: waitColor(selected.waitMinutes) }}
+                className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-white/70 text-xs font-bold text-white shadow-lg"
+                style={{ backgroundColor: waitColor(room.waitMinutes) }}
               >
-                待ち時間 約{selected.waitMinutes}分
+                {room.waitMinutes}分
               </span>
-            </div>
-          </div>
-        )}
-      </DetailSheet>
+              <span className="mt-1 max-w-[70px] truncate rounded bg-black/60 px-1 text-[9px] text-white">
+                {room.name}
+              </span>
+            </button>
+          ))}
+        </div>
+      </PannableZoom>
+
+      {/* 上部オーバーレイ：エリア選択 */}
+      <div className="animate-fade-in-up pointer-events-none absolute inset-x-0 top-0 z-10 bg-gradient-to-b from-black/70 to-transparent p-3 pt-4">
+        <div className="pointer-events-auto mx-auto grid max-w-md grid-cols-4 gap-2">
+          {areas.map((area) => (
+            <button
+              key={area.id}
+              onClick={() => setActiveArea(area.id)}
+              className={`rounded-full border px-2 py-2 text-xs font-bold backdrop-blur-sm transition-transform active:scale-90 ${
+                activeArea === area.id
+                  ? "border-white/40 bg-white/20 text-white"
+                  : "border-white/10 bg-black/30 text-zinc-300"
+              }`}
+            >
+              {area.name}
+            </button>
+          ))}
+        </div>
+        <p className="pointer-events-none mt-2 text-center text-[11px] text-zinc-400">
+          ピンチ／Ctrl+ホイールで拡大縮小、ドラッグで移動できます
+        </p>
+      </div>
+
+      {hasFloors && (
+        <FloorSlider
+          floors={floors}
+          value={activeFloor}
+          onChange={setActiveFloor}
+          className="bottom-6"
+        />
+      )}
     </div>
+
+    <DetailSheet open={selected != null} onClose={() => setSelected(null)}>
+      {selected && (
+        <div>
+          <p className="mb-1 text-xs text-zinc-400">{selected.category}</p>
+          <h2 className="mb-2 text-xl font-bold">{selected.name}</h2>
+          <p className="mb-4 text-sm text-zinc-300">{selected.description}</p>
+          <div className="flex items-center gap-2">
+            <span
+              className="rounded-full px-3 py-1 text-sm font-bold text-white"
+              style={{ backgroundColor: waitColor(selected.waitMinutes) }}
+            >
+              待ち時間 約{selected.waitMinutes}分
+            </span>
+          </div>
+        </div>
+      )}
+    </DetailSheet>
+    </>
   );
 }
 
