@@ -15,14 +15,14 @@ const SPAN: [number, number] = [182, 268]; // 度（収納・展開共通）
 
 // 展開時
 const EXPANDED_HUB = 128;
-const EXPANDED_RADIUS = 150;
-const EXPANDED_ICON = 48;
+const EXPANDED_RADIUS = 170;
+const EXPANDED_ICON = 58;
 
 // 収納時：展開をそのまま縮小するが、軌道半径(小円)の方が中心円より縮小率が大きい
 // →小円が中心円の縁に重なる
 const COLLAPSED_HUB = 84; // 128の約0.66倍
 const COLLAPSED_RADIUS = 76; // 150の約0.51倍（縮小率が大きい）
-const COLLAPSED_ICON = 24; // 48の0.5倍
+const COLLAPSED_ICON = 38;
 
 export default function RadialMenu() {
   const pathname = usePathname();
