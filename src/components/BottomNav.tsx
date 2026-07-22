@@ -18,7 +18,10 @@ export default function BottomNav() {
   );
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/15 bg-zinc-950/90 backdrop-blur-md">
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/15 bg-zinc-950/90 backdrop-blur-md"
+      style={{ paddingBottom: "max(env(safe-area-inset-bottom), 10px)" }}
+    >
       <div className="relative mx-auto max-w-md">
         <div
           className="absolute top-0 h-0.5 bg-white transition-transform duration-300 ease-out"
