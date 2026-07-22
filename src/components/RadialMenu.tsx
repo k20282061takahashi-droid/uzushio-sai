@@ -11,22 +11,26 @@ const items = [
   { href: "/stamp", label: "スタンプ", icon: "🎫" },
 ];
 
-const COLLAPSED_HUB = 88;
+// 収納時：右下の四角いブロックに、アイコンが斜めの階段状に重なって並ぶ
+const BLOCK_W = 96;
+const BLOCK_H = 124;
+const STAIR_BASE = 14;
+const STAIR_STEP = 34;
+const COLLAPSED_ICON = 60;
+
+// 展開時：扇形のハブと、その縁を軌道とするアイコン配置（ドラッグで回転可）
 const EXPANDED_HUB = 128;
-// 小さな円は常に中心円の縁（軌道）に沿って配置する
-const COLLAPSED_RADIUS = COLLAPSED_HUB;
 const EXPANDED_RADIUS = EXPANDED_HUB;
-const COLLAPSED_SPAN: [number, number] = [198, 252]; // 度（縁に寄せて密集）
-const EXPANDED_SPAN: [number, number] = [182, 268]; // 度（大きく展開）
-const COLLAPSED_ICON = 34;
+const EXPANDED_SPAN: [number, number] = [182, 268]; // 度
 const EXPANDED_ICON = 64;
+
+const DIAG = Math.SQRT1_2; // cos(225°) = sin(225°) = -1/√2
 
 export default function RadialMenu() {
   const pathname = usePathname();
   const [expanded, setExpanded] = useState(false);
   const [rotation, setRotation] = useState(0);
   const dragRef = useRef<{ startAngle: number; startRotation: number } | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!expanded) setRotation(0);
@@ -59,45 +63,50 @@ export default function RadialMenu() {
     dragRef.current = null;
   };
 
-  const hubSize = expanded ? EXPANDED_HUB : COLLAPSED_HUB;
-  const [spanStart, spanEnd] = expanded ? EXPANDED_SPAN : COLLAPSED_SPAN;
-  const radius = expanded ? EXPANDED_RADIUS : COLLAPSED_RADIUS;
-  const iconSize = expanded ? EXPANDED_ICON : COLLAPSED_ICON;
+  const containerSize = EXPANDED_RADIUS + EXPANDED_ICON / 2 + 24;
 
   return (
     <div
-      ref={containerRef}
       className="fixed bottom-0 right-0 z-50 touch-none"
-      style={{
-        width: EXPANDED_RADIUS + EXPANDED_ICON / 2 + 24,
-        height: EXPANDED_RADIUS + EXPANDED_ICON / 2 + 24,
-      }}
+      style={{ width: containerSize, height: containerSize }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
     >
-      {/* ハブ（扇形の背景・タップで開閉） */}
+      {/* ハブ（タップで開閉） */}
       <button
         aria-label={expanded ? "メニューを閉じる" : "メニューを開く"}
         onClick={() => setExpanded((v) => !v)}
         className="absolute bottom-0 right-0 border border-white/25 bg-gradient-to-tl from-zinc-500 to-zinc-700 shadow-lg transition-all duration-300 ease-out"
-        style={{
-          width: hubSize,
-          height: hubSize,
-          borderTopLeftRadius: "100%",
-        }}
+        style={
+          expanded
+            ? { width: EXPANDED_HUB, height: EXPANDED_HUB, borderTopLeftRadius: "100%" }
+            : { width: BLOCK_W, height: BLOCK_H, borderRadius: 8 }
+        }
       />
 
       {/* サテライトアイコン */}
       <div className="pointer-events-none absolute bottom-0 right-0 h-full w-full">
         {items.map((item, i) => {
           const isActive = pathname === item.href;
-          const t = items.length > 1 ? i / (items.length - 1) : 0;
-          const angle = spanStart + (spanEnd - spanStart) * t + rotation;
-          const rad = (angle * Math.PI) / 180;
-          const dx = Math.round(radius * Math.cos(rad) * 100) / 100;
-          const dy = Math.round(radius * Math.sin(rad) * 100) / 100;
+          let dx: number;
+          let dy: number;
+          const iconSize = expanded ? EXPANDED_ICON : COLLAPSED_ICON;
+
+          if (expanded) {
+            const t = items.length > 1 ? i / (items.length - 1) : 0;
+            const angle = EXPANDED_SPAN[0] + (EXPANDED_SPAN[1] - EXPANDED_SPAN[0]) * t + rotation;
+            const rad = (angle * Math.PI) / 180;
+            dx = Math.round(EXPANDED_RADIUS * Math.cos(rad) * 100) / 100;
+            dy = Math.round(EXPANDED_RADIUS * Math.sin(rad) * 100) / 100;
+          } else {
+            // 階段状：末尾（スタンプ）ほどブロックに近く、先頭（ホーム）ほど離れる
+            const level = items.length - 1 - i;
+            const offset = STAIR_BASE + level * STAIR_STEP;
+            dx = -offset * DIAG;
+            dy = -offset * DIAG;
+          }
 
           return (
             <Link
@@ -117,10 +126,7 @@ export default function RadialMenu() {
                 transitionProperty: "right, bottom, width, height",
               }}
             >
-              <span
-                className="grayscale"
-                style={{ fontSize: expanded ? 16 : 13 }}
-              >
+              <span className="grayscale" style={{ fontSize: expanded ? 16 : 15 }}>
                 {item.icon}
               </span>
             </Link>
