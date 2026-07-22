@@ -16,12 +16,12 @@ const SPAN: [number, number] = [182, 268]; // 度（収納・展開共通）
 // 展開時（EXPANDED_HUBは中心円の半径。CSSの border-radius:100% トリックでは
 // ボックスの辺の長さ＝円の半径になるため、そのままpx値で指定できる）
 const EXPANDED_HUB = 130; // 中心円の半径130px
-const EXPANDED_RADIUS = 140; // 軌道半径140px
+const EXPANDED_RADIUS = 130; // 軌道半径130px
 const EXPANDED_ICON = 58;
 
 // 収納時：展開をそのまま縮小するが、軌道半径(小円)の方が中心円より縮小率が大きい
 // →小円が中心円の縁に重なる
-const COLLAPSED_HUB = 60; // 中心円の直径120px（＝半径60px）
+const COLLAPSED_HUB = 120; // 中心円の半径120px
 const COLLAPSED_RADIUS = 76;
 const COLLAPSED_ICON = 38;
 
