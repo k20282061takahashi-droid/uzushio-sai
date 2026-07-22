@@ -1,12 +1,13 @@
 import Link from "next/link";
 
-const announcements = [
-  { time: "10:12", text: "体育館の演奏会は開始5分前に受付終了します" },
-  { time: "9:50", text: "3年C組の企画は待ち時間が長くなっています" },
-  { time: "9:30", text: "本部で温かいお茶を配布しています" },
+const rules = [
+  "校舎内での飲食は指定された企画内のみでお願いします",
+  "上履き・外靴の指定エリアを守ってください",
+  "撮影した写真・動画のSNS投稿は許可された範囲でお願いします",
+  "体調が悪くなった場合はすぐに近くのスタッフへお声がけください",
 ];
 
-export default function AnnouncementsPage() {
+export default function RulesPage() {
   return (
     <div className="mx-auto max-w-md px-4 pt-8">
       <Link
@@ -19,17 +20,16 @@ export default function AnnouncementsPage() {
         className="animate-fade-in-up mb-4 text-2xl font-bold"
         style={{ animationDelay: "40ms" }}
       >
-        お知らせ一覧
+        来場者の皆さんへ
       </h1>
       <ul className="space-y-3">
-        {announcements.map((a, i) => (
+        {rules.map((rule, i) => (
           <li
-            key={a.time + a.text}
+            key={rule}
             className="animate-fade-in-up rounded-xl border border-white/10 bg-white/5 p-3 text-sm"
             style={{ animationDelay: `${80 + i * 40}ms` }}
           >
-            <p className="mb-1 text-xs text-slate-500">{a.time}</p>
-            <p>{a.text}</p>
+            {rule}
           </li>
         ))}
       </ul>
