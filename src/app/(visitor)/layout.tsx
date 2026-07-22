@@ -1,4 +1,4 @@
-import RadialMenu from "@/components/RadialMenu";
+import BottomNav from "@/components/BottomNav";
 
 export default function VisitorLayout({
   children,
@@ -7,8 +7,8 @@ export default function VisitorLayout({
 }) {
   return (
     <div className="flex min-h-screen flex-col bg-slate-950 text-white">
-      <div className="flex-1 pb-8">{children}</div>
-      <RadialMenu />
+      <div className="flex-1 pb-20">{children}</div>
+      <BottomNav />
     </div>
   );
 }
