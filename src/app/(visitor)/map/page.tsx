@@ -51,12 +51,12 @@ function MapContent() {
               style={{ left: `${room.x}%`, top: `${room.y}%` }}
             >
               <span
-                className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-white/70 text-xs font-bold text-white shadow-lg"
+                className="flex h-[132px] w-[132px] items-center justify-center rounded-full border-4 border-white/70 text-2xl font-bold text-white shadow-lg"
                 style={{ backgroundColor: waitColor(room.waitMinutes) }}
               >
                 {room.waitMinutes}分
               </span>
-              <span className="mt-1 max-w-[70px] truncate rounded bg-black/60 px-1 text-[9px] text-white">
+              <span className="mt-2 max-w-[180px] truncate rounded bg-black/60 px-2 py-0.5 text-base text-white">
                 {room.name}
               </span>
             </button>
