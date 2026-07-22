@@ -71,7 +71,7 @@ function MapContent() {
             <button
               key={area.id}
               onClick={() => setActiveArea(area.id)}
-              className={`flex h-28 items-center justify-center rounded-full border px-2 text-xs font-bold backdrop-blur-sm transition-transform active:scale-90 ${
+              className={`flex h-14 items-center justify-center rounded-full border px-2 text-xs font-bold backdrop-blur-sm transition-transform active:scale-90 ${
                 activeArea === area.id
                   ? "border-white/40 bg-white/20 text-white"
                   : "border-white/10 bg-black/30 text-zinc-300"
