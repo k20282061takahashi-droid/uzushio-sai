@@ -13,12 +13,13 @@ const items = [
 
 const COLLAPSED_HUB = 88;
 const EXPANDED_HUB = 128;
-const COLLAPSED_RADIUS = 74;
-const EXPANDED_RADIUS = 150;
+// 小さな円は常に中心円の縁（軌道）に沿って配置する
+const COLLAPSED_RADIUS = COLLAPSED_HUB;
+const EXPANDED_RADIUS = EXPANDED_HUB;
 const COLLAPSED_SPAN: [number, number] = [198, 252]; // 度（縁に寄せて密集）
 const EXPANDED_SPAN: [number, number] = [182, 268]; // 度（大きく展開）
 const COLLAPSED_ICON = 34;
-const EXPANDED_ICON = 48;
+const EXPANDED_ICON = 64;
 
 export default function RadialMenu() {
   const pathname = usePathname();
@@ -67,7 +68,10 @@ export default function RadialMenu() {
     <div
       ref={containerRef}
       className="fixed bottom-0 right-0 z-50 touch-none"
-      style={{ width: EXPANDED_RADIUS + 40, height: EXPANDED_RADIUS + 40 }}
+      style={{
+        width: EXPANDED_RADIUS + EXPANDED_ICON / 2 + 24,
+        height: EXPANDED_RADIUS + EXPANDED_ICON / 2 + 24,
+      }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
