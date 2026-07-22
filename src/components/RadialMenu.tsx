@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 
 const items = [
   { href: "/", label: "ホーム", icon: "🏠" },
@@ -11,128 +11,95 @@ const items = [
   { href: "/stamp", label: "スタンプ", icon: "🎫" },
 ];
 
-// 収納時：右下の四角いブロックに、アイコンが斜めの階段状に重なって並ぶ
-const BLOCK_W = 96;
-const BLOCK_H = 124;
-const STAIR_BASE = 14;
-const STAIR_STEP = 34;
+// アイコン中心の、頂点(右下角)からの距離。0=スタンプ(一番近い)〜3=ホーム(一番遠い)
+const COLLAPSED_INSETS = [14, 48, 82, 116];
+const EXPANDED_INSETS = [20, 70, 120, 170];
+const DIAG = Math.SQRT1_2; // 45度方向
+
 const COLLAPSED_ICON = 60;
+const EXPANDED_ICON = 70;
+const STAIR_BOX = 150; // 収納時：階段シルエットの外枠
+const CIRCLE_R = 45; // 展開時：円の半径（スタンプの距離とマップの距離の間）
+const CONTAINER = 230;
 
-// 展開時：扇形のハブと、その縁を軌道とするアイコン配置（ドラッグで回転可）
-const EXPANDED_HUB = 128;
-const EXPANDED_RADIUS = EXPANDED_HUB;
-const EXPANDED_SPAN: [number, number] = [182, 268]; // 度
-const EXPANDED_ICON = 64;
-
-const DIAG = Math.SQRT1_2; // cos(225°) = sin(225°) = -1/√2
+function staircaseClipPath(box: number, insets: number[]) {
+  const p = (x: number, y: number) => `${x}px ${y}px`;
+  const pts = [p(box, box), p(box, box - insets[0]), p(box - insets[0], box - insets[0])];
+  for (let i = 1; i < insets.length; i++) {
+    pts.push(p(box - insets[i - 1], box - insets[i]));
+    pts.push(p(box - insets[i], box - insets[i]));
+  }
+  pts.push(p(box - insets[insets.length - 1], box));
+  return `polygon(${pts.join(", ")})`;
+}
 
 export default function RadialMenu() {
   const pathname = usePathname();
   const [expanded, setExpanded] = useState(false);
-  const [rotation, setRotation] = useState(0);
-  const dragRef = useRef<{ startAngle: number; startRotation: number } | null>(null);
-
-  useEffect(() => {
-    if (!expanded) setRotation(0);
-  }, [expanded]);
-
-  const vertexAngle = (clientX: number, clientY: number) => {
-    const vx = window.innerWidth;
-    const vy = window.innerHeight;
-    return (Math.atan2(clientY - vy, clientX - vx) * 180) / Math.PI;
-  };
-
-  const onPointerDown = (e: React.PointerEvent) => {
-    if (!expanded) return;
-    dragRef.current = {
-      startAngle: vertexAngle(e.clientX, e.clientY),
-      startRotation: rotation,
-    };
-    (e.target as Element).setPointerCapture?.(e.pointerId);
-  };
-
-  const onPointerMove = (e: React.PointerEvent) => {
-    if (!dragRef.current) return;
-    const angle = vertexAngle(e.clientX, e.clientY);
-    const delta = angle - dragRef.current.startAngle;
-    const next = dragRef.current.startRotation + delta;
-    setRotation(Math.max(-35, Math.min(35, next)));
-  };
-
-  const onPointerUp = () => {
-    dragRef.current = null;
-  };
-
-  const containerSize = EXPANDED_RADIUS + EXPANDED_ICON / 2 + 24;
 
   return (
     <div
-      className="fixed bottom-0 right-0 z-50 touch-none"
-      style={{ width: containerSize, height: containerSize }}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={onPointerUp}
+      className="fixed bottom-0 right-0 z-50"
+      style={{ width: CONTAINER, height: CONTAINER }}
     >
-      {/* ハブ（タップで開閉） */}
+      {/* 背景シェイプ（タップで開閉）：収納=階段シルエット／展開=円 */}
       <button
         aria-label={expanded ? "メニューを閉じる" : "メニューを開く"}
         onClick={() => setExpanded((v) => !v)}
         className="absolute bottom-0 right-0 border border-white/25 bg-gradient-to-tl from-zinc-500 to-zinc-700 shadow-lg transition-all duration-300 ease-out"
         style={
           expanded
-            ? { width: EXPANDED_HUB, height: EXPANDED_HUB, borderTopLeftRadius: "100%" }
-            : { width: BLOCK_W, height: BLOCK_H, borderRadius: 8 }
+            ? {
+                width: CIRCLE_R,
+                height: CIRCLE_R,
+                borderTopLeftRadius: "100%",
+                zIndex: 5,
+              }
+            : {
+                width: STAIR_BOX,
+                height: STAIR_BOX,
+                clipPath: staircaseClipPath(STAIR_BOX, COLLAPSED_INSETS),
+                zIndex: 0,
+              }
         }
       />
 
-      {/* サテライトアイコン */}
-      <div className="pointer-events-none absolute bottom-0 right-0 h-full w-full">
-        {items.map((item, i) => {
-          const isActive = pathname === item.href;
-          let dx: number;
-          let dy: number;
-          const iconSize = expanded ? EXPANDED_ICON : COLLAPSED_ICON;
+      {/* アイコン */}
+      {items.map((item, i) => {
+        const isActive = pathname === item.href;
+        const level = items.length - 1 - i; // 0=スタンプ...3=ホーム
+        const offset = expanded ? EXPANDED_INSETS[level] : COLLAPSED_INSETS[level];
+        const dx = -offset * DIAG;
+        const dy = -offset * DIAG;
+        const iconSize = expanded ? EXPANDED_ICON : COLLAPSED_ICON;
+        const isStamp = level === 0;
+        // 展開時のみ：スタンプだけ円の下に隠れ、他は円より前面に出る
+        const zIndex = expanded ? (isStamp ? 1 : 10 + i) : 10 + i;
 
-          if (expanded) {
-            const t = items.length > 1 ? i / (items.length - 1) : 0;
-            const angle = EXPANDED_SPAN[0] + (EXPANDED_SPAN[1] - EXPANDED_SPAN[0]) * t + rotation;
-            const rad = (angle * Math.PI) / 180;
-            dx = Math.round(EXPANDED_RADIUS * Math.cos(rad) * 100) / 100;
-            dy = Math.round(EXPANDED_RADIUS * Math.sin(rad) * 100) / 100;
-          } else {
-            // 階段状：末尾（スタンプ）ほどブロックに近く、先頭（ホーム）ほど離れる
-            const level = items.length - 1 - i;
-            const offset = STAIR_BASE + level * STAIR_STEP;
-            dx = -offset * DIAG;
-            dy = -offset * DIAG;
-          }
-
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`pointer-events-auto absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border font-bold transition-all duration-300 ease-out active:scale-90 ${
-                isActive
-                  ? "border-white bg-white/25 text-white"
-                  : "border-white/30 bg-zinc-800/90 text-zinc-300"
-              }`}
-              style={{
-                right: -dx,
-                bottom: -dy,
-                width: iconSize,
-                height: iconSize,
-                zIndex: i,
-                transitionProperty: "right, bottom, width, height",
-              }}
-            >
-              <span className="grayscale" style={{ fontSize: expanded ? 16 : 15 }}>
-                {item.icon}
-              </span>
-            </Link>
-          );
-        })}
-      </div>
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={`absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border font-bold transition-all duration-300 ease-out active:scale-90 ${
+              isActive
+                ? "border-white bg-white/25 text-white"
+                : "border-white/30 bg-zinc-800/90 text-zinc-300"
+            }`}
+            style={{
+              right: -dx,
+              bottom: -dy,
+              width: iconSize,
+              height: iconSize,
+              zIndex,
+              transitionProperty: "right, bottom, width, height",
+            }}
+          >
+            <span className="grayscale" style={{ fontSize: expanded ? 20 : 15 }}>
+              {item.icon}
+            </span>
+          </Link>
+        );
+      })}
     </div>
   );
 }
