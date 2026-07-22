@@ -51,12 +51,12 @@ function MapContent() {
               style={{ left: `${room.x}%`, top: `${room.y}%` }}
             >
               <span
-                className="flex h-[132px] w-[132px] items-center justify-center rounded-full border-4 border-white/70 text-2xl font-bold text-white shadow-lg"
+                className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-white/70 text-xs font-bold text-white shadow-lg"
                 style={{ backgroundColor: waitColor(room.waitMinutes) }}
               >
                 {room.waitMinutes}分
               </span>
-              <span className="mt-2 max-w-[180px] truncate rounded bg-black/60 px-2 py-0.5 text-base text-white">
+              <span className="mt-1 max-w-[70px] truncate rounded bg-black/60 px-1 text-[9px] text-white">
                 {room.name}
               </span>
             </button>
@@ -71,7 +71,7 @@ function MapContent() {
             <button
               key={area.id}
               onClick={() => setActiveArea(area.id)}
-              className={`rounded-full border px-2 py-2 text-xs font-bold backdrop-blur-sm transition-transform active:scale-90 ${
+              className={`flex h-28 items-center justify-center rounded-full border px-2 text-xs font-bold backdrop-blur-sm transition-transform active:scale-90 ${
                 activeArea === area.id
                   ? "border-white/40 bg-white/20 text-white"
                   : "border-white/10 bg-black/30 text-zinc-300"
