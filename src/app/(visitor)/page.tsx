@@ -23,20 +23,21 @@ export default function VisitorHome() {
         <CampusMap />
       </section>
 
-      {/* 現在・次のイベント（小さめ表示） */}
+      {/* 現在・次のイベント */}
       <section
-        className="animate-fade-in-up mb-6 space-y-1.5 rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs"
+        className="animate-fade-in-up mb-6 rounded-2xl border border-white/15 bg-white/5 p-4"
         style={{ animationDelay: "120ms" }}
       >
-        <div className="flex items-center gap-2">
-          <span className="shrink-0 rounded-full border border-white/40 px-1.5 py-0.5 font-bold text-white">
+        <div className="mb-2 flex items-center gap-2">
+          <span className="shrink-0 rounded-full border border-white bg-white/10 px-2 py-0.5 text-xs font-bold text-white">
             Now
           </span>
-          <span className="text-zinc-400">{currentEvent.time}</span>
-          <span className="truncate font-bold">{currentEvent.title}</span>
-          <span className="ml-auto shrink-0 text-zinc-500">@{currentEvent.venue}</span>
+          <span className="text-sm text-zinc-300">{currentEvent.time}</span>
         </div>
-        <div className="flex items-center gap-2">
+        <p className="mb-3 truncate text-xl font-bold">{currentEvent.title}</p>
+        <p className="mb-3 text-xs text-zinc-500">@{currentEvent.venue}</p>
+
+        <div className="flex items-center gap-2 border-t border-white/10 pt-2 text-xs">
           <span className="shrink-0 rounded-full border border-white/15 px-1.5 py-0.5 text-zinc-400">
             Next
           </span>
@@ -44,7 +45,7 @@ export default function VisitorHome() {
           <span className="truncate font-bold">{nextEvent.title}</span>
           <span className="ml-auto shrink-0 text-zinc-500">@{nextEvent.venue}</span>
         </div>
-        <Link href="/timeline" className="block pt-0.5 text-right text-zinc-300 underline">
+        <Link href="/timeline" className="block pt-2 text-right text-xs text-zinc-300 underline">
           タイムテーブルを見る →
         </Link>
       </section>
@@ -70,27 +71,38 @@ export default function VisitorHome() {
         </Link>
       </section>
 
-      {/* スタンプラリー進捗 */}
+      {/* スタンプラリー */}
       <section
         className="animate-fade-in-up mb-8 rounded-2xl border border-white/10 bg-white/5 p-4"
         style={{ animationDelay: "200ms" }}
       >
-        <div className="mb-2 flex items-center justify-between">
+        <div className="mb-3 flex items-center justify-between">
           <p className="text-sm font-bold">スタンプラリー</p>
           <p className="text-xs text-zinc-400">あと4個</p>
         </div>
-        <div className="h-2 w-full overflow-hidden rounded-full border border-white/15 bg-white/5">
-          <div
-            className="h-full rounded-full bg-white transition-[width] duration-500"
-            style={{ width: "40%" }}
-          />
-        </div>
+
         <Link
           href="/stamp"
-          className="mt-3 inline-block w-full rounded-xl border border-white/30 bg-white/5 py-2.5 text-center text-sm font-bold text-white transition-transform active:scale-95"
+          className="mb-3 block w-full rounded-xl border border-white/30 bg-white/5 py-2.5 text-center text-sm font-bold text-white transition-transform active:scale-95"
         >
           QRコードをスキャン
         </Link>
+
+        {/* スタンプカード（デザインは仮） */}
+        <div className="grid grid-cols-5 gap-2 rounded-xl border border-white/10 bg-black/20 p-3">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <div
+              key={i}
+              className={`flex aspect-square items-center justify-center rounded-full border text-sm grayscale ${
+                i < 6
+                  ? "border-white/50 bg-white/15"
+                  : "border-white/10 bg-white/5 opacity-40"
+              }`}
+            >
+              {i < 6 ? "🎫" : ""}
+            </div>
+          ))}
+        </div>
       </section>
     </div>
   );

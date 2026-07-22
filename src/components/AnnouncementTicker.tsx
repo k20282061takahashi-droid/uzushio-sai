@@ -22,16 +22,16 @@ export default function AnnouncementTicker() {
   return (
     <Link
       href="/announcements"
-      className="flex h-9 items-center gap-2 overflow-hidden rounded-full border border-white/20 bg-white/5 px-3 text-xs transition-transform active:scale-95"
+      className="flex items-center gap-3 overflow-hidden rounded-2xl border border-white/20 bg-white/5 px-4 py-3 transition-transform active:scale-95"
     >
-      <span className="shrink-0 rounded-full border border-white/30 px-2 py-0.5 font-bold text-white">
+      <span className="shrink-0 rounded-full border border-white/30 px-2 py-1 text-xs font-bold text-white">
         お知らせ
       </span>
-      <span className="relative h-4 flex-1 overflow-hidden">
+      <span className="relative h-11 flex-1 overflow-hidden">
         {announcements.map((text, i) => (
           <span
             key={text}
-            className="absolute inset-0 flex items-center truncate transition-transform duration-500 ease-in-out"
+            className="absolute inset-0 flex items-center text-sm font-bold leading-tight transition-transform duration-500 ease-in-out"
             style={{
               transform: `translateY(${(i - index) * 100}%)`,
             }}
