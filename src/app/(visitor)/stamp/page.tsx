@@ -1,18 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { STAMP_TOTAL, STAMP_COLLECTED, STAMP_HINTS } from "@/lib/stampData";
 
-const total = 10;
-const collected = 6;
-
-// 未取得のスタンプに表示する、うっすらとした場所のヒント
-const hints = [
-  "", "", "", "", "", "",
-  "高校棟 4F",
-  "中学棟 4F",
-  "校庭",
-  "体育館",
-];
+const total = STAMP_TOTAL;
+const collected = STAMP_COLLECTED;
+const hints = STAMP_HINTS;
 
 export default function StampPage() {
   const [scanning, setScanning] = useState(false);

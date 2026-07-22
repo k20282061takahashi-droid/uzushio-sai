@@ -143,7 +143,7 @@ export default function PannableZoom({
       {transform.scale > 1 && (
         <button
           onClick={() => setTransform({ scale: 1, x: 0, y: 0 })}
-          className="absolute bottom-2 right-2 z-10 rounded-full border border-white/30 bg-black/60 px-2.5 py-1 text-[10px] text-white"
+          className="absolute bottom-2 left-2 z-10 rounded-full border border-white/30 bg-black/60 px-2.5 py-1 text-[10px] text-white"
         >
           リセット
         </button>

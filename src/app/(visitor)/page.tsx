@@ -1,9 +1,11 @@
 import Link from "next/link";
 import AnnouncementTicker from "@/components/AnnouncementTicker";
 import CampusMap from "@/components/CampusMap";
+import { STAMP_TOTAL, STAMP_COLLECTED } from "@/lib/stampData";
 
 const currentEvent = { time: "〜9:50", title: "吹奏楽部 演奏会", venue: "体育館" };
 const nextEvent = { time: "10:00〜10:50", title: "有志ダンス", venue: "体育館" };
+const stampProgress = Math.round((STAMP_COLLECTED / STAMP_TOTAL) * 100);
 
 export default function VisitorHome() {
   return (
@@ -76,9 +78,18 @@ export default function VisitorHome() {
         className="animate-fade-in-up mb-8 rounded-2xl border border-white/10 bg-white/5 p-4"
         style={{ animationDelay: "200ms" }}
       >
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-2 flex items-center justify-between">
           <p className="text-sm font-bold">スタンプラリー</p>
-          <p className="text-xs text-zinc-400">あと4個</p>
+          <p className="text-xs text-zinc-400">
+            {STAMP_COLLECTED} / {STAMP_TOTAL} 個
+          </p>
+        </div>
+
+        <div className="mb-3 h-1.5 w-full overflow-hidden rounded-full border border-white/15 bg-white/5">
+          <div
+            className="h-full rounded-full bg-white transition-[width] duration-500"
+            style={{ width: `${stampProgress}%` }}
+          />
         </div>
 
         <Link
@@ -90,16 +101,16 @@ export default function VisitorHome() {
 
         {/* スタンプカード（デザインは仮） */}
         <div className="grid grid-cols-5 gap-2 rounded-xl border border-white/10 bg-black/20 p-3">
-          {Array.from({ length: 10 }).map((_, i) => (
+          {Array.from({ length: STAMP_TOTAL }).map((_, i) => (
             <div
               key={i}
               className={`flex aspect-square items-center justify-center rounded-full border text-sm grayscale ${
-                i < 6
+                i < STAMP_COLLECTED
                   ? "border-white/50 bg-white/15"
                   : "border-white/10 bg-white/5 opacity-40"
               }`}
             >
-              {i < 6 ? "🎫" : ""}
+              {i < STAMP_COLLECTED ? "🎫" : ""}
             </div>
           ))}
         </div>
