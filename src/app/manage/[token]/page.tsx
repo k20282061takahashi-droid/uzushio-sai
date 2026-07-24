@@ -11,7 +11,6 @@ import {
   getAnnouncements,
   getBoothByToken,
   registerLostItem,
-  sendEmergencyAlert,
   updateBooth,
   uploadSignboardImage,
 } from "@/lib/booth";
@@ -28,15 +27,62 @@ function visitorStatusLabel(booth: Booth): string {
   return "開催中";
 }
 
+function AnnouncementBoard({ announcements }: { announcements: Announcement[] }) {
+  const pinned = announcements.filter((a) => a.pinned);
+  const latest = announcements.slice(0, 3);
+  const [tickerIndex, setTickerIndex] = useState(0);
+
+  useEffect(() => {
+    if (latest.length <= 1) return;
+    const timer = setInterval(() => {
+      setTickerIndex((i) => (i + 1) % latest.length);
+    }, 3200);
+    return () => clearInterval(timer);
+  }, [latest.length]);
+
+  if (announcements.length === 0) {
+    return <p className="text-xs text-slate-500">現在お知らせはありません</p>;
+  }
+
+  return (
+    <div>
+      {pinned.length > 0 && (
+        <ul className="mb-2 space-y-1">
+          {pinned.map((a) => (
+            <li key={a.id} className="flex items-start gap-1 text-sm">
+              <span className="shrink-0 text-amber-400">📌</span>
+              <span>{a.title}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {latest.length > 0 && (
+        <div className="relative h-6 overflow-hidden text-sm text-slate-300">
+          {latest.map((a, i) => (
+            <span
+              key={a.id}
+              className="absolute inset-0 flex items-center transition-transform duration-500 ease-in-out"
+              style={{ transform: `translateY(${(i - tickerIndex) * 100}%)` }}
+            >
+              {a.title}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function BoothManagePage() {
   const params = useParams<{ token: string }>();
   const token = params.token;
 
   const [booth, setBooth] = useState<Booth | null | undefined>(undefined);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [showAllAnnouncements, setShowAllAnnouncements] = useState(false);
+  const [view, setView] = useState<"before" | "during">("before");
 
   // セットアップ用フォーム
+  const [projectName, setProjectName] = useState("");
   const [description, setDescription] = useState("");
   const [genre, setGenre] = useState<BoothGenre | "">("");
   const [timePerGroup, setTimePerGroup] = useState<number | "">("");
@@ -53,20 +99,17 @@ export default function BoothManagePage() {
   const [lostItemSaving, setLostItemSaving] = useState(false);
   const [lostItemSaved, setLostItemSaved] = useState(false);
 
-  const [emergencyOpen, setEmergencyOpen] = useState(false);
-  const [emergencyMessage, setEmergencyMessage] = useState("");
-  const [emergencySending, setEmergencySending] = useState(false);
-  const [emergencySent, setEmergencySent] = useState(false);
-
   useEffect(() => {
     if (!token) return;
     getBoothByToken(token).then((b) => {
       setBooth(b);
       if (b) {
+        setProjectName(b.projectName ?? "");
         setDescription(b.description);
         setGenre(b.genre ?? "");
         setTimePerGroup(b.timePerGroup ?? "");
         setWaitingGroups(b.waitingGroups ?? 0);
+        setView(b.isSetupDone ? "during" : "before");
       }
     });
     getAnnouncements().then(setAnnouncements);
@@ -75,8 +118,10 @@ export default function BoothManagePage() {
   async function saveSetup() {
     if (!booth) return;
     setSavingSetup(true);
-    const isSetupDone = description.trim() !== "" && genre !== "";
+    const isSetupDone =
+      projectName.trim() !== "" && description.trim() !== "" && genre !== "";
     const fields = {
+      projectName,
       description,
       genre: genre === "" ? null : genre,
       timePerGroup: timePerGroup === "" ? null : timePerGroup,
@@ -85,6 +130,7 @@ export default function BoothManagePage() {
     await updateBooth(booth.id, fields);
     setBooth({ ...booth, ...fields });
     setSavingSetup(false);
+    if (isSetupDone) setView("during");
   }
 
   async function handleSignboardChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -130,20 +176,6 @@ export default function BoothManagePage() {
     setLostItemDescription("");
   }
 
-  async function submitEmergency() {
-    if (!booth) return;
-    setEmergencySending(true);
-    await sendEmergencyAlert({
-      boothId: booth.id,
-      boothName: booth.name,
-      message: emergencyMessage,
-    });
-    setEmergencySending(false);
-    setEmergencySent(true);
-    setEmergencyOpen(false);
-    setEmergencyMessage("");
-  }
-
   if (booth === undefined) {
     return (
       <div className="mx-auto max-w-md px-4 pt-8 text-white">
@@ -164,54 +196,49 @@ export default function BoothManagePage() {
 
   return (
     <div className="mx-auto max-w-md px-4 pb-16 pt-8 text-white">
-      <h1 className="mb-1 text-2xl font-bold">渦潮祭</h1>
-      <p className="mb-2 text-xs text-slate-500">企画管理者用</p>
-      <p className="mb-4 text-lg font-semibold">{booth.name}</p>
-
-      {/* 運営からの連絡 */}
-      <section className="mb-4 rounded-xl border border-white/10 bg-white/5 p-4">
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-slate-300">運営からの連絡</h2>
-          {!showAllAnnouncements && announcements.length > 1 && (
-            <button
-              onClick={() => setShowAllAnnouncements(true)}
-              className="text-xs text-slate-400"
-            >
-              +{announcements.length - 1}
-            </button>
-          )}
+      <div className="mb-4 flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">渦潮祭</h1>
+          <p className="text-xs text-slate-500">企画管理者用</p>
+          <p className="mt-2 text-sm text-slate-400">クラス {booth.name}</p>
         </div>
-        {showAllAnnouncements && (
+        <div className="flex shrink-0 gap-1">
           <button
-            onClick={() => setShowAllAnnouncements(false)}
-            className="mb-2 text-xs text-slate-400"
+            onClick={() => setView("before")}
+            className={`rounded-lg px-2 py-1 text-xs font-semibold ${view === "before" ? "bg-white text-slate-950" : "bg-white/10 text-slate-300"}`}
           >
-            ← Back
+            前
           </button>
-        )}
-        {announcements.length === 0 ? (
-          <p className="text-xs text-slate-500">現在お知らせはありません</p>
-        ) : (
-          <ul className="space-y-2 text-sm">
-            {(showAllAnnouncements ? announcements : announcements.slice(0, 1)).map(
-              (a) => (
-                <li key={a.id} className="border-b border-white/5 pb-2 last:border-0">
-                  <div className="flex justify-between gap-2">
-                    <p className="font-medium">{a.title || a.body}</p>
-                  </div>
-                  {a.title && <p className="text-xs text-slate-400">{a.body}</p>}
-                </li>
-              ),
-            )}
-          </ul>
-        )}
+          <button
+            onClick={() => setView("during")}
+            className={`rounded-lg px-2 py-1 text-xs font-semibold ${view === "during" ? "bg-white text-slate-950" : "bg-white/10 text-slate-300"}`}
+          >
+            中
+          </button>
+        </div>
+      </div>
+
+      <section className="mb-4 rounded-xl border border-white/10 bg-white/5 p-4">
+        <h2 className="mb-2 text-sm font-semibold text-slate-300">運営からの連絡</h2>
+        <AnnouncementBoard announcements={announcements} />
       </section>
 
-      {!booth.isSetupDone ? (
+      {view === "before" ? (
         <section className="mb-4 rounded-xl border border-amber-400/30 bg-amber-400/10 p-4">
           <h2 className="mb-3 text-sm font-semibold text-amber-200">
             企画情報の設定
           </h2>
+
+          <label className="mb-3 block">
+            <span className="mb-1 block text-xs text-slate-400">企画名</span>
+            <input
+              type="text"
+              value={projectName}
+              onChange={(e) => setProjectName(e.target.value)}
+              placeholder="例）壊れるローラーコースター"
+              className="w-full rounded-lg border border-white/10 bg-slate-900 p-2 text-sm"
+            />
+          </label>
 
           {booth.hasWaiting && (
             <label className="mb-3 block">
@@ -256,11 +283,10 @@ export default function BoothManagePage() {
                 />
               </label>
             </div>
-            <p className="text-[10px] text-slate-500">ロックされていません</p>
           </div>
 
           <div className="mb-3 flex justify-between text-sm">
-            <span className="text-xs text-slate-400">企画名</span>
+            <span className="text-xs text-slate-400">クラス名</span>
             <span>{booth.name}</span>
           </div>
 
@@ -307,22 +333,22 @@ export default function BoothManagePage() {
           </div>
 
           {booth.hasWaiting && (
-            <div className="mb-4 flex items-center justify-center gap-6">
+            <div className="mb-4 flex items-center justify-between gap-3">
               <button
                 onClick={() => adjustWaiting(-1)}
                 disabled={savingWait || booth.status !== "open"}
-                className="h-12 w-12 rounded-lg bg-white/10 text-xl active:scale-95 disabled:opacity-40"
+                className="h-24 w-24 shrink-0 rounded-2xl bg-white/10 text-4xl font-bold active:scale-95 disabled:opacity-40"
               >
                 −
               </button>
-              <div className="text-center">
-                <p className="text-xs text-slate-500">待ち</p>
-                <p className="text-5xl font-bold">{waitingGroups}</p>
+              <div className="flex-1 text-center">
+                <p className="text-xs text-slate-500">待っているグループ数</p>
+                <p className="text-8xl font-bold tabular-nums">{waitingGroups}</p>
               </div>
               <button
                 onClick={() => adjustWaiting(1)}
                 disabled={savingWait || booth.status !== "open"}
-                className="h-12 w-12 rounded-lg bg-white/10 text-xl active:scale-95 disabled:opacity-40"
+                className="h-24 w-24 shrink-0 rounded-2xl bg-white/10 text-4xl font-bold active:scale-95 disabled:opacity-40"
               >
                 ＋
               </button>
@@ -333,7 +359,7 @@ export default function BoothManagePage() {
             <button
               onClick={() => setConfirmClose(true)}
               disabled={changingStatus || booth.status === "closed"}
-              className="flex-1 rounded-lg bg-red-500/20 p-2 text-sm font-semibold text-red-200 active:scale-95 disabled:opacity-40"
+              className="flex-1 rounded-lg bg-red-500/20 p-3 text-sm font-semibold text-red-200 active:scale-95 disabled:opacity-40"
             >
               終了
             </button>
@@ -341,7 +367,7 @@ export default function BoothManagePage() {
               <button
                 onClick={() => changeStatus("open")}
                 disabled={changingStatus}
-                className="flex-1 rounded-lg bg-emerald-500/20 p-2 text-sm font-semibold text-emerald-200 active:scale-95"
+                className="flex-1 rounded-lg bg-emerald-500/20 p-3 text-sm font-semibold text-emerald-200 active:scale-95"
               >
                 再開
               </button>
@@ -349,7 +375,7 @@ export default function BoothManagePage() {
               <button
                 onClick={() => changeStatus("break")}
                 disabled={changingStatus || booth.status !== "open"}
-                className="flex-1 rounded-lg bg-white/10 p-2 text-sm font-semibold active:scale-95 disabled:opacity-40"
+                className="flex-1 rounded-lg bg-white/10 p-3 text-sm font-semibold active:scale-95 disabled:opacity-40"
               >
                 一時休憩
               </button>
@@ -420,49 +446,6 @@ export default function BoothManagePage() {
           )}
         </section>
       )}
-
-      <section className="rounded-xl border border-red-500/30 bg-red-500/10 p-4">
-        <h2 className="mb-2 text-sm font-semibold text-red-200">緊急連絡</h2>
-        {emergencySent && !emergencyOpen && (
-          <p className="mb-2 text-xs text-emerald-400">運営へ通知を送信しました</p>
-        )}
-        {emergencyOpen ? (
-          <div>
-            <textarea
-              value={emergencyMessage}
-              onChange={(e) => setEmergencyMessage(e.target.value)}
-              rows={3}
-              placeholder="状況を簡潔に入力してください（空欄でも送信できます）"
-              className="mb-2 w-full rounded-lg border border-white/10 bg-slate-900 p-2 text-sm"
-            />
-            <div className="flex gap-2">
-              <button
-                onClick={submitEmergency}
-                disabled={emergencySending}
-                className="flex-1 rounded-lg bg-red-500 p-2 text-sm font-semibold text-white active:scale-95 disabled:opacity-50"
-              >
-                {emergencySending ? "送信中..." : "運営へ送信する"}
-              </button>
-              <button
-                onClick={() => setEmergencyOpen(false)}
-                className="rounded-lg bg-white/10 p-2 px-4 text-sm active:scale-95"
-              >
-                キャンセル
-              </button>
-            </div>
-          </div>
-        ) : (
-          <button
-            onClick={() => {
-              setEmergencyOpen(true);
-              setEmergencySent(false);
-            }}
-            className="w-full rounded-lg bg-red-500 p-3 text-sm font-semibold text-white active:scale-95"
-          >
-            緊急連絡ボタン
-          </button>
-        )}
-      </section>
     </div>
   );
 }

@@ -55,7 +55,8 @@ export type BoothStatus = "open" | "break" | "closed";
 
 export type Booth = {
   id: string;
-  name: string;
+  name: string; // クラス名・団体名
+  projectName: string | null; // 企画名
   type: BoothType;
   status: BoothStatus;
   accessToken: string;
@@ -83,6 +84,7 @@ export async function getBoothByToken(token: string): Promise<Booth | null> {
   return {
     id: d.id,
     name: data.name ?? "",
+    projectName: data.projectName ?? null,
     type: data.type,
     status: (data.status as BoothStatus) ?? "open",
     accessToken: data.accessToken,
@@ -110,6 +112,7 @@ export async function updateBooth(
       | "isSetupDone"
       | "status"
       | "signboardUrl"
+      | "projectName"
     >
   >,
 ) {
@@ -126,20 +129,6 @@ export async function uploadSignboardImage(
   const fileRef = ref(storage, `booths/${boothId}/signboard`);
   await uploadBytes(fileRef, file);
   return getDownloadURL(fileRef);
-}
-
-export type EmergencyAlert = {
-  boothId: string;
-  boothName: string;
-  message: string;
-};
-
-export async function sendEmergencyAlert(alert: EmergencyAlert) {
-  await addDoc(collection(db, "emergencyAlerts"), {
-    ...alert,
-    status: "open",
-    createdAt: serverTimestamp(),
-  });
 }
 
 export type LostItem = {
@@ -160,6 +149,7 @@ export type Announcement = {
   id: string;
   title: string;
   body: string;
+  pinned: boolean;
 };
 
 export async function getAnnouncements(): Promise<Announcement[]> {
@@ -168,6 +158,11 @@ export async function getAnnouncements(): Promise<Announcement[]> {
   );
   return snap.docs.map((d) => {
     const data = d.data();
-    return { id: d.id, title: data.title ?? "", body: data.body ?? "" };
+    return {
+      id: d.id,
+      title: data.title ?? "",
+      body: data.body ?? "",
+      pinned: !!data.pinned,
+    };
   });
 }
