@@ -198,9 +198,11 @@ export default function BoothManagePage() {
     <div className="mx-auto max-w-md px-4 pb-16 pt-8 text-white">
       <div className="mb-4 flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold">渦潮祭</h1>
+          <h1 className="text-sm font-bold text-slate-300">渦潮祭</h1>
           <p className="text-xs text-slate-500">企画管理者用</p>
-          <p className="mt-2 text-sm text-slate-400">クラス {booth.name}</p>
+          <p className="mt-1 text-3xl font-bold tracking-tight text-white">
+            {booth.name}
+          </p>
         </div>
         <div className="flex shrink-0 gap-1">
           <button
@@ -285,11 +287,6 @@ export default function BoothManagePage() {
             </div>
           </div>
 
-          <div className="mb-3 flex justify-between text-sm">
-            <span className="text-xs text-slate-400">クラス名</span>
-            <span>{booth.name}</span>
-          </div>
-
           <label className="mb-3 block">
             <span className="mb-1 block text-xs text-slate-400">カテゴリー</span>
             <select
@@ -363,7 +360,7 @@ export default function BoothManagePage() {
             >
               終了
             </button>
-            {booth.status === "break" ? (
+            {booth.status === "break" || booth.status === "closed" ? (
               <button
                 onClick={() => changeStatus("open")}
                 disabled={changingStatus}
