@@ -8,8 +8,8 @@ import {
   BoothGenre,
   BoothStatus,
   GENRE_LABELS,
-  getAnnouncements,
   getBoothByToken,
+  getStaffAnnouncements,
   registerLostItem,
   updateBooth,
   uploadSignboardImage,
@@ -73,6 +73,28 @@ function AnnouncementBoard({ announcements }: { announcements: Announcement[] })
   );
 }
 
+function Modal({
+  children,
+  onClose,
+}: {
+  children: React.ReactNode;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-sm rounded-xl bg-slate-900 p-4 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
 export default function BoothManagePage() {
   const params = useParams<{ token: string }>();
   const token = params.token;
@@ -96,6 +118,10 @@ export default function BoothManagePage() {
 
   const [lostItemOpen, setLostItemOpen] = useState(false);
   const [lostItemDescription, setLostItemDescription] = useState("");
+  const [lostItemFoundLocation, setLostItemFoundLocation] = useState("");
+  const [lostItemStorageLocation, setLostItemStorageLocation] = useState("");
+  const [lostItemPhoto, setLostItemPhoto] = useState<File | null>(null);
+  const [lostItemPhotoPreview, setLostItemPhotoPreview] = useState<string | null>(null);
   const [lostItemSaving, setLostItemSaving] = useState(false);
   const [lostItemSaved, setLostItemSaved] = useState(false);
 
@@ -112,7 +138,7 @@ export default function BoothManagePage() {
         setView(b.isSetupDone ? "during" : "before");
       }
     });
-    getAnnouncements().then(setAnnouncements);
+    getStaffAnnouncements().then(setAnnouncements);
   }, [token]);
 
   async function saveSetup() {
@@ -162,18 +188,39 @@ export default function BoothManagePage() {
     setConfirmClose(false);
   }
 
+  function openLostItemModal() {
+    setLostItemDescription("");
+    setLostItemFoundLocation("");
+    setLostItemStorageLocation("");
+    setLostItemPhoto(null);
+    setLostItemPhotoPreview(null);
+    setLostItemSaved(false);
+    setLostItemOpen(true);
+  }
+
+  function handleLostItemPhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0] ?? null;
+    setLostItemPhoto(file);
+    setLostItemPhotoPreview(file ? URL.createObjectURL(file) : null);
+  }
+
   async function submitLostItem() {
     if (!booth) return;
     setLostItemSaving(true);
-    await registerLostItem({
-      boothId: booth.id,
-      boothName: booth.name,
-      description: lostItemDescription,
-    });
+    await registerLostItem(
+      {
+        boothId: booth.id,
+        boothName: booth.name,
+        description: lostItemDescription,
+        foundLocation: lostItemFoundLocation,
+        storageLocation: lostItemStorageLocation,
+        photoUrl: null,
+      },
+      lostItemPhoto,
+    );
     setLostItemSaving(false);
     setLostItemSaved(true);
     setLostItemOpen(false);
-    setLostItemDescription("");
   }
 
   if (booth === undefined) {
@@ -204,16 +251,24 @@ export default function BoothManagePage() {
             {booth.name}
           </p>
         </div>
-        <div className="flex shrink-0 gap-1">
+        <div className="flex shrink-0 items-center gap-1">
           <button
             onClick={() => setView("before")}
-            className={`rounded-lg px-2 py-1 text-xs font-semibold ${view === "before" ? "bg-white text-slate-950" : "bg-white/10 text-slate-300"}`}
+            className={
+              view === "before"
+                ? "rounded-lg bg-white px-3 py-2 text-sm font-bold text-slate-950"
+                : "rounded-lg bg-white/10 px-2 py-1 text-xs font-semibold text-slate-300"
+            }
           >
             前
           </button>
           <button
             onClick={() => setView("during")}
-            className={`rounded-lg px-2 py-1 text-xs font-semibold ${view === "during" ? "bg-white text-slate-950" : "bg-white/10 text-slate-300"}`}
+            className={
+              view === "during"
+                ? "rounded-lg bg-white px-3 py-2 text-sm font-bold text-slate-950"
+                : "rounded-lg bg-white/10 px-2 py-1 text-xs font-semibold text-slate-300"
+            }
           >
             中
           </button>
@@ -379,69 +434,120 @@ export default function BoothManagePage() {
             )}
           </div>
 
-          {confirmClose && (
-            <div className="mb-3 rounded-lg border border-red-500/30 bg-red-500/10 p-3">
-              <p className="mb-2 text-center text-sm font-semibold">
-                本当に終了しますか
-              </p>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => changeStatus("closed")}
-                  disabled={changingStatus}
-                  className="flex-1 rounded-lg bg-red-500 p-2 text-sm font-semibold text-white active:scale-95"
-                >
-                  終了
-                </button>
-                <button
-                  onClick={() => setConfirmClose(false)}
-                  className="flex-1 rounded-lg bg-white/10 p-2 text-sm active:scale-95"
-                >
-                  キャンセル
-                </button>
-              </div>
-            </div>
-          )}
-
-          {lostItemOpen ? (
-            <div>
-              <textarea
-                value={lostItemDescription}
-                onChange={(e) => setLostItemDescription(e.target.value)}
-                rows={2}
-                placeholder="拾得物の内容を入力してください"
-                className="mb-2 w-full rounded-lg border border-white/10 bg-slate-900 p-2 text-sm"
-              />
-              <div className="flex gap-2">
-                <button
-                  onClick={submitLostItem}
-                  disabled={lostItemSaving}
-                  className="flex-1 rounded-lg bg-amber-500/80 p-2 text-sm font-semibold text-slate-950 active:scale-95 disabled:opacity-50"
-                >
-                  {lostItemSaving ? "登録中..." : "登録する"}
-                </button>
-                <button
-                  onClick={() => setLostItemOpen(false)}
-                  className="rounded-lg bg-white/10 p-2 px-4 text-sm active:scale-95"
-                >
-                  キャンセル
-                </button>
-              </div>
-            </div>
-          ) : (
-            <button
-              onClick={() => {
-                setLostItemOpen(true);
-                setLostItemSaved(false);
-              }}
-              className="w-full rounded-lg bg-amber-500/20 p-2 text-sm font-semibold text-amber-200 active:scale-95"
-            >
-              落とし物登録
-            </button>
-          )}
-          {lostItemSaved && !lostItemOpen && (
+          <button
+            onClick={openLostItemModal}
+            className="w-full rounded-lg bg-amber-500/20 p-2 text-sm font-semibold text-amber-200 active:scale-95"
+          >
+            落とし物登録
+          </button>
+          {lostItemSaved && (
             <p className="mt-2 text-xs text-emerald-400">登録しました</p>
           )}
         </section>
+      )}
+
+      {confirmClose && (
+        <Modal onClose={() => setConfirmClose(false)}>
+          <p className="mb-4 text-center text-base font-semibold">
+            本当に終了しますか
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => changeStatus("closed")}
+              disabled={changingStatus}
+              className="flex-1 rounded-lg bg-red-500 p-3 text-sm font-semibold text-white active:scale-95"
+            >
+              終了
+            </button>
+            <button
+              onClick={() => setConfirmClose(false)}
+              className="flex-1 rounded-lg bg-white/10 p-3 text-sm active:scale-95"
+            >
+              キャンセル
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {lostItemOpen && (
+        <Modal onClose={() => setLostItemOpen(false)}>
+          <h2 className="mb-3 text-base font-semibold">落とし物登録</h2>
+
+          <label className="mb-3 block">
+            <span className="mb-1 block text-xs text-slate-400">画像</span>
+            <div className="flex items-center gap-2">
+              {lostItemPhotoPreview ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={lostItemPhotoPreview}
+                  alt="落とし物の画像"
+                  className="h-16 w-16 rounded-lg object-cover"
+                />
+              ) : (
+                <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-slate-800 text-[10px] text-slate-500">
+                  未設定
+                </div>
+              )}
+              <label className="cursor-pointer rounded-lg bg-white/10 px-3 py-2 text-xs">
+                画像を選択
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLostItemPhotoChange}
+                  className="hidden"
+                />
+              </label>
+            </div>
+          </label>
+
+          <label className="mb-3 block">
+            <span className="mb-1 block text-xs text-slate-400">内容</span>
+            <textarea
+              value={lostItemDescription}
+              onChange={(e) => setLostItemDescription(e.target.value)}
+              rows={2}
+              placeholder="拾得物の内容を入力してください"
+              className="w-full rounded-lg border border-white/10 bg-slate-800 p-2 text-sm"
+            />
+          </label>
+
+          <label className="mb-3 block">
+            <span className="mb-1 block text-xs text-slate-400">拾った場所</span>
+            <input
+              type="text"
+              value={lostItemFoundLocation}
+              onChange={(e) => setLostItemFoundLocation(e.target.value)}
+              className="w-full rounded-lg border border-white/10 bg-slate-800 p-2 text-sm"
+            />
+          </label>
+
+          <label className="mb-4 block">
+            <span className="mb-1 block text-xs text-slate-400">保管場所</span>
+            <input
+              type="text"
+              value={lostItemStorageLocation}
+              onChange={(e) => setLostItemStorageLocation(e.target.value)}
+              placeholder="例）本部"
+              className="w-full rounded-lg border border-white/10 bg-slate-800 p-2 text-sm"
+            />
+          </label>
+
+          <div className="flex gap-2">
+            <button
+              onClick={submitLostItem}
+              disabled={lostItemSaving}
+              className="flex-1 rounded-lg bg-amber-500/80 p-2 text-sm font-semibold text-slate-950 active:scale-95 disabled:opacity-50"
+            >
+              {lostItemSaving ? "登録中..." : "登録する"}
+            </button>
+            <button
+              onClick={() => setLostItemOpen(false)}
+              className="flex-1 rounded-lg bg-white/10 p-2 text-sm active:scale-95"
+            >
+              キャンセル
+            </button>
+          </div>
+        </Modal>
       )}
     </div>
   );

@@ -1,5 +1,4 @@
 import {
-  addDoc,
   collection,
   doc,
   getDocs,
@@ -7,6 +6,7 @@ import {
   orderBy,
   query,
   serverTimestamp,
+  setDoc,
   updateDoc,
   where,
 } from "firebase/firestore";
@@ -135,11 +135,26 @@ export type LostItem = {
   boothId: string;
   boothName: string;
   description: string;
+  foundLocation: string;
+  storageLocation: string;
+  photoUrl: string | null;
 };
 
-export async function registerLostItem(item: LostItem) {
-  await addDoc(collection(db, "lostItems"), {
+export async function uploadLostItemImage(
+  lostItemId: string,
+  file: File,
+): Promise<string> {
+  const fileRef = ref(storage, `lostItems/${lostItemId}/photo`);
+  await uploadBytes(fileRef, file);
+  return getDownloadURL(fileRef);
+}
+
+export async function registerLostItem(item: LostItem, photo: File | null) {
+  const docRef = doc(collection(db, "lostItems"));
+  const photoUrl = photo ? await uploadLostItemImage(docRef.id, photo) : null;
+  await setDoc(docRef, {
     ...item,
+    photoUrl,
     status: "unclaimed",
     createdAt: serverTimestamp(),
   });
@@ -152,9 +167,10 @@ export type Announcement = {
   pinned: boolean;
 };
 
-export async function getAnnouncements(): Promise<Announcement[]> {
+// 企画担当者向けの連絡。来場者アプリの「お知らせ」（announcementsコレクション）とは別物。
+export async function getStaffAnnouncements(): Promise<Announcement[]> {
   const snap = await getDocs(
-    query(collection(db, "announcements"), orderBy("createdAt", "desc"), limit(20)),
+    query(collection(db, "staffAnnouncements"), orderBy("createdAt", "desc"), limit(20)),
   );
   return snap.docs.map((d) => {
     const data = d.data();
