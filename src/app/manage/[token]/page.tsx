@@ -7,10 +7,12 @@ import {
   Booth,
   BoothGenre,
   BoothStatus,
+  FestivalPhase,
   GENRE_LABELS,
   getBoothByToken,
   getStaffAnnouncements,
   registerLostItem,
+  subscribeFestivalPhase,
   updateBooth,
   uploadSignboardImage,
 } from "@/lib/booth";
@@ -27,7 +29,13 @@ function visitorStatusLabel(booth: Booth): string {
   return "開催中";
 }
 
-function AnnouncementBoard({ announcements }: { announcements: Announcement[] }) {
+function AnnouncementBoard({
+  announcements,
+  onOpenList,
+}: {
+  announcements: Announcement[];
+  onOpenList: () => void;
+}) {
   const pinned = announcements.filter((a) => a.pinned);
   const latest = announcements.slice(0, 3);
   const [tickerIndex, setTickerIndex] = useState(0);
@@ -45,7 +53,7 @@ function AnnouncementBoard({ announcements }: { announcements: Announcement[] })
   }
 
   return (
-    <div>
+    <button onClick={onOpenList} className="w-full text-left">
       {pinned.length > 0 && (
         <ul className="mb-2 space-y-1">
           {pinned.map((a) => (
@@ -69,7 +77,7 @@ function AnnouncementBoard({ announcements }: { announcements: Announcement[] })
           ))}
         </div>
       )}
-    </div>
+    </button>
   );
 }
 
@@ -86,7 +94,7 @@ function Modal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-sm rounded-xl bg-slate-900 p-4 shadow-xl"
+        className="max-h-[85vh] w-full max-w-sm overflow-y-auto rounded-xl bg-slate-900 p-4 shadow-xl sm:max-w-md"
         onClick={(e) => e.stopPropagation()}
       >
         {children}
@@ -101,7 +109,8 @@ export default function BoothManagePage() {
 
   const [booth, setBooth] = useState<Booth | null | undefined>(undefined);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [view, setView] = useState<"before" | "during">("before");
+  const [announcementListOpen, setAnnouncementListOpen] = useState(false);
+  const [festivalPhase, setFestivalPhase] = useState<FestivalPhase>("before");
 
   // セットアップ用フォーム
   const [projectName, setProjectName] = useState("");
@@ -135,11 +144,16 @@ export default function BoothManagePage() {
         setGenre(b.genre ?? "");
         setTimePerGroup(b.timePerGroup ?? "");
         setWaitingGroups(b.waitingGroups ?? 0);
-        setView(b.isSetupDone ? "during" : "before");
       }
     });
     getStaffAnnouncements().then(setAnnouncements);
+    const unsubscribe = subscribeFestivalPhase(setFestivalPhase);
+    return unsubscribe;
   }, [token]);
+
+  // 運営の全体スイッチで自動的に切り替わる。文化祭前は常に設定画面、
+  // 文化祭中は設定が未完了でも強制的に運用画面を表示する。
+  const view = festivalPhase === "during" ? "during" : "before";
 
   async function saveSetup() {
     if (!booth) return;
@@ -156,7 +170,6 @@ export default function BoothManagePage() {
     await updateBooth(booth.id, fields);
     setBooth({ ...booth, ...fields });
     setSavingSetup(false);
-    if (isSetupDone) setView("during");
   }
 
   async function handleSignboardChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -242,47 +255,26 @@ export default function BoothManagePage() {
   }
 
   return (
-    <div className="mx-auto max-w-md px-4 pb-16 pt-8 text-white">
-      <div className="mb-4 flex items-start justify-between">
-        <div>
-          <h1 className="text-sm font-bold text-slate-300">渦潮祭</h1>
-          <p className="text-xs text-slate-500">企画管理者用</p>
-          <p className="mt-1 text-3xl font-bold tracking-tight text-white">
-            {booth.name}
-          </p>
-        </div>
-        <div className="flex shrink-0 items-center gap-1">
-          <button
-            onClick={() => setView("before")}
-            className={
-              view === "before"
-                ? "rounded-lg bg-white px-3 py-2 text-sm font-bold text-slate-950"
-                : "rounded-lg bg-white/10 px-2 py-1 text-xs font-semibold text-slate-300"
-            }
-          >
-            前
-          </button>
-          <button
-            onClick={() => setView("during")}
-            className={
-              view === "during"
-                ? "rounded-lg bg-white px-3 py-2 text-sm font-bold text-slate-950"
-                : "rounded-lg bg-white/10 px-2 py-1 text-xs font-semibold text-slate-300"
-            }
-          >
-            中
-          </button>
-        </div>
+    <div className="mx-auto w-full max-w-md px-4 pb-16 pt-8 text-white sm:max-w-xl lg:max-w-3xl">
+      <div className="mb-4">
+        <h1 className="text-sm font-bold text-slate-300">渦潮祭</h1>
+        <p className="text-xs text-slate-500">企画管理者用</p>
+        <p className="mt-1 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+          {booth.name}
+        </p>
       </div>
 
       <section className="mb-4 rounded-xl border border-white/10 bg-white/5 p-4">
         <h2 className="mb-2 text-sm font-semibold text-slate-300">運営からの連絡</h2>
-        <AnnouncementBoard announcements={announcements} />
+        <AnnouncementBoard
+          announcements={announcements}
+          onOpenList={() => setAnnouncementListOpen(true)}
+        />
       </section>
 
       {view === "before" ? (
-        <section className="mb-4 rounded-xl border border-amber-400/30 bg-amber-400/10 p-4">
-          <h2 className="mb-3 text-sm font-semibold text-amber-200">
+        <section className="mb-4 rounded-xl border border-amber-400/30 bg-amber-400/10 p-4 sm:grid sm:grid-cols-2 sm:gap-x-6">
+          <h2 className="mb-3 text-sm font-semibold text-amber-200 sm:col-span-2">
             企画情報の設定
           </h2>
 
@@ -358,7 +350,7 @@ export default function BoothManagePage() {
             </select>
           </label>
 
-          <label className="mb-3 block">
+          <label className="mb-3 block sm:col-span-2">
             <span className="mb-1 block text-xs text-slate-400">詳細</span>
             <textarea
               value={description}
@@ -372,7 +364,7 @@ export default function BoothManagePage() {
           <button
             onClick={saveSetup}
             disabled={savingSetup}
-            className="w-full rounded-lg bg-white/10 p-2 text-sm font-semibold active:scale-95 disabled:opacity-50"
+            className="w-full rounded-lg bg-white/10 p-2 text-sm font-semibold active:scale-95 disabled:opacity-50 sm:col-span-2"
           >
             {savingSetup ? "保存中..." : "保存する"}
           </button>
@@ -385,29 +377,31 @@ export default function BoothManagePage() {
           </div>
 
           {booth.hasWaiting && (
-            <div className="mb-4 flex items-center justify-between gap-3">
+            <div className="mb-4 flex items-center justify-between gap-3 sm:justify-center sm:gap-10">
               <button
                 onClick={() => adjustWaiting(-1)}
                 disabled={savingWait || booth.status !== "open"}
-                className="h-24 w-24 shrink-0 rounded-2xl bg-white/10 text-4xl font-bold active:scale-95 disabled:opacity-40"
+                className="h-24 w-24 shrink-0 rounded-2xl bg-white/10 text-4xl font-bold active:scale-95 disabled:opacity-40 sm:h-32 sm:w-32 sm:text-5xl"
               >
                 −
               </button>
-              <div className="flex-1 text-center">
+              <div className="flex-1 text-center sm:flex-none">
                 <p className="text-xs text-slate-500">待っているグループ数</p>
-                <p className="text-8xl font-bold tabular-nums">{waitingGroups}</p>
+                <p className="text-8xl font-bold tabular-nums sm:text-9xl">
+                  {waitingGroups}
+                </p>
               </div>
               <button
                 onClick={() => adjustWaiting(1)}
                 disabled={savingWait || booth.status !== "open"}
-                className="h-24 w-24 shrink-0 rounded-2xl bg-white/10 text-4xl font-bold active:scale-95 disabled:opacity-40"
+                className="h-24 w-24 shrink-0 rounded-2xl bg-white/10 text-4xl font-bold active:scale-95 disabled:opacity-40 sm:h-32 sm:w-32 sm:text-5xl"
               >
                 ＋
               </button>
             </div>
           )}
 
-          <div className="mb-3 flex gap-2">
+          <div className="mb-3 flex flex-col gap-2 sm:grid sm:grid-cols-3">
             <button
               onClick={() => setConfirmClose(true)}
               disabled={changingStatus || booth.status === "closed"}
@@ -432,14 +426,13 @@ export default function BoothManagePage() {
                 一時休憩
               </button>
             )}
+            <button
+              onClick={openLostItemModal}
+              className="flex-1 rounded-lg bg-amber-500/20 p-3 text-sm font-semibold text-amber-200 active:scale-95"
+            >
+              落とし物登録
+            </button>
           </div>
-
-          <button
-            onClick={openLostItemModal}
-            className="w-full rounded-lg bg-amber-500/20 p-2 text-sm font-semibold text-amber-200 active:scale-95"
-          >
-            落とし物登録
-          </button>
           {lostItemSaved && (
             <p className="mt-2 text-xs text-emerald-400">登録しました</p>
           )}
@@ -466,6 +459,27 @@ export default function BoothManagePage() {
               キャンセル
             </button>
           </div>
+        </Modal>
+      )}
+
+      {announcementListOpen && (
+        <Modal onClose={() => setAnnouncementListOpen(false)}>
+          <h2 className="mb-3 text-base font-semibold">運営からの連絡一覧</h2>
+          {announcements.length === 0 ? (
+            <p className="text-xs text-slate-500">現在お知らせはありません</p>
+          ) : (
+            <ul className="space-y-3">
+              {announcements.map((a) => (
+                <li key={a.id} className="border-b border-white/10 pb-2 last:border-0">
+                  <p className="flex items-start gap-1 text-sm font-medium">
+                    {a.pinned && <span className="shrink-0 text-amber-400">📌</span>}
+                    <span>{a.title}</span>
+                  </p>
+                  {a.body && <p className="mt-1 text-xs text-slate-400">{a.body}</p>}
+                </li>
+              ))}
+            </ul>
+          )}
         </Modal>
       )}
 

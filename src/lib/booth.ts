@@ -3,6 +3,7 @@ import {
   doc,
   getDocs,
   limit,
+  onSnapshot,
   orderBy,
   query,
   serverTimestamp,
@@ -157,6 +158,19 @@ export async function registerLostItem(item: LostItem, photo: File | null) {
     photoUrl,
     status: "unclaimed",
     createdAt: serverTimestamp(),
+  });
+}
+
+export type FestivalPhase = "before" | "during";
+
+// 運営が操作する全体スイッチ。settings/festival の phase フィールドで
+// 「文化祭前」か「文化祭中」かを全企画共通で切り替える。
+export function subscribeFestivalPhase(
+  callback: (phase: FestivalPhase) => void,
+): () => void {
+  return onSnapshot(doc(db, "settings", "festival"), (snap) => {
+    const phase = snap.data()?.phase;
+    callback(phase === "during" ? "during" : "before");
   });
 }
 
