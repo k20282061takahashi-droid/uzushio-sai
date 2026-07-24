@@ -174,6 +174,14 @@ export function subscribeFestivalPhase(
   });
 }
 
+export async function setFestivalPhase(phase: FestivalPhase) {
+  await setDoc(
+    doc(db, "settings", "festival"),
+    { phase, updatedAt: serverTimestamp() },
+    { merge: true },
+  );
+}
+
 export type Announcement = {
   id: string;
   title: string;
