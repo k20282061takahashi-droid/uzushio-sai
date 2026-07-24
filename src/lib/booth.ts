@@ -10,7 +10,8 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-import { db } from "./firebase";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { db, storage } from "./firebase";
 
 export type BoothType =
   | "alumni"
@@ -50,11 +51,13 @@ export const BOOTH_TYPE_LABELS: Record<BoothType, string> = {
   volunteer: "有志企画",
 };
 
+export type BoothStatus = "open" | "break" | "closed";
+
 export type Booth = {
   id: string;
   name: string;
   type: BoothType;
-  status: string;
+  status: BoothStatus;
   accessToken: string;
   description: string;
   location: string | null;
@@ -64,6 +67,7 @@ export type Booth = {
   timePerGroup: number | null;
   genre: BoothGenre | null;
   isSetupDone: boolean;
+  signboardUrl: string | null;
 };
 
 export async function getBoothByToken(token: string): Promise<Booth | null> {
@@ -80,7 +84,7 @@ export async function getBoothByToken(token: string): Promise<Booth | null> {
     id: d.id,
     name: data.name ?? "",
     type: data.type,
-    status: data.status ?? "open",
+    status: (data.status as BoothStatus) ?? "open",
     accessToken: data.accessToken,
     description: data.description ?? "",
     location: data.location ?? null,
@@ -90,6 +94,7 @@ export async function getBoothByToken(token: string): Promise<Booth | null> {
     timePerGroup: data.timePerGroup ?? null,
     genre: data.genre ?? null,
     isSetupDone: !!data.isSetupDone,
+    signboardUrl: data.signboardUrl ?? null,
   };
 }
 
@@ -103,6 +108,8 @@ export async function updateBooth(
       | "waitingGroups"
       | "timePerGroup"
       | "isSetupDone"
+      | "status"
+      | "signboardUrl"
     >
   >,
 ) {
@@ -110,6 +117,15 @@ export async function updateBooth(
     ...fields,
     updatedAt: serverTimestamp(),
   });
+}
+
+export async function uploadSignboardImage(
+  boothId: string,
+  file: File,
+): Promise<string> {
+  const fileRef = ref(storage, `booths/${boothId}/signboard`);
+  await uploadBytes(fileRef, file);
+  return getDownloadURL(fileRef);
 }
 
 export type EmergencyAlert = {
@@ -122,6 +138,20 @@ export async function sendEmergencyAlert(alert: EmergencyAlert) {
   await addDoc(collection(db, "emergencyAlerts"), {
     ...alert,
     status: "open",
+    createdAt: serverTimestamp(),
+  });
+}
+
+export type LostItem = {
+  boothId: string;
+  boothName: string;
+  description: string;
+};
+
+export async function registerLostItem(item: LostItem) {
+  await addDoc(collection(db, "lostItems"), {
+    ...item,
+    status: "unclaimed",
     createdAt: serverTimestamp(),
   });
 }
