@@ -302,6 +302,7 @@ export type Announcement = {
   title: string;
   body: string;
   pinned: boolean;
+  createdAt: number | null;
 };
 
 // 企画担当者向けの連絡。来場者アプリの「お知らせ」（announcementsコレクション）とは別物。
@@ -316,6 +317,7 @@ export async function getStaffAnnouncements(): Promise<Announcement[]> {
       title: data.title ?? "",
       body: data.body ?? "",
       pinned: !!data.pinned,
+      createdAt: data.createdAt?.toMillis?.() ?? null,
     };
   });
 }
@@ -335,6 +337,7 @@ export function subscribeStaffAnnouncements(
             title: data.title ?? "",
             body: data.body ?? "",
             pinned: !!data.pinned,
+            createdAt: data.createdAt?.toMillis?.() ?? null,
           };
         }),
       );
@@ -383,6 +386,7 @@ export function subscribeVisitorAnnouncements(
             title: data.title ?? "",
             body: data.body ?? "",
             pinned: !!data.pinned,
+            createdAt: data.createdAt?.toMillis?.() ?? null,
           };
         }),
       );
@@ -414,6 +418,51 @@ export async function deleteVisitorAnnouncement(id: string) {
 
 export async function setVisitorAnnouncementPinned(id: string, pinned: boolean) {
   await updateDoc(doc(db, "announcements", id), { pinned });
+}
+
+export type VisitorRule = {
+  id: string;
+  heading: string;
+  text: string;
+  order: number;
+};
+
+// 来場者アプリの「来場者の皆さんへ」ページ向け。お知らせ(announcements)とは別コレクション。
+export function subscribeVisitorRules(
+  callback: (rules: VisitorRule[]) => void,
+): () => void {
+  return onSnapshot(collection(db, "visitorRules"), (snap) => {
+    const rules = snap.docs.map((d) => {
+      const data = d.data();
+      return {
+        id: d.id,
+        heading: data.heading ?? "",
+        text: data.text ?? "",
+        order: data.order ?? 0,
+      } satisfies VisitorRule;
+    });
+    rules.sort((a, b) => a.order - b.order);
+    callback(rules);
+  });
+}
+
+export async function createVisitorRule(input: {
+  heading: string;
+  text: string;
+  order: number;
+}) {
+  await addDoc(collection(db, "visitorRules"), input);
+}
+
+export async function updateVisitorRule(
+  id: string,
+  fields: { heading: string; text: string; order: number },
+) {
+  await updateDoc(doc(db, "visitorRules", id), fields);
+}
+
+export async function deleteVisitorRule(id: string) {
+  await deleteDoc(doc(db, "visitorRules", id));
 }
 
 export type FestivalEvent = {
