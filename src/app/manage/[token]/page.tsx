@@ -12,6 +12,7 @@ import {
   getBoothByToken,
   getStaffAnnouncements,
   registerLostItem,
+  sendEmergencyAlert,
   subscribeFestivalPhase,
   updateBooth,
   uploadSignboardImage,
@@ -134,6 +135,11 @@ export default function BoothManagePage() {
   const [lostItemSaving, setLostItemSaving] = useState(false);
   const [lostItemSaved, setLostItemSaved] = useState(false);
 
+  const [emergencyOpen, setEmergencyOpen] = useState(false);
+  const [emergencyMessage, setEmergencyMessage] = useState("");
+  const [emergencySending, setEmergencySending] = useState(false);
+  const [emergencySent, setEmergencySent] = useState(false);
+
   useEffect(() => {
     if (!token) return;
     getBoothByToken(token).then((b) => {
@@ -234,6 +240,20 @@ export default function BoothManagePage() {
     setLostItemSaving(false);
     setLostItemSaved(true);
     setLostItemOpen(false);
+  }
+
+  async function submitEmergency() {
+    if (!booth) return;
+    setEmergencySending(true);
+    await sendEmergencyAlert({
+      boothId: booth.id,
+      boothName: booth.name,
+      message: emergencyMessage,
+    });
+    setEmergencySending(false);
+    setEmergencySent(true);
+    setEmergencyOpen(false);
+    setEmergencyMessage("");
   }
 
   if (booth === undefined) {
@@ -434,7 +454,20 @@ export default function BoothManagePage() {
             </button>
           </div>
           {lostItemSaved && (
-            <p className="mt-2 text-xs text-emerald-400">登録しました</p>
+            <p className="mb-2 text-xs text-emerald-400">登録しました</p>
+          )}
+
+          <button
+            onClick={() => {
+              setEmergencyOpen(true);
+              setEmergencySent(false);
+            }}
+            className="w-full rounded-lg bg-red-500 p-3 text-sm font-bold text-white active:scale-95"
+          >
+            緊急連絡
+          </button>
+          {emergencySent && (
+            <p className="mt-2 text-xs text-emerald-400">運営へ通知を送信しました</p>
           )}
         </section>
       )}
@@ -557,6 +590,34 @@ export default function BoothManagePage() {
             <button
               onClick={() => setLostItemOpen(false)}
               className="flex-1 rounded-lg bg-white/10 p-2 text-sm active:scale-95"
+            >
+              キャンセル
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {emergencyOpen && (
+        <Modal onClose={() => setEmergencyOpen(false)}>
+          <h2 className="mb-3 text-base font-semibold text-red-200">緊急連絡</h2>
+          <textarea
+            value={emergencyMessage}
+            onChange={(e) => setEmergencyMessage(e.target.value)}
+            rows={3}
+            placeholder="状況を簡潔に入力してください（空欄でも送信できます）"
+            className="mb-3 w-full rounded-lg border border-white/10 bg-slate-800 p-2 text-sm"
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={submitEmergency}
+              disabled={emergencySending}
+              className="flex-1 rounded-lg bg-red-500 p-3 text-sm font-semibold text-white active:scale-95 disabled:opacity-50"
+            >
+              {emergencySending ? "送信中..." : "運営へ送信する"}
+            </button>
+            <button
+              onClick={() => setEmergencyOpen(false)}
+              className="flex-1 rounded-lg bg-white/10 p-3 text-sm active:scale-95"
             >
               キャンセル
             </button>

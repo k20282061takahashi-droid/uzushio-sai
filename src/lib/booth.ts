@@ -1,5 +1,7 @@
 import {
+  addDoc,
   collection,
+  deleteDoc,
   doc,
   getDocs,
   limit,
@@ -101,6 +103,36 @@ export async function getBoothByToken(token: string): Promise<Booth | null> {
   };
 }
 
+// 運営ダッシュボード用。全企画をリアルタイムで一覧購読する。
+export function subscribeBooths(
+  callback: (booths: Booth[]) => void,
+): () => void {
+  return onSnapshot(collection(db, "booths"), (snap) => {
+    const booths = snap.docs.map((d) => {
+      const data = d.data();
+      return {
+        id: d.id,
+        name: data.name ?? "",
+        projectName: data.projectName ?? null,
+        type: data.type,
+        status: (data.status as BoothStatus) ?? "open",
+        accessToken: data.accessToken,
+        description: data.description ?? "",
+        location: data.location ?? null,
+        floor: data.floor ?? null,
+        hasWaiting: !!data.hasWaiting,
+        waitingGroups: data.waitingGroups ?? null,
+        timePerGroup: data.timePerGroup ?? null,
+        genre: data.genre ?? null,
+        isSetupDone: !!data.isSetupDone,
+        signboardUrl: data.signboardUrl ?? null,
+      } satisfies Booth;
+    });
+    booths.sort((a, b) => a.name.localeCompare(b.name, "ja"));
+    callback(booths);
+  });
+}
+
 export async function updateBooth(
   id: string,
   fields: Partial<
@@ -161,6 +193,89 @@ export async function registerLostItem(item: LostItem, photo: File | null) {
   });
 }
 
+export type LostItemRecord = LostItem & {
+  id: string;
+  status: "unclaimed" | "claimed";
+};
+
+// 運営ダッシュボード用。落とし物をリアルタイムで一覧購読する。
+export function subscribeLostItems(
+  callback: (items: LostItemRecord[]) => void,
+): () => void {
+  return onSnapshot(
+    query(collection(db, "lostItems"), orderBy("createdAt", "desc")),
+    (snap) => {
+      callback(
+        snap.docs.map((d) => {
+          const data = d.data();
+          return {
+            id: d.id,
+            boothId: data.boothId ?? "",
+            boothName: data.boothName ?? "",
+            description: data.description ?? "",
+            foundLocation: data.foundLocation ?? "",
+            storageLocation: data.storageLocation ?? "",
+            photoUrl: data.photoUrl ?? null,
+            status: data.status === "claimed" ? "claimed" : "unclaimed",
+          };
+        }),
+      );
+    },
+  );
+}
+
+export async function markLostItemClaimed(id: string) {
+  await updateDoc(doc(db, "lostItems", id), { status: "claimed" });
+}
+
+export type EmergencyAlert = {
+  boothId: string;
+  boothName: string;
+  message: string;
+};
+
+export type EmergencyAlertRecord = EmergencyAlert & {
+  id: string;
+  status: "open" | "resolved";
+  createdAt: number | null;
+};
+
+export async function sendEmergencyAlert(alert: EmergencyAlert) {
+  await addDoc(collection(db, "emergencyAlerts"), {
+    ...alert,
+    status: "open",
+    createdAt: serverTimestamp(),
+  });
+}
+
+// 運営ダッシュボード用。緊急連絡をリアルタイムで一覧購読する。
+export function subscribeEmergencyAlerts(
+  callback: (alerts: EmergencyAlertRecord[]) => void,
+): () => void {
+  return onSnapshot(
+    query(collection(db, "emergencyAlerts"), orderBy("createdAt", "desc")),
+    (snap) => {
+      callback(
+        snap.docs.map((d) => {
+          const data = d.data();
+          return {
+            id: d.id,
+            boothId: data.boothId ?? "",
+            boothName: data.boothName ?? "",
+            message: data.message ?? "",
+            status: data.status === "resolved" ? "resolved" : "open",
+            createdAt: data.createdAt?.toMillis?.() ?? null,
+          };
+        }),
+      );
+    },
+  );
+}
+
+export async function resolveEmergencyAlert(id: string) {
+  await updateDoc(doc(db, "emergencyAlerts", id), { status: "resolved" });
+}
+
 export type FestivalPhase = "before" | "during";
 
 // 運営が操作する全体スイッチ。settings/festival の phase フィールドで
@@ -203,4 +318,45 @@ export async function getStaffAnnouncements(): Promise<Announcement[]> {
       pinned: !!data.pinned,
     };
   });
+}
+
+// 運営ダッシュボード用。企画担当者向けの連絡をリアルタイムで一覧購読する。
+export function subscribeStaffAnnouncements(
+  callback: (announcements: Announcement[]) => void,
+): () => void {
+  return onSnapshot(
+    query(collection(db, "staffAnnouncements"), orderBy("createdAt", "desc"), limit(50)),
+    (snap) => {
+      callback(
+        snap.docs.map((d) => {
+          const data = d.data();
+          return {
+            id: d.id,
+            title: data.title ?? "",
+            body: data.body ?? "",
+            pinned: !!data.pinned,
+          };
+        }),
+      );
+    },
+  );
+}
+
+export async function createStaffAnnouncement(input: {
+  title: string;
+  body: string;
+  pinned: boolean;
+}) {
+  await addDoc(collection(db, "staffAnnouncements"), {
+    ...input,
+    createdAt: serverTimestamp(),
+  });
+}
+
+export async function deleteStaffAnnouncement(id: string) {
+  await deleteDoc(doc(db, "staffAnnouncements", id));
+}
+
+export async function setStaffAnnouncementPinned(id: string, pinned: boolean) {
+  await updateDoc(doc(db, "staffAnnouncements", id), { pinned });
 }
