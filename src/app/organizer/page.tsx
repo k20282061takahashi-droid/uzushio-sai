@@ -9,10 +9,12 @@ import {
   BOOTH_TYPE_LABELS,
   EmergencyAlertRecord,
   FestivalEvent,
+  FestivalMeta,
   FestivalPhase,
   LostItemRecord,
   createStaffAnnouncement,
   createVisitorAnnouncement,
+  getFestivalMeta,
   markLostItemClaimed,
   resolveEmergencyAlert,
   setFestivalPhase,
@@ -22,6 +24,8 @@ import {
   subscribeFestivalPhase,
   subscribeLostItems,
   subscribeStaffAnnouncements,
+  updateBooth,
+  updateEvent,
 } from "@/lib/booth";
 
 type Mode = "overall" | "booths" | "events";
@@ -446,6 +450,288 @@ function StaffAnnouncementHistoryCard() {
   );
 }
 
+type LocationOption = { name: string; floors: number[] };
+
+function BoothLocationEditor({
+  booth,
+  locationOptions,
+}: {
+  booth: Booth;
+  locationOptions: LocationOption[];
+}) {
+  const [location, setLocation] = useState(booth.location ?? "");
+  const [floor, setFloor] = useState<number | "">(booth.floor ?? "");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const manageUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/manage/${booth.accessToken}`
+      : `/manage/${booth.accessToken}`;
+
+  const selected = locationOptions.find((o) => o.name === location);
+
+  async function save() {
+    setSaving(true);
+    await updateBooth(booth.id, {
+      location: location || null,
+      floor: selected && selected.floors.length > 0 ? (floor === "" ? null : floor) : null,
+    });
+    setSaving(false);
+    setSaved(true);
+  }
+
+  async function copyUrl() {
+    await navigator.clipboard.writeText(manageUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }
+
+  return (
+    <div className="mt-2 rounded-lg bg-white/5 p-3">
+      <div className="mb-2 flex gap-2">
+        <select
+          value={location}
+          onChange={(e) => {
+            setLocation(e.target.value);
+            setFloor("");
+            setSaved(false);
+          }}
+          className="flex-1 rounded-lg border border-white/10 bg-slate-900 p-2 text-sm"
+        >
+          <option value="">未設定</option>
+          {locationOptions.map((o) => (
+            <option key={o.name} value={o.name}>
+              {o.name}
+            </option>
+          ))}
+        </select>
+        {selected && selected.floors.length > 0 && (
+          <select
+            value={floor}
+            onChange={(e) => {
+              setFloor(e.target.value === "" ? "" : Number(e.target.value));
+              setSaved(false);
+            }}
+            className="w-24 rounded-lg border border-white/10 bg-slate-900 p-2 text-sm"
+          >
+            <option value="">階</option>
+            {selected.floors.map((f) => (
+              <option key={f} value={f}>
+                {f}F
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
+      <button
+        onClick={save}
+        disabled={saving}
+        className="mb-2 w-full rounded-lg bg-white/10 p-2 text-xs font-semibold active:scale-95 disabled:opacity-50"
+      >
+        {saving ? "保存中..." : "場所を保存する"}
+      </button>
+      {saved && <p className="mb-2 text-xs text-emerald-400">保存しました</p>}
+
+      <div className="flex items-center gap-2">
+        <input
+          readOnly
+          value={manageUrl}
+          className="flex-1 truncate rounded-lg border border-white/10 bg-slate-900 p-2 text-xs text-slate-400"
+        />
+        <button
+          onClick={copyUrl}
+          className="shrink-0 rounded-lg bg-white/10 px-3 py-2 text-xs active:scale-95"
+        >
+          {copied ? "コピー済み" : "URLをコピー"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function BoothsTab() {
+  const [booths, setBooths] = useState<Booth[]>([]);
+  const [meta, setMeta] = useState<FestivalMeta | null>(null);
+  const [search, setSearch] = useState("");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  useEffect(() => subscribeBooths(setBooths), []);
+  useEffect(() => {
+    getFestivalMeta().then(setMeta);
+  }, []);
+
+  const locationOptions: LocationOption[] = meta
+    ? [
+        ...meta.buildings.map((b) => ({ name: b.name, floors: b.floors })),
+        ...meta.venues.map((v) => ({ name: v.name, floors: [] })),
+      ]
+    : [];
+
+  const filtered = booths.filter(
+    (b) =>
+      b.name.includes(search) ||
+      (b.projectName ?? "").includes(search),
+  );
+
+  return (
+    <div>
+      <input
+        type="text"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="クラス名・企画名で検索"
+        className="mb-3 w-full rounded-lg border border-white/10 bg-slate-900 p-2 text-sm"
+      />
+      <div className="space-y-2">
+        {filtered.map((b) => {
+          const isExpanded = expandedId === b.id;
+          return (
+            <div key={b.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
+              <button
+                onClick={() => setExpandedId(isExpanded ? null : b.id)}
+                className="flex w-full items-center justify-between gap-2 text-left text-sm"
+              >
+                <div className="min-w-0">
+                  <p className="truncate font-medium">
+                    {b.name}
+                    {b.projectName ? `（${b.projectName}）` : ""}
+                  </p>
+                  <p className="truncate text-xs text-slate-500">
+                    {BOOTH_TYPE_LABELS[b.type] ?? b.type} ・{" "}
+                    {b.location ? `${b.location}${b.floor ? ` ${b.floor}F` : ""}` : "場所未設定"}
+                  </p>
+                </div>
+                <span className="shrink-0 text-xs text-slate-500">
+                  {isExpanded ? "閉じる" : "編集"}
+                </span>
+              </button>
+              {isExpanded && (
+                <BoothLocationEditor booth={b} locationOptions={locationOptions} />
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function EventRow({ event }: { event: FestivalEvent }) {
+  const [name, setName] = useState(event.name ?? "");
+  const [startAt, setStartAt] = useState(event.startAt ?? "");
+  const [endAt, setEndAt] = useState(event.endAt ?? "");
+  const [venue, setVenue] = useState(event.venue ?? "");
+  const [status, setStatus] = useState(event.status);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  async function save() {
+    setSaving(true);
+    await updateEvent(event.id, {
+      name: name || null,
+      startAt: startAt || null,
+      endAt: endAt || null,
+      venue: venue || null,
+      status,
+    });
+    setSaving(false);
+    setSaved(true);
+  }
+
+  return (
+    <div className="rounded-lg bg-white/5 p-3 text-sm">
+      <div className="mb-2 flex gap-2">
+        <input
+          type="text"
+          value={startAt}
+          onChange={(e) => {
+            setStartAt(e.target.value);
+            setSaved(false);
+          }}
+          placeholder="開始 (9:00)"
+          className="w-24 rounded-lg border border-white/10 bg-slate-900 p-2 text-xs"
+        />
+        <input
+          type="text"
+          value={endAt}
+          onChange={(e) => {
+            setEndAt(e.target.value);
+            setSaved(false);
+          }}
+          placeholder="終了 (9:50)"
+          className="w-24 rounded-lg border border-white/10 bg-slate-900 p-2 text-xs"
+        />
+        <select
+          value={status}
+          onChange={(e) => {
+            setStatus(e.target.value);
+            setSaved(false);
+          }}
+          className="flex-1 rounded-lg border border-white/10 bg-slate-900 p-2 text-xs"
+        >
+          <option value="scheduled">予定通り</option>
+          <option value="cancelled">中止</option>
+        </select>
+      </div>
+      <input
+        type="text"
+        value={name}
+        onChange={(e) => {
+          setName(e.target.value);
+          setSaved(false);
+        }}
+        placeholder="企画・催し名"
+        className="mb-2 w-full rounded-lg border border-white/10 bg-slate-900 p-2 text-sm"
+      />
+      <input
+        type="text"
+        value={venue}
+        onChange={(e) => {
+          setVenue(e.target.value);
+          setSaved(false);
+        }}
+        placeholder="会場"
+        className="mb-2 w-full rounded-lg border border-white/10 bg-slate-900 p-2 text-sm"
+      />
+      <button
+        onClick={save}
+        disabled={saving}
+        className="w-full rounded-lg bg-white/10 p-2 text-xs font-semibold active:scale-95 disabled:opacity-50"
+      >
+        {saving ? "保存中..." : "保存する"}
+      </button>
+      {saved && <p className="mt-2 text-xs text-emerald-400">保存しました</p>}
+    </div>
+  );
+}
+
+function EventsTab() {
+  const [events, setEvents] = useState<FestivalEvent[]>([]);
+
+  useEffect(() => subscribeEvents(setEvents), []);
+
+  const days = Array.from(new Set(events.map((e) => e.day))).sort();
+
+  return (
+    <div className="space-y-6">
+      {days.map((day) => (
+        <section key={day}>
+          <h2 className="mb-3 text-sm font-semibold text-slate-300">{day}</h2>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {events
+              .filter((e) => e.day === day)
+              .map((e) => (
+                <EventRow key={e.id} event={e} />
+              ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  );
+}
+
 export default function OrganizerPage() {
   const [mode, setMode] = useState<Mode>("overall");
 
@@ -509,17 +795,9 @@ export default function OrganizerPage() {
         </div>
       )}
 
-      {mode === "booths" && (
-        <section className="rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-slate-400">
-          企画運営は準備中です。
-        </section>
-      )}
+      {mode === "booths" && <BoothsTab />}
 
-      {mode === "events" && (
-        <section className="rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-slate-400">
-          イベント運営は準備中です。
-        </section>
-      )}
+      {mode === "events" && <EventsTab />}
     </div>
   );
 }
