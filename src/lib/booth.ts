@@ -360,3 +360,102 @@ export async function deleteStaffAnnouncement(id: string) {
 export async function setStaffAnnouncementPinned(id: string, pinned: boolean) {
   await updateDoc(doc(db, "staffAnnouncements", id), { pinned });
 }
+
+export async function updateStaffAnnouncement(
+  id: string,
+  fields: { title: string; body: string; pinned: boolean },
+) {
+  await updateDoc(doc(db, "staffAnnouncements", id), fields);
+}
+
+// 来場者アプリの「お知らせ」向け。企画担当者向け(staffAnnouncements)とは別コレクション。
+export function subscribeVisitorAnnouncements(
+  callback: (announcements: Announcement[]) => void,
+): () => void {
+  return onSnapshot(
+    query(collection(db, "announcements"), orderBy("createdAt", "desc"), limit(50)),
+    (snap) => {
+      callback(
+        snap.docs.map((d) => {
+          const data = d.data();
+          return {
+            id: d.id,
+            title: data.title ?? "",
+            body: data.body ?? "",
+            pinned: !!data.pinned,
+          };
+        }),
+      );
+    },
+  );
+}
+
+export async function createVisitorAnnouncement(input: {
+  title: string;
+  body: string;
+  pinned: boolean;
+}) {
+  await addDoc(collection(db, "announcements"), {
+    ...input,
+    createdAt: serverTimestamp(),
+  });
+}
+
+export async function updateVisitorAnnouncement(
+  id: string,
+  fields: { title: string; body: string; pinned: boolean },
+) {
+  await updateDoc(doc(db, "announcements", id), fields);
+}
+
+export async function deleteVisitorAnnouncement(id: string) {
+  await deleteDoc(doc(db, "announcements", id));
+}
+
+export async function setVisitorAnnouncementPinned(id: string, pinned: boolean) {
+  await updateDoc(doc(db, "announcements", id), { pinned });
+}
+
+export type FestivalEvent = {
+  id: string;
+  day: string;
+  order: number;
+  name: string | null;
+  startAt: string | null;
+  endAt: string | null;
+  venue: string | null;
+  status: string;
+};
+
+// 運営ダッシュボード用。タイムテーブル(events)をリアルタイムで一覧購読する。
+export function subscribeEvents(
+  callback: (events: FestivalEvent[]) => void,
+): () => void {
+  return onSnapshot(collection(db, "events"), (snap) => {
+    const events = snap.docs.map((d) => {
+      const data = d.data();
+      return {
+        id: d.id,
+        day: data.day ?? "",
+        order: data.order ?? 0,
+        name: data.name ?? null,
+        startAt: data.startAt ?? null,
+        endAt: data.endAt ?? null,
+        venue: data.venue ?? null,
+        status: data.status ?? "scheduled",
+      } satisfies FestivalEvent;
+    });
+    events.sort((a, b) => a.day.localeCompare(b.day) || a.order - b.order);
+    callback(events);
+  });
+}
+
+export async function updateEvent(
+  id: string,
+  fields: Partial<Pick<FestivalEvent, "name" | "startAt" | "endAt" | "venue" | "status">>,
+) {
+  await updateDoc(doc(db, "events", id), {
+    ...fields,
+    updatedAt: serverTimestamp(),
+  });
+}

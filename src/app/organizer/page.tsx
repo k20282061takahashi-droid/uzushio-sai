@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   Announcement,
@@ -7,16 +8,16 @@ import {
   BoothStatus,
   BOOTH_TYPE_LABELS,
   EmergencyAlertRecord,
+  FestivalEvent,
   FestivalPhase,
   LostItemRecord,
   createStaffAnnouncement,
-  deleteStaffAnnouncement,
   markLostItemClaimed,
   resolveEmergencyAlert,
   setFestivalPhase,
-  setStaffAnnouncementPinned,
   subscribeBooths,
   subscribeEmergencyAlerts,
+  subscribeEvents,
   subscribeFestivalPhase,
   subscribeLostItems,
   subscribeStaffAnnouncements,
@@ -58,62 +59,26 @@ function boothStatusClass(status: BoothStatus): string {
   return "bg-white/10 text-slate-400";
 }
 
-// 天気アプリの「現在地・気温」に相当する、常に見える要約エリア
-function OverviewHero() {
+function eventLabel(e: FestivalEvent): string {
+  const time = e.startAt && e.endAt ? `${e.startAt}〜${e.endAt}` : e.startAt ?? "時間未定";
+  return `${time} ${e.name ?? "（未設定）"}`;
+}
+
+// 一番上: 開催の切り替えと開催中/休憩中/終了の数
+function HeroBar() {
   const [phase, setPhase] = useState<FestivalPhase>("before");
   const [booths, setBooths] = useState<Booth[]>([]);
-  const [alerts, setAlerts] = useState<EmergencyAlertRecord[]>([]);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [updating, setUpdating] = useState(false);
 
   useEffect(() => subscribeFestivalPhase(setPhase), []);
   useEffect(() => subscribeBooths(setBooths), []);
-  useEffect(() => subscribeEmergencyAlerts(setAlerts), []);
 
   const counts = {
     open: booths.filter((b) => b.status === "open").length,
     break: booths.filter((b) => b.status === "break").length,
     closed: booths.filter((b) => b.status === "closed").length,
-    notSetup: booths.filter((b) => !b.isSetupDone).length,
   };
-  const openAlerts = alerts.filter((a) => a.status === "open");
-
-  return (
-    <section className="mb-6 text-center">
-      <p className="text-xs text-slate-400">
-        {phase === "before" ? "文化祭前" : "文化祭中"}
-      </p>
-      <p className="mt-1 text-5xl font-bold tabular-nums">{counts.open}</p>
-      <p className="text-sm text-slate-400">企画が開催中（全{booths.length}件）</p>
-
-      <div className="mt-4 flex justify-center gap-6 text-sm">
-        <div>
-          <p className="font-bold text-amber-200">{counts.break}</p>
-          <p className="text-xs text-slate-500">休憩中</p>
-        </div>
-        <div>
-          <p className="font-bold text-slate-300">{counts.closed}</p>
-          <p className="text-xs text-slate-500">終了</p>
-        </div>
-        <div>
-          <p className="font-bold text-red-300">{counts.notSetup}</p>
-          <p className="text-xs text-slate-500">未設定</p>
-        </div>
-      </div>
-
-      {openAlerts.length > 0 && (
-        <div className="mx-auto mt-4 max-w-xs rounded-xl bg-red-500 px-4 py-2 text-sm font-bold text-white">
-          🚨 緊急連絡 {openAlerts.length}件、対応が必要です
-        </div>
-      )}
-    </section>
-  );
-}
-
-function PhaseCard() {
-  const [phase, setPhase] = useState<FestivalPhase>("before");
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [updating, setUpdating] = useState(false);
-
-  useEffect(() => subscribeFestivalPhase(setPhase), []);
 
   async function applySwitch() {
     setUpdating(true);
@@ -123,22 +88,38 @@ function PhaseCard() {
   }
 
   return (
-    <section className="rounded-xl border border-white/10 bg-white/5 p-4">
-      <p className="mb-1 text-xs text-slate-400">文化祭の状態</p>
-      <p className="mb-3 text-2xl font-bold">
-        {phase === "before" ? "文化祭前" : "文化祭中"}
-      </p>
-      <button
-        onClick={() => setConfirmOpen(true)}
-        disabled={updating}
-        className={
-          phase === "before"
-            ? "w-full rounded-lg bg-emerald-500 p-3 text-sm font-bold text-white active:scale-95 disabled:opacity-50"
-            : "w-full rounded-lg bg-white/10 p-3 text-sm font-bold active:scale-95 disabled:opacity-50"
-        }
-      >
-        {phase === "before" ? "文化祭を開始する" : "文化祭前の状態に戻す"}
-      </button>
+    <section className="mb-4 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-white/10 bg-white/5 p-4">
+      <div>
+        <p className="text-xs text-slate-400">
+          {phase === "before" ? "文化祭前" : "文化祭中"}
+        </p>
+        <button
+          onClick={() => setConfirmOpen(true)}
+          disabled={updating}
+          className={
+            phase === "before"
+              ? "mt-1 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-bold text-white active:scale-95 disabled:opacity-50"
+              : "mt-1 rounded-lg bg-white/10 px-4 py-2 text-sm font-bold active:scale-95 disabled:opacity-50"
+          }
+        >
+          {phase === "before" ? "文化祭を開始する" : "文化祭前の状態に戻す"}
+        </button>
+      </div>
+
+      <div className="flex gap-6 text-center">
+        <div>
+          <p className="text-2xl font-bold text-emerald-200">{counts.open}</p>
+          <p className="text-xs text-slate-500">開催中</p>
+        </div>
+        <div>
+          <p className="text-2xl font-bold text-amber-200">{counts.break}</p>
+          <p className="text-xs text-slate-500">休憩中</p>
+        </div>
+        <div>
+          <p className="text-2xl font-bold text-slate-300">{counts.closed}</p>
+          <p className="text-xs text-slate-500">終了</p>
+        </div>
+      </div>
 
       {confirmOpen && (
         <Modal onClose={() => setConfirmOpen(false)}>
@@ -168,6 +149,95 @@ function PhaseCard() {
   );
 }
 
+function EmergencyAlertsCard() {
+  const [alerts, setAlerts] = useState<EmergencyAlertRecord[]>([]);
+
+  useEffect(() => subscribeEmergencyAlerts(setAlerts), []);
+
+  const open = alerts.filter((a) => a.status === "open");
+
+  return (
+    <section className="rounded-xl border border-red-500/30 bg-red-500/10 p-4">
+      <h2 className="mb-3 text-sm font-semibold text-red-200">
+        緊急連絡（{open.length}件 未対応）
+      </h2>
+      {open.length === 0 ? (
+        <p className="text-xs text-slate-500">緊急連絡はありません</p>
+      ) : (
+        <div className="max-h-48 space-y-2 overflow-y-auto">
+          {open.map((a) => (
+            <div key={a.id} className="rounded-lg bg-red-500/20 p-2 text-sm">
+              <div className="flex items-start justify-between gap-2">
+                <p className="font-medium">{a.boothName}</p>
+                <button
+                  onClick={() => resolveEmergencyAlert(a.id)}
+                  className="shrink-0 rounded-lg bg-white/10 px-2 py-1 text-xs active:scale-95"
+                >
+                  対応済み
+                </button>
+              </div>
+              {a.message && <p className="mt-1 text-xs text-slate-300">{a.message}</p>}
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function StaffAnnouncementSendCard() {
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  async function submit() {
+    if (!title.trim()) return;
+    setSaving(true);
+    await createStaffAnnouncement({ title, body, pinned: false });
+    setTitle("");
+    setBody("");
+    setSaving(false);
+    setSent(true);
+  }
+
+  return (
+    <section className="rounded-xl border border-white/10 bg-white/5 p-4">
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-slate-300">連絡送信</h2>
+        <Link href="/organizer/announcements" className="text-xs text-slate-400 underline">
+          編集画面
+        </Link>
+      </div>
+      <input
+        type="text"
+        value={title}
+        onChange={(e) => {
+          setTitle(e.target.value);
+          setSent(false);
+        }}
+        placeholder="タイトル"
+        className="mb-2 w-full rounded-lg border border-white/10 bg-slate-900 p-2 text-sm"
+      />
+      <textarea
+        value={body}
+        onChange={(e) => setBody(e.target.value)}
+        rows={2}
+        placeholder="本文（任意）"
+        className="mb-2 w-full rounded-lg border border-white/10 bg-slate-900 p-2 text-sm"
+      />
+      <button
+        onClick={submit}
+        disabled={saving || !title.trim()}
+        className="w-full rounded-lg bg-white/10 p-2 text-sm font-semibold active:scale-95 disabled:opacity-50"
+      >
+        {saving ? "送信中..." : "企画担当者へ送信"}
+      </button>
+      {sent && <p className="mt-2 text-xs text-emerald-400">送信しました</p>}
+    </section>
+  );
+}
+
 function BoothOverviewCard() {
   const [booths, setBooths] = useState<Booth[]>([]);
 
@@ -176,9 +246,9 @@ function BoothOverviewCard() {
   return (
     <section className="rounded-xl border border-white/10 bg-white/5 p-4">
       <h2 className="mb-3 text-sm font-semibold text-slate-300">
-        企画の一覧（{booths.length}件）
+        企画の状況（{booths.length}件）
       </h2>
-      <div className="max-h-80 space-y-1 overflow-y-auto">
+      <div className="max-h-[32rem] space-y-1 overflow-y-auto">
         {booths.map((b) => {
           const minutes =
             b.hasWaiting && b.timePerGroup
@@ -217,81 +287,31 @@ function BoothOverviewCard() {
   );
 }
 
-function StaffAnnouncementsCard() {
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
-  const [pinned, setPinned] = useState(false);
-  const [saving, setSaving] = useState(false);
+function EventsTimetableCard({ full = false }: { full?: boolean }) {
+  const [events, setEvents] = useState<FestivalEvent[]>([]);
 
-  useEffect(() => subscribeStaffAnnouncements(setAnnouncements), []);
+  useEffect(() => subscribeEvents(setEvents), []);
 
-  async function submit() {
-    if (!title.trim()) return;
-    setSaving(true);
-    await createStaffAnnouncement({ title, body, pinned });
-    setTitle("");
-    setBody("");
-    setPinned(false);
-    setSaving(false);
-  }
+  const days = Array.from(new Set(events.map((e) => e.day))).sort();
 
   return (
     <section className="rounded-xl border border-white/10 bg-white/5 p-4">
       <h2 className="mb-3 text-sm font-semibold text-slate-300">
-        企画担当者への連絡
+        イベントのタイムテーブル
       </h2>
-
-      <input
-        type="text"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="タイトル"
-        className="mb-2 w-full rounded-lg border border-white/10 bg-slate-900 p-2 text-sm"
-      />
-      <textarea
-        value={body}
-        onChange={(e) => setBody(e.target.value)}
-        rows={2}
-        placeholder="本文（任意）"
-        className="mb-2 w-full rounded-lg border border-white/10 bg-slate-900 p-2 text-sm"
-      />
-      <label className="mb-3 flex items-center gap-2 text-xs text-slate-400">
-        <input
-          type="checkbox"
-          checked={pinned}
-          onChange={(e) => setPinned(e.target.checked)}
-        />
-        ピン留めする
-      </label>
-      <button
-        onClick={submit}
-        disabled={saving || !title.trim()}
-        className="mb-4 w-full rounded-lg bg-white/10 p-2 text-sm font-semibold active:scale-95 disabled:opacity-50"
-      >
-        {saving ? "送信中..." : "送信する"}
-      </button>
-
-      <div className="max-h-64 space-y-2 overflow-y-auto">
-        {announcements.map((a) => (
-          <div key={a.id} className="rounded-lg bg-white/5 p-2 text-sm">
-            <div className="flex items-start justify-between gap-2">
-              <p className="flex items-start gap-1 font-medium">
-                {a.pinned && <span className="shrink-0 text-amber-400">📌</span>}
-                <span>{a.title}</span>
-              </p>
-              <div className="flex shrink-0 gap-2 text-xs text-slate-400">
-                <button
-                  onClick={() => setStaffAnnouncementPinned(a.id, !a.pinned)}
-                >
-                  {a.pinned ? "ピン解除" : "ピン留め"}
-                </button>
-                <button onClick={() => deleteStaffAnnouncement(a.id)}>
-                  削除
-                </button>
-              </div>
-            </div>
-            {a.body && <p className="mt-1 text-xs text-slate-400">{a.body}</p>}
+      <div className={full ? "space-y-4" : "max-h-64 space-y-3 overflow-y-auto"}>
+        {days.map((day) => (
+          <div key={day}>
+            <p className="mb-1 text-xs font-semibold text-slate-400">{day}</p>
+            <ul className="space-y-1">
+              {events
+                .filter((e) => e.day === day)
+                .map((e) => (
+                  <li key={e.id} className="rounded-lg bg-white/5 px-2 py-1 text-xs">
+                    {eventLabel(e)}
+                  </li>
+                ))}
+            </ul>
           </div>
         ))}
       </div>
@@ -299,49 +319,53 @@ function StaffAnnouncementsCard() {
   );
 }
 
-function LostItemsCard() {
+function LostItemsCard({ full = false }: { full?: boolean }) {
   const [items, setItems] = useState<LostItemRecord[]>([]);
 
   useEffect(() => subscribeLostItems(setItems), []);
+
+  const shown = full ? items : items.slice(0, 3);
 
   return (
     <section className="rounded-xl border border-white/10 bg-white/5 p-4">
       <h2 className="mb-3 text-sm font-semibold text-slate-300">
         落とし物（{items.filter((i) => i.status === "unclaimed").length}件 未対応）
       </h2>
-      <div className="max-h-80 space-y-2 overflow-y-auto">
-        {items.length === 0 && (
+      <div className={full ? "space-y-2" : "max-h-64 space-y-2 overflow-y-auto"}>
+        {shown.length === 0 && (
           <p className="text-xs text-slate-500">登録されている落とし物はありません</p>
         )}
-        {items.map((item) => (
+        {shown.map((item) => (
           <div key={item.id} className="flex gap-3 rounded-lg bg-white/5 p-2 text-sm">
             {item.photoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={item.photoUrl}
                 alt="落とし物"
-                className="h-14 w-14 shrink-0 rounded-lg object-cover"
+                className="h-12 w-12 shrink-0 rounded-lg object-cover"
               />
             ) : (
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-[10px] text-slate-500">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-[9px] text-slate-500">
                 画像なし
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <p className="truncate font-medium">{item.description || "（内容未入力）"}</p>
-              <p className="truncate text-xs text-slate-500">
-                {item.boothName} ／ 発見: {item.foundLocation || "-"} ／ 保管: {item.storageLocation || "-"}
+              <p className="truncate text-xs font-medium">
+                {item.description || "（内容未入力）"}
+              </p>
+              <p className="truncate text-[11px] text-slate-500">
+                {item.boothName} ／ 保管: {item.storageLocation || "-"}
               </p>
             </div>
             {item.status === "unclaimed" ? (
               <button
                 onClick={() => markLostItemClaimed(item.id)}
-                className="shrink-0 self-center rounded-lg bg-white/10 px-3 py-1 text-xs active:scale-95"
+                className="shrink-0 self-center rounded-lg bg-white/10 px-2 py-1 text-[11px] active:scale-95"
               >
-                返却済みにする
+                返却済み
               </button>
             ) : (
-              <span className="shrink-0 self-center rounded-lg bg-emerald-500/20 px-3 py-1 text-xs text-emerald-200">
+              <span className="shrink-0 self-center rounded-lg bg-emerald-500/20 px-2 py-1 text-[11px] text-emerald-200">
                 返却済み
               </span>
             )}
@@ -352,45 +376,33 @@ function LostItemsCard() {
   );
 }
 
-function EmergencyAlertsCard() {
-  const [alerts, setAlerts] = useState<EmergencyAlertRecord[]>([]);
+function StaffAnnouncementHistoryCard() {
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
 
-  useEffect(() => subscribeEmergencyAlerts(setAlerts), []);
-
-  const open = alerts.filter((a) => a.status === "open");
+  useEffect(() => subscribeStaffAnnouncements(setAnnouncements), []);
 
   return (
-    <section className="rounded-xl border border-red-500/30 bg-red-500/10 p-4">
-      <h2 className="mb-3 text-sm font-semibold text-red-200">
-        緊急連絡（{open.length}件 未対応）
-      </h2>
-      {alerts.length === 0 ? (
-        <p className="text-xs text-slate-500">緊急連絡はありません</p>
-      ) : (
-        <div className="max-h-64 space-y-2 overflow-y-auto">
-          {alerts.map((a) => (
-            <div
-              key={a.id}
-              className={`rounded-lg p-2 text-sm ${a.status === "open" ? "bg-red-500/20" : "bg-white/5"}`}
-            >
-              <div className="flex items-start justify-between gap-2">
-                <p className="font-medium">{a.boothName}</p>
-                {a.status === "open" ? (
-                  <button
-                    onClick={() => resolveEmergencyAlert(a.id)}
-                    className="shrink-0 rounded-lg bg-white/10 px-3 py-1 text-xs active:scale-95"
-                  >
-                    対応済みにする
-                  </button>
-                ) : (
-                  <span className="shrink-0 text-xs text-slate-500">対応済み</span>
-                )}
-              </div>
-              {a.message && <p className="mt-1 text-xs text-slate-300">{a.message}</p>}
-            </div>
-          ))}
-        </div>
-      )}
+    <section className="rounded-xl border border-white/10 bg-white/5 p-4">
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-slate-300">連絡の履歴</h2>
+        <Link href="/organizer/announcements" className="text-xs text-slate-400 underline">
+          編集する
+        </Link>
+      </div>
+      <div className="space-y-2">
+        {announcements.length === 0 && (
+          <p className="text-xs text-slate-500">まだ送信していません</p>
+        )}
+        {announcements.map((a) => (
+          <div key={a.id} className="rounded-lg bg-white/5 p-2 text-sm">
+            <p className="flex items-start gap-1 font-medium">
+              {a.pinned && <span className="shrink-0 text-amber-400">📌</span>}
+              <span>{a.title}</span>
+            </p>
+            {a.body && <p className="mt-1 text-xs text-slate-400">{a.body}</p>}
+          </div>
+        ))}
+      </div>
     </section>
   );
 }
@@ -399,7 +411,7 @@ export default function OrganizerPage() {
   const [mode, setMode] = useState<Mode>("overall");
 
   return (
-    <div className="mx-auto w-full max-w-md px-4 pb-16 pt-8 text-white sm:max-w-3xl lg:max-w-6xl">
+    <div className="mx-auto w-full max-w-md px-4 pb-16 pt-8 text-white sm:max-w-3xl lg:max-w-7xl">
       <div className="mb-4">
         <h1 className="text-sm font-bold text-slate-300">渦潮祭</h1>
         <p className="text-xs text-slate-500">運営用</p>
@@ -429,13 +441,31 @@ export default function OrganizerPage() {
 
       {mode === "overall" && (
         <div>
-          <OverviewHero />
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <PhaseCard />
-            <EmergencyAlertsCard />
-            <BoothOverviewCard />
-            <StaffAnnouncementsCard />
-            <LostItemsCard />
+          <HeroBar />
+
+          {/* 左2:中央6:右2 */}
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-10">
+            <div className="space-y-4 lg:col-span-2">
+              <EmergencyAlertsCard />
+              <StaffAnnouncementSendCard />
+            </div>
+            <div className="lg:col-span-6">
+              <BoothOverviewCard />
+            </div>
+            <div className="space-y-4 lg:col-span-2">
+              <EventsTimetableCard />
+              <LostItemsCard />
+            </div>
+          </div>
+
+          {/* ここから下はスクロールしないと見えない詳細情報 */}
+          <div className="mt-8">
+            <h2 className="mb-3 text-sm font-semibold text-slate-400">詳細情報</h2>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <EventsTimetableCard full />
+              <LostItemsCard full />
+              <StaffAnnouncementHistoryCard />
+            </div>
           </div>
         </div>
       )}
