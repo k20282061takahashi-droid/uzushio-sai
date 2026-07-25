@@ -58,6 +58,56 @@ function boothStatusClass(status: BoothStatus): string {
   return "bg-white/10 text-slate-400";
 }
 
+// 天気アプリの「現在地・気温」に相当する、常に見える要約エリア
+function OverviewHero() {
+  const [phase, setPhase] = useState<FestivalPhase>("before");
+  const [booths, setBooths] = useState<Booth[]>([]);
+  const [alerts, setAlerts] = useState<EmergencyAlertRecord[]>([]);
+
+  useEffect(() => subscribeFestivalPhase(setPhase), []);
+  useEffect(() => subscribeBooths(setBooths), []);
+  useEffect(() => subscribeEmergencyAlerts(setAlerts), []);
+
+  const counts = {
+    open: booths.filter((b) => b.status === "open").length,
+    break: booths.filter((b) => b.status === "break").length,
+    closed: booths.filter((b) => b.status === "closed").length,
+    notSetup: booths.filter((b) => !b.isSetupDone).length,
+  };
+  const openAlerts = alerts.filter((a) => a.status === "open");
+
+  return (
+    <section className="mb-6 text-center">
+      <p className="text-xs text-slate-400">
+        {phase === "before" ? "文化祭前" : "文化祭中"}
+      </p>
+      <p className="mt-1 text-5xl font-bold tabular-nums">{counts.open}</p>
+      <p className="text-sm text-slate-400">企画が開催中（全{booths.length}件）</p>
+
+      <div className="mt-4 flex justify-center gap-6 text-sm">
+        <div>
+          <p className="font-bold text-amber-200">{counts.break}</p>
+          <p className="text-xs text-slate-500">休憩中</p>
+        </div>
+        <div>
+          <p className="font-bold text-slate-300">{counts.closed}</p>
+          <p className="text-xs text-slate-500">終了</p>
+        </div>
+        <div>
+          <p className="font-bold text-red-300">{counts.notSetup}</p>
+          <p className="text-xs text-slate-500">未設定</p>
+        </div>
+      </div>
+
+      {openAlerts.length > 0 && (
+        <div className="mx-auto mt-4 max-w-xs rounded-xl bg-red-500 px-4 py-2 text-sm font-bold text-white">
+          🚨 緊急連絡 {openAlerts.length}件、対応が必要です
+        </div>
+      )}
+    </section>
+  );
+}
+
 function PhaseCard() {
   const [phase, setPhase] = useState<FestivalPhase>("before");
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -123,36 +173,11 @@ function BoothOverviewCard() {
 
   useEffect(() => subscribeBooths(setBooths), []);
 
-  const counts = {
-    open: booths.filter((b) => b.status === "open").length,
-    break: booths.filter((b) => b.status === "break").length,
-    closed: booths.filter((b) => b.status === "closed").length,
-    notSetup: booths.filter((b) => !b.isSetupDone).length,
-  };
-
   return (
     <section className="rounded-xl border border-white/10 bg-white/5 p-4">
       <h2 className="mb-3 text-sm font-semibold text-slate-300">
-        企画の状況（{booths.length}件）
+        企画の一覧（{booths.length}件）
       </h2>
-      <div className="mb-4 grid grid-cols-4 gap-2 text-center text-xs">
-        <div className="rounded-lg bg-emerald-500/10 p-2">
-          <p className="text-lg font-bold text-emerald-200">{counts.open}</p>
-          <p className="text-slate-400">開催中</p>
-        </div>
-        <div className="rounded-lg bg-amber-500/10 p-2">
-          <p className="text-lg font-bold text-amber-200">{counts.break}</p>
-          <p className="text-slate-400">休憩中</p>
-        </div>
-        <div className="rounded-lg bg-white/5 p-2">
-          <p className="text-lg font-bold text-slate-300">{counts.closed}</p>
-          <p className="text-slate-400">終了</p>
-        </div>
-        <div className="rounded-lg bg-red-500/10 p-2">
-          <p className="text-lg font-bold text-red-200">{counts.notSetup}</p>
-          <p className="text-slate-400">未設定</p>
-        </div>
-      </div>
       <div className="max-h-80 space-y-1 overflow-y-auto">
         {booths.map((b) => {
           const minutes =
@@ -374,7 +399,7 @@ export default function OrganizerPage() {
   const [mode, setMode] = useState<Mode>("overall");
 
   return (
-    <div className="mx-auto w-full max-w-md px-4 pb-16 pt-8 text-white sm:max-w-2xl lg:max-w-4xl">
+    <div className="mx-auto w-full max-w-md px-4 pb-16 pt-8 text-white sm:max-w-3xl lg:max-w-6xl">
       <div className="mb-4">
         <h1 className="text-sm font-bold text-slate-300">渦潮祭</h1>
         <p className="text-xs text-slate-500">運営用</p>
@@ -403,12 +428,15 @@ export default function OrganizerPage() {
       </div>
 
       {mode === "overall" && (
-        <div className="space-y-4">
-          <EmergencyAlertsCard />
-          <PhaseCard />
-          <BoothOverviewCard />
-          <StaffAnnouncementsCard />
-          <LostItemsCard />
+        <div>
+          <OverviewHero />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <PhaseCard />
+            <EmergencyAlertsCard />
+            <BoothOverviewCard />
+            <StaffAnnouncementsCard />
+            <LostItemsCard />
+          </div>
         </div>
       )}
 
