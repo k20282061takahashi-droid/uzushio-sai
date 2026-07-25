@@ -2,22 +2,23 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-
-const announcements = [
-  "体育館の演奏会は開始5分前に受付終了します",
-  "3年C組の企画は待ち時間が長くなっています",
-  "本部で温かいお茶を配布しています",
-];
+import { Announcement, subscribeVisitorAnnouncements } from "@/lib/booth";
 
 export default function AnnouncementTicker() {
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [index, setIndex] = useState(0);
 
+  useEffect(() => subscribeVisitorAnnouncements(setAnnouncements), []);
+
   useEffect(() => {
+    if (announcements.length <= 1) return;
     const timer = setInterval(() => {
       setIndex((i) => (i + 1) % announcements.length);
     }, 3200);
     return () => clearInterval(timer);
-  }, []);
+  }, [announcements.length]);
+
+  if (announcements.length === 0) return null;
 
   return (
     <Link
@@ -28,15 +29,15 @@ export default function AnnouncementTicker() {
         お知らせ
       </span>
       <span className="relative h-11 flex-1 overflow-hidden">
-        {announcements.map((text, i) => (
+        {announcements.map((a, i) => (
           <span
-            key={text}
+            key={a.id}
             className="absolute inset-0 flex items-center text-sm font-bold leading-tight transition-transform duration-500 ease-in-out"
             style={{
-              transform: `translateY(${(i - index) * 100}%)`,
+              transform: `translateY(${(i - (index % announcements.length)) * 100}%)`,
             }}
           >
-            {text}
+            {a.title}
           </span>
         ))}
       </span>

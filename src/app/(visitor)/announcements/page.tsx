@@ -1,26 +1,32 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-
-const announcements = [
-  { time: "10:12", text: "体育館の演奏会は開始5分前に受付終了します" },
-  { time: "9:50", text: "3年C組の企画は待ち時間が長くなっています" },
-  { time: "9:30", text: "本部で温かいお茶を配布しています" },
-];
+import { useEffect, useState } from "react";
+import { Announcement, subscribeVisitorAnnouncements } from "@/lib/booth";
 
 function truncate(text: string, length: number) {
   return text.length > length ? `${text.slice(0, length)}…` : text;
 }
 
-export default function AnnouncementsPage() {
-  const [openSet, setOpenSet] = useState<Set<number>>(new Set());
+function formatTime(ms: number | null) {
+  if (!ms) return "";
+  return new Date(ms).toLocaleTimeString("ja-JP", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
-  const toggle = (i: number) => {
+export default function AnnouncementsPage() {
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [openSet, setOpenSet] = useState<Set<string>>(new Set());
+
+  useEffect(() => subscribeVisitorAnnouncements(setAnnouncements), []);
+
+  const toggle = (id: string) => {
     setOpenSet((prev) => {
       const next = new Set(prev);
-      if (next.has(i)) next.delete(i);
-      else next.add(i);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   };
@@ -39,31 +45,41 @@ export default function AnnouncementsPage() {
       >
         お知らせ一覧
       </h1>
-      <ul className="space-y-3">
-        {announcements.map((a, i) => {
-          const isOpen = openSet.has(i);
-          return (
-            <li
-              key={a.time + a.text}
-              className="animate-fade-in-up rounded-xl border border-white/10 bg-white/5 text-sm"
-              style={{ animationDelay: `${80 + i * 40}ms` }}
-            >
-              <button
-                onClick={() => toggle(i)}
-                className="flex w-full items-center gap-2 p-3 text-left"
+      {announcements.length === 0 ? (
+        <p className="text-sm text-slate-500">現在お知らせはありません</p>
+      ) : (
+        <ul className="space-y-3">
+          {announcements.map((a, i) => {
+            const isOpen = openSet.has(a.id);
+            return (
+              <li
+                key={a.id}
+                className="animate-fade-in-up rounded-xl border border-white/10 bg-white/5 text-sm"
+                style={{ animationDelay: `${80 + i * 40}ms` }}
               >
-                <p className="shrink-0 text-xs text-slate-500">{a.time}</p>
-                <p className="flex-1">{isOpen ? a.text : truncate(a.text, 15)}</p>
-                <span
-                  className={`shrink-0 text-xs text-slate-500 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                <button
+                  onClick={() => toggle(a.id)}
+                  className="flex w-full items-center gap-2 p-3 text-left"
                 >
-                  ▾
-                </span>
-              </button>
-            </li>
-          );
-        })}
-      </ul>
+                  {a.pinned && <span className="shrink-0 text-amber-400">📌</span>}
+                  <p className="shrink-0 text-xs text-slate-500">
+                    {formatTime(a.createdAt)}
+                  </p>
+                  <p className="flex-1">{isOpen ? a.title : truncate(a.title, 15)}</p>
+                  <span
+                    className={`shrink-0 text-xs text-slate-500 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                  >
+                    ▾
+                  </span>
+                </button>
+                {isOpen && a.body && (
+                  <p className="px-3 pb-3 text-slate-300">{a.body}</p>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </div>
   );
 }

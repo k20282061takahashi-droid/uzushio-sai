@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   Announcement,
@@ -193,6 +194,10 @@ export default function OrganizerAnnouncementsPage() {
         <h1 className="text-sm font-bold text-slate-300">渦潮祭</h1>
         <p className="text-xs text-slate-500">運営用 ・ お知らせ編集</p>
       </div>
+
+      <Link href="/organizer/visitor-info" className="mb-4 inline-block text-xs text-slate-400 underline">
+        来場者の皆さんへ（ルール）の編集へ →
+      </Link>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <AnnouncementSection
