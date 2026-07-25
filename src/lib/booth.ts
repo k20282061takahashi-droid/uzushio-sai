@@ -3,6 +3,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   limit,
   onSnapshot,
@@ -53,6 +54,40 @@ export const BOOTH_TYPE_LABELS: Record<BoothType, string> = {
   info: "学校説明",
   volunteer: "有志企画",
 };
+
+export type FestivalBuilding = {
+  id: string;
+  name: string;
+  floors: number[];
+};
+
+export type FestivalVenue = {
+  id: string;
+  name: string;
+  confirmed?: boolean;
+};
+
+export type FestivalMeta = {
+  name: string;
+  year: number;
+  days: string[];
+  buildings: FestivalBuilding[];
+  venues: FestivalVenue[];
+};
+
+// 運営ダッシュボード用。会場・棟の一覧(meta/festival)を取得する。
+export async function getFestivalMeta(): Promise<FestivalMeta | null> {
+  const snap = await getDoc(doc(db, "meta", "festival"));
+  if (!snap.exists()) return null;
+  const data = snap.data();
+  return {
+    name: data.name ?? "",
+    year: data.year ?? 0,
+    days: data.days ?? [],
+    buildings: data.buildings ?? [],
+    venues: data.venues ?? [],
+  };
+}
 
 export type BoothStatus = "open" | "break" | "closed";
 
@@ -146,6 +181,8 @@ export async function updateBooth(
       | "status"
       | "signboardUrl"
       | "projectName"
+      | "location"
+      | "floor"
     >
   >,
 ) {
