@@ -12,6 +12,7 @@ import {
   FestivalPhase,
   LostItemRecord,
   createStaffAnnouncement,
+  createVisitorAnnouncement,
   markLostItemClaimed,
   resolveEmergencyAlert,
   setFestivalPhase,
@@ -185,7 +186,10 @@ function EmergencyAlertsCard() {
   );
 }
 
-function StaffAnnouncementSendCard() {
+type AnnouncementTarget = "staff" | "visitor";
+
+function AnnouncementSendCard() {
+  const [target, setTarget] = useState<AnnouncementTarget>("staff");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [saving, setSaving] = useState(false);
@@ -194,7 +198,8 @@ function StaffAnnouncementSendCard() {
   async function submit() {
     if (!title.trim()) return;
     setSaving(true);
-    await createStaffAnnouncement({ title, body, pinned: false });
+    const create = target === "staff" ? createStaffAnnouncement : createVisitorAnnouncement;
+    await create({ title, body, pinned: false });
     setTitle("");
     setBody("");
     setSaving(false);
@@ -209,6 +214,36 @@ function StaffAnnouncementSendCard() {
           編集画面
         </Link>
       </div>
+
+      <div className="mb-3 flex gap-1">
+        <button
+          onClick={() => {
+            setTarget("staff");
+            setSent(false);
+          }}
+          className={
+            target === "staff"
+              ? "flex-1 rounded-lg bg-white px-2 py-1.5 text-xs font-bold text-slate-950"
+              : "flex-1 rounded-lg bg-white/10 px-2 py-1.5 text-xs text-slate-300"
+          }
+        >
+          企画担当者向け
+        </button>
+        <button
+          onClick={() => {
+            setTarget("visitor");
+            setSent(false);
+          }}
+          className={
+            target === "visitor"
+              ? "flex-1 rounded-lg bg-white px-2 py-1.5 text-xs font-bold text-slate-950"
+              : "flex-1 rounded-lg bg-white/10 px-2 py-1.5 text-xs text-slate-300"
+          }
+        >
+          来場者向け
+        </button>
+      </div>
+
       <input
         type="text"
         value={title}
@@ -231,7 +266,11 @@ function StaffAnnouncementSendCard() {
         disabled={saving || !title.trim()}
         className="w-full rounded-lg bg-white/10 p-2 text-sm font-semibold active:scale-95 disabled:opacity-50"
       >
-        {saving ? "送信中..." : "企画担当者へ送信"}
+        {saving
+          ? "送信中..."
+          : target === "staff"
+            ? "企画担当者へ送信"
+            : "来場者へ送信"}
       </button>
       {sent && <p className="mt-2 text-xs text-emerald-400">送信しました</p>}
     </section>
@@ -447,7 +486,7 @@ export default function OrganizerPage() {
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-10">
             <div className="space-y-4 lg:col-span-2">
               <EmergencyAlertsCard />
-              <StaffAnnouncementSendCard />
+              <AnnouncementSendCard />
             </div>
             <div className="lg:col-span-6">
               <BoothOverviewCard />
