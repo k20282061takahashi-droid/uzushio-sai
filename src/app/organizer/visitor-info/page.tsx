@@ -120,8 +120,8 @@ export default function OrganizerVisitorInfoPage() {
         <p className="text-xs text-slate-500">運営用 ・ 来場者の皆さんへ</p>
       </div>
 
-      <Link href="/organizer/announcements" className="mb-4 inline-block text-xs text-slate-400 underline">
-        ← お知らせ編集へ
+      <Link href="/organizer" className="mb-4 inline-block text-xs text-slate-400 underline">
+        ← 運営ダッシュボードへ戻る
       </Link>
 
       <section className="rounded-xl border border-white/10 bg-white/5 p-4">

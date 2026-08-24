@@ -101,12 +101,17 @@ export type Booth = {
   description: string;
   location: string | null;
   floor: number | null;
+  // 校内図の部屋名（例: "3-A"）。地図にピンを置く位置を決めるのに使う。
+  roomName: string | null;
   hasWaiting: boolean;
   waitingGroups: number | null;
   timePerGroup: number | null;
   genre: BoothGenre | null;
   isSetupDone: boolean;
   signboardUrl: string | null;
+  // 待ちグループ数を最後に更新した時刻。長い間更新されていない企画を
+  // 運営が見つけられるようにするために記録している。
+  waitingUpdatedAt: number | null;
 };
 
 export async function getBoothByToken(token: string): Promise<Booth | null> {
@@ -129,12 +134,14 @@ export async function getBoothByToken(token: string): Promise<Booth | null> {
     description: data.description ?? "",
     location: data.location ?? null,
     floor: data.floor ?? null,
+    roomName: data.roomName ?? null,
     hasWaiting: !!data.hasWaiting,
     waitingGroups: data.waitingGroups ?? null,
     timePerGroup: data.timePerGroup ?? null,
     genre: data.genre ?? null,
     isSetupDone: !!data.isSetupDone,
     signboardUrl: data.signboardUrl ?? null,
+    waitingUpdatedAt: data.waitingUpdatedAt?.toMillis?.() ?? null,
   };
 }
 
@@ -155,12 +162,14 @@ export function subscribeBooths(
         description: data.description ?? "",
         location: data.location ?? null,
         floor: data.floor ?? null,
+        roomName: data.roomName ?? null,
         hasWaiting: !!data.hasWaiting,
         waitingGroups: data.waitingGroups ?? null,
         timePerGroup: data.timePerGroup ?? null,
         genre: data.genre ?? null,
         isSetupDone: !!data.isSetupDone,
         signboardUrl: data.signboardUrl ?? null,
+        waitingUpdatedAt: data.waitingUpdatedAt?.toMillis?.() ?? null,
       } satisfies Booth;
     });
     booths.sort((a, b) => a.name.localeCompare(b.name, "ja"));
@@ -178,11 +187,15 @@ export async function updateBooth(
       | "waitingGroups"
       | "timePerGroup"
       | "isSetupDone"
+      | "hasWaiting"
       | "status"
       | "signboardUrl"
       | "projectName"
       | "location"
       | "floor"
+      | "roomName"
+      | "type"
+      | "name"
     >
   >,
 ) {
@@ -362,14 +375,20 @@ export type Announcement = {
   body: string;
   pinned: boolean;
   createdAt: number | null;
+  // 企画担当者向け連絡の宛先。null なら全企画あて。
+  // 特定の企画にだけ送りたいときは、その企画のIDを並べる。
+  targetBoothIds: string[] | null;
 };
 
 // 企画担当者向けの連絡。来場者アプリの「お知らせ」（announcementsコレクション）とは別物。
-export async function getStaffAnnouncements(): Promise<Announcement[]> {
+// boothId を渡すと、その企画あての連絡と全企画あての連絡だけに絞り込む。
+export async function getStaffAnnouncements(
+  boothId?: string,
+): Promise<Announcement[]> {
   const snap = await getDocs(
     query(collection(db, "staffAnnouncements"), orderBy("createdAt", "desc"), limit(20)),
   );
-  return snap.docs.map((d) => {
+  const all = snap.docs.map((d) => {
     const data = d.data();
     return {
       id: d.id,
@@ -377,8 +396,15 @@ export async function getStaffAnnouncements(): Promise<Announcement[]> {
       body: data.body ?? "",
       pinned: !!data.pinned,
       createdAt: data.createdAt?.toMillis?.() ?? null,
+      targetBoothIds: Array.isArray(data.targetBoothIds) ? data.targetBoothIds : null,
     };
   });
+
+  if (!boothId) return all;
+  // 全企画あて（targetBoothIds が null）か、自分あてのものだけ残す
+  return all.filter(
+    (a) => a.targetBoothIds === null || a.targetBoothIds.includes(boothId),
+  );
 }
 
 // 運営ダッシュボード用。企画担当者向けの連絡をリアルタイムで一覧購読する。
@@ -397,6 +423,9 @@ export function subscribeStaffAnnouncements(
             body: data.body ?? "",
             pinned: !!data.pinned,
             createdAt: data.createdAt?.toMillis?.() ?? null,
+            targetBoothIds: Array.isArray(data.targetBoothIds)
+              ? data.targetBoothIds
+              : null,
           };
         }),
       );
@@ -408,9 +437,14 @@ export async function createStaffAnnouncement(input: {
   title: string;
   body: string;
   pinned: boolean;
+  // 省略または null なら全企画あて
+  targetBoothIds?: string[] | null;
 }) {
   await addDoc(collection(db, "staffAnnouncements"), {
-    ...input,
+    title: input.title,
+    body: input.body,
+    pinned: input.pinned,
+    targetBoothIds: input.targetBoothIds ?? null,
     createdAt: serverTimestamp(),
   });
 }
@@ -446,6 +480,9 @@ export function subscribeVisitorAnnouncements(
             body: data.body ?? "",
             pinned: !!data.pinned,
             createdAt: data.createdAt?.toMillis?.() ?? null,
+            targetBoothIds: Array.isArray(data.targetBoothIds)
+              ? data.targetBoothIds
+              : null,
           };
         }),
       );
@@ -459,7 +496,10 @@ export async function createVisitorAnnouncement(input: {
   pinned: boolean;
 }) {
   await addDoc(collection(db, "announcements"), {
-    ...input,
+    title: input.title,
+    body: input.body,
+    pinned: input.pinned,
+    targetBoothIds: null,
     createdAt: serverTimestamp(),
   });
 }
@@ -533,6 +573,9 @@ export type FestivalEvent = {
   endAt: string | null;
   venue: string | null;
   status: string;
+  // 開始が遅れたときに立つ印と、もともとの予定時刻
+  delayed: boolean;
+  originalStartAt: string | null;
 };
 
 // 運営ダッシュボード用。タイムテーブル(events)をリアルタイムで一覧購読する。
@@ -551,6 +594,8 @@ export function subscribeEvents(
         endAt: data.endAt ?? null,
         venue: data.venue ?? null,
         status: data.status ?? "scheduled",
+        delayed: !!data.delayed,
+        originalStartAt: data.originalStartAt ?? null,
       } satisfies FestivalEvent;
     });
     events.sort((a, b) => a.day.localeCompare(b.day) || a.order - b.order);
@@ -565,5 +610,127 @@ export async function updateEvent(
   await updateDoc(doc(db, "events", id), {
     ...fields,
     updatedAt: serverTimestamp(),
+  });
+}
+
+// ==================================================================
+// 運営画面から企画・イベントを新しく作るための処理
+// ==================================================================
+
+// 企画ごとの管理用URLに使う、推測されにくい文字列を作る。
+// 紛らわしい文字（0とO、1とlなど）は最初から除いてある。
+const TOKEN_CHARS = "abcdefghjkmnpqrstuvwxyz23456789";
+
+export function generateAccessToken(length = 10): string {
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (b) => TOKEN_CHARS[b % TOKEN_CHARS.length]).join("");
+}
+
+export type NewBoothInput = {
+  name: string; // クラス名・団体名
+  type: BoothType;
+  location?: string | null;
+  floor?: number | null;
+  hasWaiting?: boolean;
+};
+
+// 企画を1件作る。管理用URLの文字列は自動で発行する。
+export async function createBooth(input: NewBoothInput): Promise<string> {
+  const docRef = await addDoc(collection(db, "booths"), {
+    name: input.name,
+    projectName: null,
+    type: input.type,
+    status: "open",
+    accessToken: generateAccessToken(),
+    description: "",
+    location: input.location ?? null,
+    floor: input.floor ?? null,
+    roomName: null,
+    hasWaiting: input.hasWaiting ?? false,
+    waitingGroups: 0,
+    timePerGroup: null,
+    genre: null,
+    isSetupDone: false,
+    signboardUrl: null,
+    createdAt: serverTimestamp(),
+  });
+  return docRef.id;
+}
+
+// 一覧をまとめて登録する。既にある名前は飛ばして二重登録を防ぐ。
+export async function createBoothsBulk(
+  inputs: NewBoothInput[],
+  existingNames: string[],
+): Promise<{ created: number; skipped: string[] }> {
+  const known = new Set(existingNames);
+  const skipped: string[] = [];
+  let created = 0;
+
+  for (const input of inputs) {
+    if (known.has(input.name)) {
+      skipped.push(input.name);
+      continue;
+    }
+    await createBooth(input);
+    known.add(input.name);
+    created++;
+  }
+  return { created, skipped };
+}
+
+export async function deleteBooth(id: string) {
+  await deleteDoc(doc(db, "booths", id));
+}
+
+// 待ちグループ数の更新。更新した時刻も一緒に記録する。
+export async function updateWaitingGroups(id: string, waitingGroups: number) {
+  await updateDoc(doc(db, "booths", id), {
+    waitingGroups,
+    waitingUpdatedAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+}
+
+// イベント（ステージ発表など）を1件作る
+export async function createEvent(input: {
+  day: string;
+  venue: string;
+  name: string;
+  startAt: string;
+  endAt: string;
+}): Promise<string> {
+  const docRef = await addDoc(collection(db, "events"), {
+    ...input,
+    order: 0,
+    status: "scheduled",
+    createdAt: serverTimestamp(),
+  });
+  return docRef.id;
+}
+
+export async function deleteEvent(id: string) {
+  await deleteDoc(doc(db, "events", id));
+}
+
+// イベントの開始を遅らせる。
+// 予定時刻を書き換えたうえで、来場者アプリのお知らせにも自動で流す。
+export async function delayEvent(
+  event: FestivalEvent,
+  newStartAt: string,
+  newEndAt: string | null,
+) {
+  await updateDoc(doc(db, "events", event.id), {
+    startAt: newStartAt,
+    endAt: newEndAt,
+    delayed: true,
+    originalStartAt: event.startAt,
+    updatedAt: serverTimestamp(),
+  });
+
+  await createVisitorAnnouncement({
+    title: `${event.name ?? "イベント"}の開始が${newStartAt}に変更になりました`,
+    body: `${event.venue ?? ""}で予定していた「${event.name ?? "イベント"}」は、開始時刻が ${event.startAt ?? "未定"} から ${newStartAt} に変更になりました。ご迷惑をおかけします。`,
+    pinned: true,
   });
 }

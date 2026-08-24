@@ -150,9 +150,10 @@ export default function BoothManagePage() {
         setGenre(b.genre ?? "");
         setTimePerGroup(b.timePerGroup ?? "");
         setWaitingGroups(b.waitingGroups ?? 0);
+        // 自分あて（と全企画あて）の連絡だけを読む
+        getStaffAnnouncements(b.id).then(setAnnouncements);
       }
     });
-    getStaffAnnouncements().then(setAnnouncements);
     const unsubscribe = subscribeFestivalPhase(setFestivalPhase);
     return unsubscribe;
   }, [token]);

@@ -188,6 +188,32 @@ const announcements = [
 ];
 
 // ------------------------------------------------------------------
+// 緊急連絡（運営画面の動作確認用）
+// ------------------------------------------------------------------
+const emergencyAlerts = [
+  {
+    boothName: "3年B組",
+    message: "お客様が体調を崩されました。至急来てください",
+    status: "open",
+  },
+  {
+    boothName: "2年A組",
+    message: "備品が壊れました。代わりの長机を2台お願いします",
+    status: "open",
+  },
+  {
+    boothName: "軽音楽部",
+    message: "",
+    status: "open",
+  },
+  {
+    boothName: "3年C組",
+    message: "迷子のお子様をお預かりしています。本部へお連れします",
+    status: "resolved",
+  },
+];
+
+// ------------------------------------------------------------------
 
 async function clearSeeded(collectionName) {
   const snap = await db.collection(collectionName).where("seeded", "==", true).get();
@@ -205,6 +231,7 @@ async function main() {
     await clearSeeded("visitorRules");
     await clearSeeded("lostItems");
     await clearSeeded("announcements");
+    await clearSeeded("emergencyAlerts");
     console.log("完了しました。");
     return;
   }
@@ -215,6 +242,7 @@ async function main() {
   await clearSeeded("visitorRules");
   await clearSeeded("lostItems");
   await clearSeeded("announcements");
+  await clearSeeded("emergencyAlerts");
 
   for (const rule of visitorRules) {
     await db.collection("visitorRules").add({ ...rule, seeded: true });
@@ -241,6 +269,16 @@ async function main() {
     });
   }
   console.log(`  announcements: ${announcements.length}件を登録`);
+
+  for (const alert of emergencyAlerts) {
+    await db.collection("emergencyAlerts").add({
+      ...alert,
+      boothId: "",
+      createdAt: FieldValue.serverTimestamp(),
+      seeded: true,
+    });
+  }
+  console.log(`  emergencyAlerts: ${emergencyAlerts.length}件を登録`);
 
   console.log("完了しました。アプリを再読み込みして確認してください。");
 }
