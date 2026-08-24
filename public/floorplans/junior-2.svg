@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800">
+  <rect width="1200" height="800" fill="#0b1220"/>
+  
+    <!-- 外壁 -->
+    <rect x="40" y="40" width="1120" height="720" fill="none" stroke="#94a3b8" stroke-width="6"/>
+    <!-- 廊下 -->
+    <rect x="40" y="355" width="1120" height="90" fill="#111c30" stroke="#475569" stroke-width="3"/>
+    <text x="64" y="407" fill="#64748b" font-size="20" font-family="sans-serif">廊下</text>
+    
+    <rect x="40" y="40" width="211.89189189189187" height="315" fill="#0f2033" stroke="#64748b" stroke-width="3"/>
+    <line x1="48" y1="92.5" x2="243.89189189189187" y2="92.5" stroke="#64748b" stroke-width="2"/><line x1="48" y1="145" x2="243.89189189189187" y2="145" stroke="#64748b" stroke-width="2"/><line x1="48" y1="197.5" x2="243.89189189189187" y2="197.5" stroke="#64748b" stroke-width="2"/><line x1="48" y1="250" x2="243.89189189189187" y2="250" stroke="#64748b" stroke-width="2"/><line x1="48" y1="302.5" x2="243.89189189189187" y2="302.5" stroke="#64748b" stroke-width="2"/>
+    <text x="145.94594594594594" y="341" fill="#64748b" font-size="19" text-anchor="middle" font-family="sans-serif">階段</text>
+    <rect x="251.89189189189187" y="40" width="302.7027027027027" height="315" fill="#1e293b" stroke="#64748b" stroke-width="3"/>
+    <text x="403.2432432432432" y="204.5" fill="#cbd5e1" font-size="26" font-weight="700"
+          text-anchor="middle" font-family="sans-serif">中1-A</text>
+    
+    <rect x="554.5945945945946" y="40" width="302.7027027027027" height="315" fill="#1e293b" stroke="#64748b" stroke-width="3"/>
+    <text x="705.9459459459459" y="204.5" fill="#cbd5e1" font-size="26" font-weight="700"
+          text-anchor="middle" font-family="sans-serif">中1-B</text>
+    
+    <rect x="857.2972972972973" y="40" width="302.7027027027027" height="315" fill="#1e293b" stroke="#64748b" stroke-width="3"/>
+    <text x="1008.6486486486486" y="204.5" fill="#cbd5e1" font-size="26" font-weight="700"
+          text-anchor="middle" font-family="sans-serif">中1-C</text>
+    
+    
+    <rect x="40" y="445" width="320" height="315" fill="#1e293b" stroke="#64748b" stroke-width="3"/>
+    <text x="200" y="609.5" fill="#cbd5e1" font-size="26" font-weight="700"
+          text-anchor="middle" font-family="sans-serif">中1-D</text>
+    
+    <rect x="360" y="445" width="384" height="315" fill="#0f2033" stroke="#64748b" stroke-width="3"/>
+    <text x="552" y="609.5" fill="#cbd5e1" font-size="26" font-weight="700"
+          text-anchor="middle" font-family="sans-serif">美術室</text>
+    
+    <rect x="744" y="445" width="192" height="315" fill="#0f2033" stroke="#64748b" stroke-width="3"/>
+    <text x="840" y="609.5" fill="#cbd5e1" font-size="26" font-weight="700"
+          text-anchor="middle" font-family="sans-serif">WC</text>
+    
+    <rect x="936" y="445" width="224" height="315" fill="#0f2033" stroke="#64748b" stroke-width="3"/>
+    <line x1="944" y1="497.5" x2="1152" y2="497.5" stroke="#64748b" stroke-width="2"/><line x1="944" y1="550" x2="1152" y2="550" stroke="#64748b" stroke-width="2"/><line x1="944" y1="602.5" x2="1152" y2="602.5" stroke="#64748b" stroke-width="2"/><line x1="944" y1="655" x2="1152" y2="655" stroke="#64748b" stroke-width="2"/><line x1="944" y1="707.5" x2="1152" y2="707.5" stroke="#64748b" stroke-width="2"/>
+    <text x="1048" y="746" fill="#64748b" font-size="19" text-anchor="middle" font-family="sans-serif">階段</text>
+    <!-- 方位（北） -->
+    <g transform="translate(1110, 84)">
+      <circle r="30" fill="none" stroke="#64748b" stroke-width="2"/>
+      <path d="M 0 -20 L 8 12 L 0 5 L -8 12 Z" fill="#cbd5e1"/>
+      <text x="0" y="-32" fill="#64748b" font-size="17" text-anchor="middle" font-family="sans-serif">N</text>
+    </g>
+    <text x="30" y="782" fill="#cbd5e1" font-size="26" font-weight="700" font-family="sans-serif">中学棟 2F</text>
+  <text x="1180" y="782" fill="#64748b" font-size="20" text-anchor="end"
+        font-family="sans-serif">中学棟 2F（ダミー図面）</text>
+</svg>

@@ -15,6 +15,8 @@ export default function PannableZoom({
   className?: string;
 }) {
   const [transform, setTransform] = useState({ scale: 1, x: 0, y: 0 });
+  // 指を置いている間はアニメーションを切る（refはレンダー中に読めないためstateで持つ）
+  const [interacting, setInteracting] = useState(false);
   const pointers = useRef<Map<number, PointerInfo>>(new Map());
   const lastMid = useRef<PointerInfo | null>(null);
   const lastDist = useRef<number | null>(null);
@@ -35,6 +37,7 @@ export default function PannableZoom({
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     lastDist.current = null;
     lastMid.current = null;
+    setInteracting(true);
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
@@ -85,6 +88,7 @@ export default function PannableZoom({
     if (pts.length === 1) {
       lastMid.current = pts[0];
     }
+    if (pts.length === 0) setInteracting(false);
   };
 
   const resetIfUnderscale = () => {
@@ -135,7 +139,7 @@ export default function PannableZoom({
         style={{
           transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
           transformOrigin: "0 0",
-          transition: pointers.current.size > 0 ? "none" : "transform 0.15s ease-out",
+          transition: interacting ? "none" : "transform 0.15s ease-out",
         }}
       >
         {children}

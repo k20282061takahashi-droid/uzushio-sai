@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800">
+  <rect width="1200" height="800" fill="#0b1220"/>
+  
+    <!-- 外壁 -->
+    <rect x="40" y="40" width="1120" height="720" fill="none" stroke="#94a3b8" stroke-width="6"/>
+    <!-- 廊下 -->
+    <rect x="40" y="355" width="1120" height="90" fill="#111c30" stroke="#475569" stroke-width="3"/>
+    <text x="64" y="407" fill="#64748b" font-size="20" font-family="sans-serif">廊下</text>
+    
+    <rect x="40" y="40" width="166.80851063829786" height="315" fill="#0f2033" stroke="#64748b" stroke-width="3"/>
+    <line x1="48" y1="92.5" x2="198.80851063829786" y2="92.5" stroke="#64748b" stroke-width="2"/><line x1="48" y1="145" x2="198.80851063829786" y2="145" stroke="#64748b" stroke-width="2"/><line x1="48" y1="197.5" x2="198.80851063829786" y2="197.5" stroke="#64748b" stroke-width="2"/><line x1="48" y1="250" x2="198.80851063829786" y2="250" stroke="#64748b" stroke-width="2"/><line x1="48" y1="302.5" x2="198.80851063829786" y2="302.5" stroke="#64748b" stroke-width="2"/>
+    <text x="123.40425531914893" y="341" fill="#64748b" font-size="19" text-anchor="middle" font-family="sans-serif">階段</text>
+    <rect x="206.80851063829786" y="40" width="238.29787234042553" height="315" fill="#1e293b" stroke="#64748b" stroke-width="3"/>
+    <text x="325.9574468085106" y="204.5" fill="#cbd5e1" font-size="26" font-weight="700"
+          text-anchor="middle" font-family="sans-serif">3-A</text>
+    
+    <rect x="445.1063829787234" y="40" width="238.29787234042553" height="315" fill="#1e293b" stroke="#64748b" stroke-width="3"/>
+    <text x="564.2553191489361" y="204.5" fill="#cbd5e1" font-size="26" font-weight="700"
+          text-anchor="middle" font-family="sans-serif">3-B</text>
+    
+    <rect x="683.4042553191489" y="40" width="238.29787234042553" height="315" fill="#1e293b" stroke="#64748b" stroke-width="3"/>
+    <text x="802.5531914893617" y="204.5" fill="#cbd5e1" font-size="26" font-weight="700"
+          text-anchor="middle" font-family="sans-serif">3-C</text>
+    
+    <rect x="921.7021276595744" y="40" width="238.29787234042553" height="315" fill="#1e293b" stroke="#64748b" stroke-width="3"/>
+    <text x="1040.851063829787" y="204.5" fill="#cbd5e1" font-size="26" font-weight="700"
+          text-anchor="middle" font-family="sans-serif">3-D</text>
+    
+    
+    <rect x="40" y="445" width="248.88888888888889" height="315" fill="#1e293b" stroke="#64748b" stroke-width="3"/>
+    <text x="164.44444444444446" y="609.5" fill="#cbd5e1" font-size="26" font-weight="700"
+          text-anchor="middle" font-family="sans-serif">3-E</text>
+    
+    <rect x="288.8888888888889" y="445" width="248.88888888888889" height="315" fill="#1e293b" stroke="#64748b" stroke-width="3"/>
+    <text x="413.33333333333337" y="609.5" fill="#cbd5e1" font-size="26" font-weight="700"
+          text-anchor="middle" font-family="sans-serif">3-F</text>
+    
+    <rect x="537.7777777777778" y="445" width="298.6666666666667" height="315" fill="#0f2033" stroke="#64748b" stroke-width="3"/>
+    <text x="687.1111111111112" y="609.5" fill="#cbd5e1" font-size="26" font-weight="700"
+          text-anchor="middle" font-family="sans-serif">多目的室</text>
+    
+    <rect x="836.4444444444446" y="445" width="149.33333333333334" height="315" fill="#0f2033" stroke="#64748b" stroke-width="3"/>
+    <text x="911.1111111111112" y="609.5" fill="#cbd5e1" font-size="26" font-weight="700"
+          text-anchor="middle" font-family="sans-serif">WC</text>
+    
+    <rect x="985.7777777777779" y="445" width="174.22222222222223" height="315" fill="#0f2033" stroke="#64748b" stroke-width="3"/>
+    <line x1="993.7777777777779" y1="497.5" x2="1152.0000000000002" y2="497.5" stroke="#64748b" stroke-width="2"/><line x1="993.7777777777779" y1="550" x2="1152.0000000000002" y2="550" stroke="#64748b" stroke-width="2"/><line x1="993.7777777777779" y1="602.5" x2="1152.0000000000002" y2="602.5" stroke="#64748b" stroke-width="2"/><line x1="993.7777777777779" y1="655" x2="1152.0000000000002" y2="655" stroke="#64748b" stroke-width="2"/><line x1="993.7777777777779" y1="707.5" x2="1152.0000000000002" y2="707.5" stroke="#64748b" stroke-width="2"/>
+    <text x="1072.8888888888891" y="746" fill="#64748b" font-size="19" text-anchor="middle" font-family="sans-serif">階段</text>
+    <!-- 方位（北） -->
+    <g transform="translate(1110, 84)">
+      <circle r="30" fill="none" stroke="#64748b" stroke-width="2"/>
+      <path d="M 0 -20 L 8 12 L 0 5 L -8 12 Z" fill="#cbd5e1"/>
+      <text x="0" y="-32" fill="#64748b" font-size="17" text-anchor="middle" font-family="sans-serif">N</text>
+    </g>
+    <text x="30" y="782" fill="#cbd5e1" font-size="26" font-weight="700" font-family="sans-serif">高校棟 4F</text>
+  <text x="1180" y="782" fill="#64748b" font-size="20" text-anchor="end"
+        font-family="sans-serif">高校棟 4F（ダミー図面）</text>
+</svg>
