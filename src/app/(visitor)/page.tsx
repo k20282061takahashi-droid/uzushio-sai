@@ -25,9 +25,10 @@ export default function VisitorHome() {
         <CampusMap />
       </section>
 
-      {/* 現在・次のイベント */}
-      <section
-        className="animate-fade-in-up mb-6 rounded-2xl border border-white/15 bg-white/5 p-4"
+      {/* 現在・次のイベント（どこを押してもタイムテーブルへ移動する） */}
+      <Link
+        href="/timeline"
+        className="animate-fade-in-up mb-6 block rounded-2xl border border-white/15 bg-white/5 p-4 transition-transform active:scale-[0.98]"
         style={{ animationDelay: "120ms" }}
       >
         <div className="mb-2 flex items-center gap-2">
@@ -47,10 +48,7 @@ export default function VisitorHome() {
           <span className="truncate font-bold">{nextEvent.title}</span>
           <span className="ml-auto shrink-0 text-zinc-500">@{nextEvent.venue}</span>
         </div>
-        <Link href="/timeline" className="block pt-2 text-right text-xs text-zinc-300 underline">
-          タイムテーブルを見る →
-        </Link>
-      </section>
+      </Link>
 
       {/* クイックリンク */}
       <section
