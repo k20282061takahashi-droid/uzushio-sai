@@ -334,6 +334,28 @@ export async function setFestivalPhase(phase: FestivalPhase) {
   );
 }
 
+// 文化祭の開催日（1日目・2日目）。settings/festival の days に
+// ["2026-09-19", "2026-09-20"] の形で保存する。運営画面から設定できる。
+// 来場者数を「1日目 / 2日目」に分けて数えるために使う。
+export function subscribeFestivalDays(
+  callback: (days: string[]) => void,
+): () => void {
+  return onSnapshot(doc(db, "settings", "festival"), (snap) => {
+    const days = snap.data()?.days;
+    callback(
+      Array.isArray(days) ? days.filter((d): d is string => typeof d === "string") : [],
+    );
+  });
+}
+
+export async function setFestivalDays(days: string[]) {
+  await setDoc(
+    doc(db, "settings", "festival"),
+    { days, updatedAt: serverTimestamp() },
+    { merge: true },
+  );
+}
+
 export type Announcement = {
   id: string;
   title: string;

@@ -27,6 +27,7 @@ import {
   updateBooth,
   updateEvent,
 } from "@/lib/booth";
+import VisitorCountPanel from "@/components/VisitorCountPanel";
 
 type Mode = "overall" | "booths" | "events";
 
@@ -110,6 +111,9 @@ function HeroBar() {
           {phase === "before" ? "文化祭を開始する" : "文化祭前の状態に戻す"}
         </button>
       </div>
+
+      {/* 来場者数（アプリを開いた端末の数） */}
+      <VisitorCountPanel />
 
       <div className="flex gap-6 text-center">
         <div>
