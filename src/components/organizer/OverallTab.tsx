@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import FloatPanel from "./FloatPanel";
 import AnnouncementFloat from "./AnnouncementFloat";
 import EmergencyFloat from "./EmergencyFloat";
+import StaffAlertFloat from "./StaffAlertFloat";
 import LostItemsFloat from "./LostItemsFloat";
 import BoothStatusList from "./BoothStatusList";
 import EventTimeline, { parseTime } from "./EventTimeline";
@@ -28,7 +29,8 @@ import {
 } from "@/lib/booth";
 import { todayInJapan } from "@/lib/visits";
 
-type FloatKind = "none" | "emergency" | "announcement" | "timetable" | "lost";
+type FloatKind =
+  "none" | "emergency" | "staffAlert" | "announcement" | "timetable" | "lost";
 
 function formatTime(ms: number | null): string {
   if (!ms) return "";
@@ -98,8 +100,12 @@ export default function OverallTab({
   const [phase, setPhase] = useState<FestivalPhase>("before");
   const [booths, setBooths] = useState<Booth[]>([]);
   const [alerts, setAlerts] = useState<EmergencyAlertRecord[]>([]);
-  const [visitorAnnouncements, setVisitorAnnouncements] = useState<Announcement[]>([]);
-  const [staffAnnouncements, setStaffAnnouncements] = useState<Announcement[]>([]);
+  const [visitorAnnouncements, setVisitorAnnouncements] = useState<
+    Announcement[]
+  >([]);
+  const [staffAnnouncements, setStaffAnnouncements] = useState<Announcement[]>(
+    [],
+  );
   const [events, setEvents] = useState<FestivalEvent[]>([]);
   const [lostItems, setLostItems] = useState<LostItemRecord[]>([]);
   const [days, setDays] = useState<string[]>([]);
@@ -152,9 +158,10 @@ export default function OverallTab({
   };
 
   // 送信済みの連絡を、来場者向け・企画向けまとめて新しい順に
-  const allAnnouncements = [...visitorAnnouncements, ...staffAnnouncements].sort(
-    (a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0),
-  );
+  const allAnnouncements = [
+    ...visitorAnnouncements,
+    ...staffAnnouncements,
+  ].sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
 
   // タイムテーブルは「今日」の分を出す。開催日でなければ1日目を出す。
   const today = todayInJapan();
@@ -214,9 +221,24 @@ export default function OverallTab({
           <div className="min-h-[13rem] flex-1 lg:min-h-0">
             <ClickableCard
               title="緊急連絡"
-              badge={openAlerts.length > 0 ? `${openAlerts.length}件 未対応` : undefined}
+              badge={
+                openAlerts.length > 0
+                  ? `${openAlerts.length}件 未対応`
+                  : undefined
+              }
               badgeTone={openAlerts.length > 0 ? "alert" : "normal"}
               onClick={() => setFloat("emergency")}
+              action={
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setFloat("staffAlert");
+                  }}
+                  className="rounded-lg bg-red-500 px-3.5 py-2 text-sm font-bold text-white active:scale-95"
+                >
+                  一斉連絡
+                </button>
+              }
             >
               {openAlerts.length === 0 ? (
                 <p className="text-xs text-slate-400">緊急連絡はありません</p>
@@ -307,7 +329,8 @@ export default function OverallTab({
                   {[...todaysEvents]
                     .sort(
                       (a, b) =>
-                        (parseTime(a.startAt) ?? 0) - (parseTime(b.startAt) ?? 0),
+                        (parseTime(a.startAt) ?? 0) -
+                        (parseTime(b.startAt) ?? 0),
                     )
                     .slice(0, 6)
                     .map((e) => (
@@ -397,6 +420,11 @@ export default function OverallTab({
       </div>
 
       {/* --- フロート画面 --- */}
+      <StaffAlertFloat
+        open={float === "staffAlert"}
+        onClose={() => setFloat("none")}
+        booths={booths}
+      />
       <EmergencyFloat
         open={float === "emergency"}
         onClose={() => setFloat("none")}
@@ -419,7 +447,10 @@ export default function OverallTab({
         width="medium"
       >
         <div className="h-[60vh]">
-          <EventTimeline events={todaysEvents} showNowLine={shownDay === today} />
+          <EventTimeline
+            events={todaysEvents}
+            showNowLine={shownDay === today}
+          />
         </div>
       </FloatPanel>
 

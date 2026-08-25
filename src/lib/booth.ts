@@ -1,4 +1,5 @@
 import {
+  arrayUnion,
   addDoc,
   collection,
   deleteDoc,
@@ -318,6 +319,95 @@ export function subscribeEmergencyAlerts(
 
 export async function resolveEmergencyAlert(id: string) {
   await updateDoc(doc(db, "emergencyAlerts", id), { status: "resolved" });
+}
+
+// ─────────────────────────────────────────────────────────────
+// 運営 → 企画担当者への「緊急一斉連絡」
+//
+// 普通の連絡（staffAnnouncements）と違い、担当者の画面に赤い全画面警告を
+// 割り込みで出す。担当者が「確認しました」を押すと、その企画IDが
+// acknowledgedBoothIds に追加され、運営側で確認状況が分かる。
+// ─────────────────────────────────────────────────────────────
+
+export type StaffAlertRecord = {
+  id: string;
+  message: string;
+  // null なら全企画あて
+  targetBoothIds: string[] | null;
+  status: "active" | "closed";
+  acknowledgedBoothIds: string[];
+  createdAt: number | null;
+};
+
+function toStaffAlert(id: string, data: Record<string, unknown>): StaffAlertRecord {
+  const createdAt = data.createdAt as { toMillis?: () => number } | undefined;
+  return {
+    id,
+    message: typeof data.message === "string" ? data.message : "",
+    targetBoothIds: Array.isArray(data.targetBoothIds)
+      ? (data.targetBoothIds as string[])
+      : null,
+    status: data.status === "closed" ? "closed" : "active",
+    acknowledgedBoothIds: Array.isArray(data.acknowledgedBoothIds)
+      ? (data.acknowledgedBoothIds as string[])
+      : [],
+    createdAt: createdAt?.toMillis?.() ?? null,
+  };
+}
+
+export async function sendStaffAlert(input: {
+  message: string;
+  targetBoothIds?: string[] | null;
+}) {
+  await addDoc(collection(db, "staffAlerts"), {
+    message: input.message,
+    targetBoothIds: input.targetBoothIds ?? null,
+    status: "active",
+    acknowledgedBoothIds: [],
+    createdAt: serverTimestamp(),
+  });
+}
+
+// 運営ダッシュボード用。送った一斉連絡を新しい順に購読する。
+export function subscribeStaffAlerts(
+  callback: (alerts: StaffAlertRecord[]) => void,
+): () => void {
+  return onSnapshot(
+    query(collection(db, "staffAlerts"), orderBy("createdAt", "desc"), limit(30)),
+    (snap) => callback(snap.docs.map((d) => toStaffAlert(d.id, d.data()))),
+  );
+}
+
+// 企画担当者ページ用。自分あての「対応中」の一斉連絡だけを購読する。
+export function subscribeStaffAlertsForBooth(
+  boothId: string,
+  callback: (alerts: StaffAlertRecord[]) => void,
+): () => void {
+  return onSnapshot(
+    query(collection(db, "staffAlerts"), orderBy("createdAt", "desc"), limit(10)),
+    (snap) => {
+      const mine = snap.docs
+        .map((d) => toStaffAlert(d.id, d.data()))
+        .filter(
+          (a) =>
+            a.status === "active" &&
+            (a.targetBoothIds === null || a.targetBoothIds.includes(boothId)),
+        );
+      callback(mine);
+    },
+  );
+}
+
+// 担当者が「確認しました」を押したとき
+export async function acknowledgeStaffAlert(id: string, boothId: string) {
+  await updateDoc(doc(db, "staffAlerts", id), {
+    acknowledgedBoothIds: arrayUnion(boothId),
+  });
+}
+
+// 運営が一斉連絡を取り下げる（担当者の画面から消える）
+export async function closeStaffAlert(id: string) {
+  await updateDoc(doc(db, "staffAlerts", id), { status: "closed" });
 }
 
 export type FestivalPhase = "before" | "during";

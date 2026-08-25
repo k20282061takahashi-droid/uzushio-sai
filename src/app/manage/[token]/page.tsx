@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
+import StaffAlertOverlay from "@/components/StaffAlertOverlay";
 import {
   Announcement,
   Booth,
@@ -711,6 +712,9 @@ export default function BoothManagePage() {
           </div>
         </Modal>
       )}
+
+      {/* 運営からの緊急一斉連絡（届いたら全画面で割り込む） */}
+      <StaffAlertOverlay boothId={booth.id} />
 
       {emergencyOpen && (
         <Modal onClose={() => setEmergencyOpen(false)}>

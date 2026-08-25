@@ -36,7 +36,7 @@ function formatTime(ms: number | null): string {
 }
 
 // 送り先の企画を選ぶ部分。建物ごとにまとめて探しやすくしている。
-function BoothPicker({
+export function BoothPicker({
   booths,
   selected,
   onChange,
