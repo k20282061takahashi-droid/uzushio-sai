@@ -117,8 +117,8 @@ export default function CampusMap() {
   }
 
   return (
-    <div className="relative w-full overflow-hidden rounded-2xl border border-white/15 bg-zinc-950">
-      <p className="absolute left-2 top-1 z-20 text-[10px] text-zinc-500">
+    <div className="pressable relative w-full overflow-hidden rounded-3xl border-2 border-kosei-800 bg-kosei-700 shadow-[0_5px_0_var(--color-kosei-800)]">
+      <p className="absolute left-3 top-2 z-20 text-[10px] text-kosei-200">
         ※ 校内図は仮モデル
       </p>
       <svg
@@ -128,16 +128,16 @@ export default function CampusMap() {
       >
         <polygon
           points={toPoints(groundTop)}
-          className="fill-zinc-800 stroke-zinc-500"
+          className="fill-kosei-500 stroke-kosei-800"
           strokeWidth={1.5}
         />
         {boxes.map((b) => {
           const { top, leftFront, rightFront } = buildFaces(b);
           return (
             <g key={b.id}>
-              <polygon points={toPoints(leftFront)} className="fill-zinc-700 stroke-zinc-400" strokeWidth={1.5} />
-              <polygon points={toPoints(rightFront)} className="fill-zinc-600 stroke-zinc-400" strokeWidth={1.5} />
-              <polygon points={toPoints(top)} className="fill-zinc-300 stroke-zinc-400" strokeWidth={1.5} />
+              <polygon points={toPoints(leftFront)} className="fill-kosei-400 stroke-kosei-800" strokeWidth={1.5} />
+              <polygon points={toPoints(rightFront)} className="fill-kosei-600 stroke-kosei-800" strokeWidth={1.5} />
+              <polygon points={toPoints(top)} className="fill-kosei-100 stroke-kosei-800" strokeWidth={1.5} />
             </g>
           );
         })}
@@ -151,14 +151,14 @@ export default function CampusMap() {
           <Link
             key={b.id}
             href={`/map?area=${b.id}`}
-            className="absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5 transition-transform duration-150 ease-out active:scale-90"
+            className="absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1 transition-transform duration-150 ease-out active:scale-90"
             style={{ left: `${labelLeftPct}%`, top: `${labelTopPct}%` }}
           >
-            <span className="whitespace-nowrap rounded-md border border-white/30 bg-black/60 px-1.5 py-0.5 text-[11px] font-bold text-white backdrop-blur-sm">
+            <span className="whitespace-nowrap rounded-full border-2 border-kosei-800 bg-white px-2.5 py-0.5 font-heading text-[11px] font-bold text-kosei-800">
               {b.name}
             </span>
             {b.congested && (
-              <span className="whitespace-nowrap rounded-full border border-white/30 bg-black/60 px-1.5 py-[1px] text-[9px] text-zinc-300">
+              <span className="whitespace-nowrap rounded-full bg-accent-700 px-2 py-[1px] text-[9px] font-bold text-white">
                 混雑中
               </span>
             )}

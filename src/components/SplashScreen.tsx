@@ -29,7 +29,7 @@ export default function SplashScreen() {
   return (
     <div
       aria-hidden
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950 transition-opacity ease-out"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-kosei-800 transition-opacity ease-out"
       style={{
         opacity: phase === "fading" ? 0 : 1,
         transitionDuration: `${FADE_MS}ms`,
@@ -48,8 +48,8 @@ export default function SplashScreen() {
           <defs>
             <linearGradient id="splashStroke" x1="0" y1="0" x2="1" y2="1">
               <stop offset="0%" stopColor="#ffffff" stopOpacity="0.95" />
-              <stop offset="60%" stopColor="#7dd3fc" stopOpacity="0.75" />
-              <stop offset="100%" stopColor="#38bdf8" stopOpacity="0.15" />
+              <stop offset="60%" stopColor="#A0DBEA" stopOpacity="0.8" />
+              <stop offset="100%" stopColor="#4FB8D2" stopOpacity="0.2" />
             </linearGradient>
           </defs>
 
@@ -85,8 +85,8 @@ export default function SplashScreen() {
               "splash-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.75s both",
           }}
         >
-          <p className="text-xs tracking-[0.4em] text-slate-500">2026</p>
-          <h1 className="mt-1 text-4xl font-bold tracking-[0.15em] text-white">
+          <p className="text-xs tracking-[0.4em] text-kosei-200">2026</p>
+          <h1 className="mt-1 font-heading text-4xl font-black tracking-[0.15em] text-white">
             渦潮祭
           </h1>
         </div>

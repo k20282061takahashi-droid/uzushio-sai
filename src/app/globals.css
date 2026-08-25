@@ -1,8 +1,49 @@
 @import "tailwindcss";
 
+/* ==========================================================================
+   デザイントークン（claude_デザイン仕様_カラーとフォント.md 準拠）
+   「湖青（こせい）」9段階＋役割別カラー。Tailwindのクラスとして
+   bg-kosei-500 / text-kosei-800 のように使える。
+   ========================================================================== */
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* 湖青（メインカラー） */
+  --color-kosei-50: #EAF6FA;
+  --color-kosei-100: #C9EAF3;
+  --color-kosei-200: #A0DBEA;
+  --color-kosei-300: #78CCE0;
+  --color-kosei-400: #4FB8D2;
+  --color-kosei-500: #2B93B0;
+  --color-kosei-600: #1F7690;
+  --color-kosei-700: #175A70;
+  --color-kosei-800: #12495A;
+
+  /* アクセント（差し色） */
+  --color-accent-50: #FCEAE2;
+  --color-accent-400: #E8825A;
+  --color-accent-700: #C0522C;
+
+  /* 成功（開催中など） */
+  --color-success-50: #E3F5E8;
+  --color-success-600: #5FBE7E;
+  --color-success-800: #2E8C50;
+
+  /* 注意 */
+  --color-warn-50: #FFF3DD;
+  --color-warn-600: #F2AB3E;
+  --color-warn-800: #C67F16;
+
+  /* 警告・緊急 */
+  --color-danger-50: #FBE4E4;
+  --color-danger-600: #E2695F;
+  --color-danger-800: #B33A30;
+
+  /* グレー（本文・補助） */
+  --color-inkgray-50: #F5F5F3;
+  --color-inkgray-400: #9C9C97;
+  --color-inkgray-800: #2E2E2C;
 }
 
 @theme inline {
@@ -10,6 +51,38 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-zen-maru-gothic);
+  --font-body: var(--font-noto-sans-jp);
+
+  --color-kosei-50: var(--color-kosei-50);
+  --color-kosei-100: var(--color-kosei-100);
+  --color-kosei-200: var(--color-kosei-200);
+  --color-kosei-300: var(--color-kosei-300);
+  --color-kosei-400: var(--color-kosei-400);
+  --color-kosei-500: var(--color-kosei-500);
+  --color-kosei-600: var(--color-kosei-600);
+  --color-kosei-700: var(--color-kosei-700);
+  --color-kosei-800: var(--color-kosei-800);
+
+  --color-accent-50: var(--color-accent-50);
+  --color-accent-400: var(--color-accent-400);
+  --color-accent-700: var(--color-accent-700);
+
+  --color-success-50: var(--color-success-50);
+  --color-success-600: var(--color-success-600);
+  --color-success-800: var(--color-success-800);
+
+  --color-warn-50: var(--color-warn-50);
+  --color-warn-600: var(--color-warn-600);
+  --color-warn-800: var(--color-warn-800);
+
+  --color-danger-50: var(--color-danger-50);
+  --color-danger-600: var(--color-danger-600);
+  --color-danger-800: var(--color-danger-800);
+
+  --color-inkgray-50: var(--color-inkgray-50);
+  --color-inkgray-400: var(--color-inkgray-400);
+  --color-inkgray-800: var(--color-inkgray-800);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -22,7 +95,25 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body), Arial, Helvetica, sans-serif;
+}
+
+/* ==========================================================================
+   押せる要素の共通ふるまい（カード・ボタン共通）
+   太めの湖青の輪郭線＋下にずれたハードシャドウで浮いて見せ、
+   押すと影が消えて実際に沈む。デザイン仕様書 1章の「参考にしたUIの質感」に対応。
+   ========================================================================== */
+.pressable {
+  transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
+}
+.pressable:active {
+  transform: translateY(3px);
+  box-shadow: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pressable {
+    transition: none;
+  }
 }
 
 @keyframes fade-in-up {
@@ -84,6 +175,26 @@ body {
 /* 「動きを減らす」設定にしている人には、動かさず静かに出すだけにする */
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-in-up {
+    animation: none;
+  }
+}
+
+/* ---- 背景の渦潮モチーフ（SwirlBackground）用 ---- */
+@keyframes swirl-rotate {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+.animate-swirl-rotate {
+  animation: swirl-rotate 46s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-swirl-rotate {
     animation: none;
   }
 }

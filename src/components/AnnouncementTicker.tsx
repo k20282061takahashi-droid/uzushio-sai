@@ -35,9 +35,9 @@ export default function AnnouncementTicker() {
   return (
     <Link
       href="/announcements"
-      className="flex items-center gap-3 overflow-hidden rounded-2xl border border-white/20 bg-white/5 px-4 py-3 transition-transform active:scale-95"
+      className="pressable flex items-center gap-3 overflow-hidden rounded-full border-2 border-accent-700 bg-accent-50 px-4 py-2.5 shadow-[0_4px_0_var(--color-accent-700)]"
     >
-      <span className="shrink-0 rounded-full border border-white/30 px-2 py-1 text-xs font-bold text-white">
+      <span className="shrink-0 rounded-full bg-accent-700 px-2.5 py-1 font-heading text-xs font-bold text-white">
         お知らせ
       </span>
       <span className="relative h-6 min-w-0 flex-1 overflow-hidden">
@@ -50,7 +50,7 @@ export default function AnnouncementTicker() {
             }}
           >
             {a.pinned && <span className="mr-1 shrink-0">📌</span>}
-            <span className="truncate text-sm font-bold">{a.title}</span>
+            <span className="truncate text-sm font-bold text-accent-700">{a.title}</span>
           </span>
         ))}
       </span>
@@ -61,8 +61,8 @@ export default function AnnouncementTicker() {
               key={a.id}
               className={
                 i === index % items.length
-                  ? "h-1.5 w-1.5 rounded-full bg-white"
-                  : "h-1.5 w-1.5 rounded-full bg-white/25"
+                  ? "h-1.5 w-1.5 rounded-full bg-accent-700"
+                  : "h-1.5 w-1.5 rounded-full bg-accent-700/25"
               }
             />
           ))}

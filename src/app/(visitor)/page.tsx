@@ -11,8 +11,10 @@ export default function VisitorHome() {
   return (
     <div className="mx-auto max-w-md px-4 pt-8">
       <header className="animate-fade-in-up mb-4 text-center">
-        <p className="text-sm tracking-widest text-zinc-400">2026</p>
-        <h1 className="text-3xl font-bold tracking-wide">渦潮祭</h1>
+        <p className="text-sm tracking-widest text-kosei-700">2026</p>
+        <h1 className="font-heading text-3xl font-black tracking-wide text-kosei-800">
+          渦潮祭
+        </h1>
       </header>
 
       {/* お知らせティッカー */}
@@ -28,25 +30,27 @@ export default function VisitorHome() {
       {/* 現在・次のイベント（どこを押してもタイムテーブルへ移動する） */}
       <Link
         href="/timeline"
-        className="animate-fade-in-up mb-6 block rounded-2xl border border-white/15 bg-white/5 p-4 transition-transform active:scale-[0.98]"
+        className="pressable animate-fade-in-up mb-6 block rounded-3xl border-2 border-kosei-700 bg-kosei-50 p-4 shadow-[0_5px_0_var(--color-kosei-700)]"
         style={{ animationDelay: "120ms" }}
       >
         <div className="mb-2 flex items-center gap-2">
-          <span className="shrink-0 rounded-full border border-white bg-white/10 px-2 py-0.5 text-xs font-bold text-white">
+          <span className="shrink-0 rounded-full bg-kosei-800 px-3.5 py-0.5 font-heading text-xs font-black text-white">
             Now
           </span>
-          <span className="text-sm text-zinc-300">{currentEvent.time}</span>
+          <span className="text-sm font-medium text-kosei-700">{currentEvent.time}</span>
         </div>
-        <p className="mb-3 truncate text-xl font-bold">{currentEvent.title}</p>
-        <p className="mb-3 text-xs text-zinc-500">@{currentEvent.venue}</p>
+        <p className="mb-1 truncate font-heading text-xl font-black text-kosei-800">
+          {currentEvent.title}
+        </p>
+        <p className="mb-3 text-xs text-kosei-600">@{currentEvent.venue}</p>
 
-        <div className="flex items-center gap-2 border-t border-white/10 pt-2 text-xs">
-          <span className="shrink-0 rounded-full border border-white/15 px-1.5 py-0.5 text-zinc-400">
+        <div className="flex items-center gap-2 border-t border-dashed border-kosei-200 pt-2 text-xs">
+          <span className="shrink-0 rounded-full bg-kosei-500 px-2.5 py-0.5 font-bold text-white">
             Next
           </span>
-          <span className="text-zinc-400">{nextEvent.time}</span>
-          <span className="truncate font-bold">{nextEvent.title}</span>
-          <span className="ml-auto shrink-0 text-zinc-500">@{nextEvent.venue}</span>
+          <span className="text-kosei-700">{nextEvent.time}</span>
+          <span className="truncate font-bold text-kosei-800">{nextEvent.title}</span>
+          <span className="ml-auto shrink-0 text-kosei-600">@{nextEvent.venue}</span>
         </div>
       </Link>
 
@@ -57,55 +61,55 @@ export default function VisitorHome() {
       >
         <Link
           href="/lost-items"
-          className="rounded-xl bg-white/5 p-4 text-center transition-transform active:scale-95"
+          className="pressable rounded-[22px] border-2 border-kosei-800 bg-kosei-500 p-4 text-center shadow-[0_5px_0_var(--color-kosei-800)]"
         >
-          <p className="text-2xl grayscale">🔍</p>
-          <p className="mt-1 text-sm font-bold">落とし物</p>
+          <p className="text-2xl">🔍</p>
+          <p className="mt-1 font-heading text-sm font-bold text-white">落とし物</p>
         </Link>
         <Link
           href="/rules"
-          className="rounded-xl bg-white/5 p-4 text-center transition-transform active:scale-95"
+          className="pressable rounded-[22px] border-2 border-accent-700 bg-accent-400 p-4 text-center shadow-[0_5px_0_var(--color-accent-700)]"
         >
-          <p className="text-2xl grayscale">📖</p>
-          <p className="mt-1 text-sm font-bold">来場者の皆さんへ</p>
+          <p className="text-2xl">📖</p>
+          <p className="mt-1 font-heading text-sm font-bold text-white">来場者の皆さんへ</p>
         </Link>
       </section>
 
       {/* スタンプラリー */}
       <section
-        className="animate-fade-in-up mb-8 rounded-2xl border border-white/10 bg-white/5 p-4"
+        className="animate-fade-in-up mb-8 rounded-3xl border-2 border-kosei-700 bg-white p-4 shadow-[0_5px_0_var(--color-kosei-700)]"
         style={{ animationDelay: "200ms" }}
       >
         <div className="mb-2 flex items-center justify-between">
-          <p className="text-sm font-bold">スタンプラリー</p>
-          <p className="text-xs text-zinc-400">
+          <p className="font-heading text-sm font-bold text-kosei-800">スタンプラリー</p>
+          <p className="text-xs font-bold text-kosei-700">
             {STAMP_COLLECTED} / {STAMP_TOTAL} 個
           </p>
         </div>
 
-        <div className="mb-3 h-1.5 w-full overflow-hidden rounded-full border border-white/15 bg-white/5">
+        <div className="mb-3 h-3 w-full overflow-hidden rounded-full border-2 border-kosei-700 bg-kosei-100">
           <div
-            className="h-full rounded-full bg-white transition-[width] duration-500"
+            className="h-full bg-gradient-to-r from-kosei-400 to-accent-400 transition-[width] duration-500"
             style={{ width: `${stampProgress}%` }}
           />
         </div>
 
         <Link
           href="/stamp"
-          className="mb-3 block w-full rounded-xl border border-white/30 bg-white/5 py-2.5 text-center text-sm font-bold text-white transition-transform active:scale-95"
+          className="pressable mb-3 block w-full rounded-full border-2 border-kosei-800 bg-kosei-600 py-3 text-center font-heading text-sm font-black text-white shadow-[0_4px_0_var(--color-kosei-800)]"
         >
           QRコードをスキャン
         </Link>
 
         {/* スタンプカード（デザインは仮） */}
-        <div className="grid grid-cols-5 gap-2 rounded-xl border border-white/10 bg-black/20 p-3">
+        <div className="grid grid-cols-5 gap-2">
           {Array.from({ length: STAMP_TOTAL }).map((_, i) => (
             <div
               key={i}
-              className={`flex aspect-square items-center justify-center rounded-full border text-sm grayscale ${
+              className={`flex aspect-square items-center justify-center rounded-full text-sm ${
                 i < STAMP_COLLECTED
-                  ? "border-white/50 bg-white/15"
-                  : "border-white/10 bg-white/5 opacity-40"
+                  ? "border-2 border-kosei-800 bg-kosei-500 shadow-[0_3px_0_var(--color-kosei-800)]"
+                  : "border-2 border-dashed border-kosei-300 bg-kosei-50 opacity-70"
               }`}
             >
               {i < STAMP_COLLECTED ? "🎫" : ""}
