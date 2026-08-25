@@ -1,11 +1,17 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useRef, useState, Suspense } from "react";
+import { useEffect, useMemo, useRef, useState, Suspense } from "react";
 import PannableZoom from "@/components/PannableZoom";
 import FloorSlider from "@/components/FloorSlider";
 import DetailSheet from "@/components/DetailSheet";
-import { boothsFor, type PlacedBooth } from "@/lib/mockBooths";
+import BoothDetail from "@/components/BoothDetail";
+import { subscribeVisitorBooths, type Booth } from "@/lib/booth";
+import {
+  placeBooths,
+  waitMinutesOfBooth,
+  type PlacedBooth,
+} from "@/lib/boothPlacement";
 import { floorplanSrc, hasFloors, type AreaId } from "@/lib/floorplan";
 import { waitColor } from "@/lib/waitColor";
 
@@ -27,7 +33,11 @@ function MapContent() {
 
   const [activeArea, setActiveArea] = useState<AreaId>(initialArea);
   const [activeFloor, setActiveFloor] = useState(4);
-  const [selected, setSelected] = useState<PlacedBooth | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [booths, setBooths] = useState<Booth[]>([]);
+
+  // 企画の情報をリアルタイムで受け取る（待ち時間もその場で変わる）
+  useEffect(() => subscribeVisitorBooths(setBooths), []);
 
   // 地図をドラッグして動かしたときに、指を置いた場所のピンが
   // 誤ってタップ扱いになるのを防ぐ。押した位置から一定以上動いていたら
@@ -46,14 +56,19 @@ function MapContent() {
       const moved = Math.hypot(e.clientX - start.x, e.clientY - start.y);
       if (moved > DRAG_THRESHOLD_PX) return;
     }
-    setSelected(booth);
+    setSelectedId(booth.id);
   }
 
   const showFloors = hasFloors(activeArea);
   const floor = showFloors ? activeFloor : undefined;
 
-  const rooms = boothsFor(activeArea, floor);
+  const rooms = useMemo(
+    () => placeBooths(booths, activeArea, floor),
+    [booths, activeArea, floor],
+  );
   const planSrc = floorplanSrc(activeArea, floor);
+  // 選んでいる企画。一覧が更新されても最新の内容が出るようIDで引く
+  const selected = booths.find((b) => b.id === selectedId) ?? null;
 
   return (
     <>
@@ -84,25 +99,39 @@ function MapContent() {
                 </p>
               )}
 
-              {rooms.map((room) => (
-                <button
-                  key={room.id}
-                  onPointerDown={handlePinPress}
-                  onClick={(e) => handlePinClick(e, room)}
-                  className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
-                  style={{ left: `${room.x}%`, top: `${room.y}%` }}
-                >
-                  <span
-                    className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-white text-xs font-bold text-white shadow-[0_3px_0_rgba(18,73,90,0.55)]"
-                    style={{ backgroundColor: waitColor(room.waitMinutes) }}
+              {rooms.map((room) => {
+                const minutes = waitMinutesOfBooth(room);
+                const closed = room.status === "closed";
+                return (
+                  <button
+                    key={room.id}
+                    onPointerDown={handlePinPress}
+                    onClick={(e) => handlePinClick(e, room)}
+                    className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
+                    style={{ left: `${room.x}%`, top: `${room.y}%` }}
                   >
-                    {room.waitMinutes}分
-                  </span>
-                  <span className="mt-1 max-w-[84px] truncate rounded-full bg-kosei-800/85 px-2 py-0.5 text-[9px] font-bold text-white">
-                    {room.name}
-                  </span>
-                </button>
-              ))}
+                    <span
+                      className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-white text-[11px] font-bold text-white shadow-[0_3px_0_rgba(18,73,90,0.55)]"
+                      style={{
+                        backgroundColor: closed
+                          ? "#9C9C97"
+                          : minutes !== null
+                            ? waitColor(minutes)
+                            : "var(--color-kosei-500)",
+                      }}
+                    >
+                      {closed
+                        ? "終了"
+                        : minutes !== null
+                          ? `${minutes}分`
+                          : "開催"}
+                    </span>
+                    <span className="mt-1 max-w-[84px] truncate rounded-full bg-kosei-800/85 px-2 py-0.5 text-[9px] font-bold text-white">
+                      {room.projectName || room.name}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </PannableZoom>
@@ -139,26 +168,8 @@ function MapContent() {
         )}
       </div>
 
-      <DetailSheet open={selected != null} onClose={() => setSelected(null)}>
-        {selected && (
-          <div>
-            <p className="mb-1 text-xs text-kosei-600">
-              {selected.category} ・ {selected.room}
-            </p>
-            <h2 className="mb-2 font-heading text-xl font-black text-kosei-800">
-              {selected.name}
-            </h2>
-            <p className="mb-4 text-sm text-kosei-700">{selected.description}</p>
-            <div className="flex items-center gap-2">
-              <span
-                className="rounded-full px-3 py-1 text-sm font-bold text-white"
-                style={{ backgroundColor: waitColor(selected.waitMinutes) }}
-              >
-                待ち時間 約{selected.waitMinutes}分
-              </span>
-            </div>
-          </div>
-        )}
+      <DetailSheet open={selected != null} onClose={() => setSelectedId(null)}>
+        {selected && <BoothDetail booth={selected} />}
       </DetailSheet>
     </>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   floorplanSrc,
   hasFloors,
@@ -9,7 +9,8 @@ import {
 } from "@/lib/floorplan";
 import { waitColor } from "@/lib/waitColor";
 import { waitMinutesOf } from "@/lib/boothGrouping";
-import type { Booth } from "@/lib/booth";
+import { placeBooths } from "@/lib/boothPlacement";
+import { updateBooth, type Booth } from "@/lib/booth";
 
 // 図面のエリアと、企画データの「場所」の名前をつなぐ対応表。
 // 本物の校内図に差し替えるときは、ここの名前を合わせてください。
@@ -41,6 +42,13 @@ export default function BoothMapPicker({
 }) {
   const [area, setArea] = useState<AreaId>("senior");
   const [floor, setFloor] = useState(4);
+  // ドラッグ中の企画とその位置（%）
+  const [dragging, setDragging] = useState<{
+    boothId: string;
+    x: number;
+    y: number;
+  } | null>(null);
+  const planRef = useRef<HTMLDivElement>(null);
 
   const showFloors = hasFloors(area);
   const currentFloor = showFloors ? floor : undefined;
@@ -59,6 +67,56 @@ export default function BoothMapPicker({
     }
     return map;
   }, [booths, areaName, showFloors, floor]);
+
+  // 図面の上に置く企画（ドラッグで決めた座標があればそれを使う）
+  const placed = useMemo(
+    () => placeBooths(booths, area, currentFloor),
+    [booths, area, currentFloor],
+  );
+
+  // 図面の中での位置を%で求める
+  function pointToPercent(clientX: number, clientY: number) {
+    const el = planRef.current;
+    if (!el) return null;
+    const rect = el.getBoundingClientRect();
+    const x = ((clientX - rect.left) / rect.width) * 100;
+    const y = ((clientY - rect.top) / rect.height) * 100;
+    // 図面の外に出ないようにする
+    return {
+      x: Math.min(100, Math.max(0, x)),
+      y: Math.min(100, Math.max(0, y)),
+    };
+  }
+
+  function onPinPointerDown(e: React.PointerEvent, boothId: string) {
+    e.preventDefault();
+    e.stopPropagation();
+    (e.target as Element).setPointerCapture?.(e.pointerId);
+    const point = pointToPercent(e.clientX, e.clientY);
+    if (point) setDragging({ boothId, ...point });
+  }
+
+  function onPinPointerMove(e: React.PointerEvent) {
+    if (!dragging) return;
+    const point = pointToPercent(e.clientX, e.clientY);
+    if (point) setDragging({ ...dragging, ...point });
+  }
+
+  async function onPinPointerUp() {
+    if (!dragging) return;
+    const { boothId, x, y } = dragging;
+    setDragging(null);
+    // 小数第1位まで保存すれば十分（図面上で1%は数ピクセル）
+    await updateBooth(boothId, {
+      pinX: Math.round(x * 10) / 10,
+      pinY: Math.round(y * 10) / 10,
+    });
+  }
+
+  // ピンの位置を部屋の中心に戻す
+  async function resetPin(boothId: string) {
+    await updateBooth(boothId, { pinX: null, pinY: null });
+  }
 
   return (
     <div className="flex h-full flex-col">
@@ -96,16 +154,26 @@ export default function BoothMapPicker({
             ))}
           </div>
         )}
-        {selectedBooth && (
+        {selectedBooth ? (
           <p className="ml-auto text-[13px] text-emerald-300">
             図面の部屋を押すと「{selectedBooth.name}」の場所になります
+          </p>
+        ) : (
+          <p className="ml-auto text-[13px] text-slate-400">
+            企画のピンはドラッグで動かせます（右クリックで位置をもとに戻す）
           </p>
         )}
       </div>
 
       {/* 図面 */}
       <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto rounded-xl border border-white/10 bg-slate-950/40 p-2">
-        <div className="relative w-full">
+        <div
+          ref={planRef}
+          className="relative w-full touch-none"
+          onPointerMove={onPinPointerMove}
+          onPointerUp={onPinPointerUp}
+          onPointerCancel={onPinPointerUp}
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={floorplanSrc(area, currentFloor)}
@@ -121,9 +189,7 @@ export default function BoothMapPicker({
             return (
               <button
                 key={room.label}
-                onClick={() =>
-                  onPickRoom?.(area, currentFloor, room.label)
-                }
+                onClick={() => onPickRoom?.(area, currentFloor, room.label)}
                 disabled={!onPickRoom || !selectedBooth}
                 title={
                   booth
@@ -154,6 +220,49 @@ export default function BoothMapPicker({
                   {booth ? booth.name : room.label}
                 </span>
               </button>
+            );
+          })}
+
+          {/* 企画のピン。ドラッグで位置を直せる */}
+          {placed.map((booth) => {
+            const isDragging = dragging?.boothId === booth.id;
+            const x = isDragging ? dragging.x : booth.x;
+            const y = isDragging ? dragging.y : booth.y;
+            const minutes = waitMinutesOf(booth);
+            const isTarget = selectedBooth?.id === booth.id;
+            return (
+              <div
+                key={`pin-${booth.id}`}
+                onPointerDown={(e) => onPinPointerDown(e, booth.id)}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  resetPin(booth.id);
+                }}
+                title={`${booth.name}（ドラッグで移動／右クリックでもとに戻す）`}
+                className={`absolute flex -translate-x-1/2 -translate-y-1/2 cursor-grab flex-col items-center active:cursor-grabbing ${
+                  isDragging ? "z-30 scale-110" : "z-20"
+                }`}
+                style={{ left: `${x}%`, top: `${y}%` }}
+              >
+                <span
+                  className={`flex h-9 w-9 items-center justify-center rounded-full border-2 text-[12px] font-bold text-white shadow ${
+                    isTarget
+                      ? "border-emerald-300 ring-2 ring-emerald-300"
+                      : "border-white"
+                  }`}
+                  style={{
+                    backgroundColor:
+                      minutes !== null
+                        ? waitColor(minutes)
+                        : "rgba(100,116,139,0.95)",
+                  }}
+                >
+                  {minutes !== null ? `${minutes}分` : "―"}
+                </span>
+                <span className="mt-0.5 max-w-[96px] truncate rounded bg-black/80 px-1 text-[11px] text-white">
+                  {booth.projectName || booth.name}
+                </span>
+              </div>
             );
           })}
         </div>

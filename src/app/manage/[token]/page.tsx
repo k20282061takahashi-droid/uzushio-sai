@@ -61,32 +61,63 @@ function AnnouncementBoard({
     return <p className="text-xs text-slate-500">現在お知らせはありません</p>;
   }
 
+  // 並べ替え：ピン留めを先に、そのあと新しい順
+  const ordered = [
+    ...announcements.filter((a) => a.pinned),
+    ...announcements.filter((a) => !a.pinned),
+  ];
+
   return (
-    <button onClick={onOpenList} className="w-full text-left">
-      {pinned.length > 0 && (
-        <ul className="mb-2 space-y-1">
-          {pinned.map((a) => (
-            <li key={a.id} className="flex items-center gap-1 text-sm">
-              <PinIcon className="h-4 w-4 shrink-0 text-amber-400" />
-              <span className="truncate">{a.title}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-      {latest.length > 0 && (
-        <div className="relative h-6 overflow-hidden text-sm text-slate-300">
-          {latest.map((a, i) => (
-            <span
-              key={a.id}
-              className="absolute inset-0 flex items-center transition-transform duration-500 ease-in-out"
-              style={{ transform: `translateY(${(i - tickerIndex) * 100}%)` }}
-            >
-              <span className="truncate">{a.title}</span>
-            </span>
-          ))}
-        </div>
-      )}
-    </button>
+    <>
+      {/* スマホ・タブレット：場所が狭いので、順番に流して見せる */}
+      <button onClick={onOpenList} className="w-full text-left lg:hidden">
+        {pinned.length > 0 && (
+          <ul className="mb-2 space-y-1">
+            {pinned.map((a) => (
+              <li key={a.id} className="flex items-center gap-1 text-sm">
+                <PinIcon className="h-4 w-4 shrink-0 text-amber-400" />
+                <span className="truncate">{a.title}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        {latest.length > 0 && (
+          <div className="relative h-6 overflow-hidden text-sm text-slate-300">
+            {latest.map((a, i) => (
+              <span
+                key={a.id}
+                className="absolute inset-0 flex items-center transition-transform duration-500 ease-in-out"
+                style={{ transform: `translateY(${(i - tickerIndex) * 100}%)` }}
+              >
+                <span className="truncate">{a.title}</span>
+              </span>
+            ))}
+          </div>
+        )}
+      </button>
+
+      {/* パソコンなど広い画面：縦に並べて全部そのまま読めるようにする */}
+      <ul className="hidden max-h-[calc(100vh-16rem)] space-y-2 overflow-y-auto lg:block">
+        {ordered.map((a) => (
+          <li
+            key={a.id}
+            className="rounded-lg border border-white/10 bg-white/5 p-3"
+          >
+            <p className="flex items-start gap-1.5 text-[15px] font-semibold">
+              {a.pinned && (
+                <PinIcon className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+              )}
+              <span>{a.title}</span>
+            </p>
+            {a.body && (
+              <p className="mt-1 whitespace-pre-wrap text-[13px] text-slate-300">
+                {a.body}
+              </p>
+            )}
+          </li>
+        ))}
+      </ul>
+    </>
   );
 }
 

@@ -22,6 +22,17 @@ import {
   type StampSpot,
 } from "@/lib/stamp";
 
+// ヒントの文字数に合わせて大きさを変える。
+// 短ければ大きく、長ければ小さくして、丸の中に収まるようにする。
+function hintSizeClass(hint: string): string {
+  const length = hint.length;
+  if (length <= 4) return "text-lg";
+  if (length <= 7) return "text-base";
+  if (length <= 11) return "text-sm";
+  if (length <= 16) return "text-[13px]";
+  return "text-[11px]";
+}
+
 export default function StampPage() {
   const [spots, setSpots] = useState<StampSpot[]>([]);
   const [collected, setCollected] = useState<string[]>([]);
@@ -211,7 +222,11 @@ export default function StampPage() {
                         <StampIcon className="h-12 w-12 text-white" />
                       )
                     ) : (
-                      <span className="px-1 text-center text-[11px] font-bold leading-tight text-kosei-400">
+                      <span
+                        className={`px-1 text-center font-bold leading-tight text-kosei-400 ${hintSizeClass(
+                          spot.hint,
+                        )}`}
+                      >
                         {spot.hint}
                       </span>
                     )}

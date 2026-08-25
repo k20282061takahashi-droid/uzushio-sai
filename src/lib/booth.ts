@@ -98,6 +98,10 @@ export type Booth = {
   floor: number | null;
   // 校内図の部屋名（例: "3-A"）。地図にピンを置く位置を決めるのに使う。
   roomName: string | null;
+  // 図面上のピンの位置（図の左上を0とした%）。
+  // 運営がドラッグで動かしたときだけ入る。未設定なら部屋名の中心に置く。
+  pinX: number | null;
+  pinY: number | null;
   hasWaiting: boolean;
   waitingGroups: number | null;
   timePerGroup: number | null;
@@ -130,6 +134,8 @@ export async function getBoothByToken(token: string): Promise<Booth | null> {
     location: data.location ?? null,
     floor: data.floor ?? null,
     roomName: data.roomName ?? null,
+    pinX: typeof data.pinX === "number" ? data.pinX : null,
+    pinY: typeof data.pinY === "number" ? data.pinY : null,
     hasWaiting: !!data.hasWaiting,
     waitingGroups: data.waitingGroups ?? null,
     timePerGroup: data.timePerGroup ?? null,
@@ -158,6 +164,8 @@ export function subscribeBooths(
         location: data.location ?? null,
         floor: data.floor ?? null,
         roomName: data.roomName ?? null,
+        pinX: typeof data.pinX === "number" ? data.pinX : null,
+        pinY: typeof data.pinY === "number" ? data.pinY : null,
         hasWaiting: !!data.hasWaiting,
         waitingGroups: data.waitingGroups ?? null,
         timePerGroup: data.timePerGroup ?? null,
@@ -170,6 +178,14 @@ export function subscribeBooths(
     booths.sort((a, b) => a.name.localeCompare(b.name, "ja"));
     callback(booths);
   });
+}
+
+// 来場者アプリ用。地図に出す企画をリアルタイムで購読する。
+// 運営が待ち時間や場所を変えると、その場で地図に反映される。
+export function subscribeVisitorBooths(
+  callback: (booths: Booth[]) => void,
+): () => void {
+  return subscribeBooths(callback);
 }
 
 export async function updateBooth(
@@ -189,6 +205,8 @@ export async function updateBooth(
       | "location"
       | "floor"
       | "roomName"
+      | "pinX"
+      | "pinY"
       | "type"
       | "name"
     >
@@ -771,6 +789,8 @@ export async function createBooth(input: NewBoothInput): Promise<string> {
     location: input.location ?? null,
     floor: input.floor ?? null,
     roomName: null,
+    pinX: null,
+    pinY: null,
     hasWaiting: input.hasWaiting ?? false,
     waitingGroups: 0,
     timePerGroup: null,
