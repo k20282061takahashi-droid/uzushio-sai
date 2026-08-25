@@ -18,13 +18,7 @@ import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { db, storage } from "./firebase";
 
 export type BoothType =
-  | "alumni"
-  | "shop"
-  | "class"
-  | "grade"
-  | "club"
-  | "info"
-  | "volunteer";
+  "alumni" | "shop" | "class" | "grade" | "club" | "info" | "volunteer";
 
 export type BoothGenre =
   | "food"
@@ -356,7 +350,9 @@ export function subscribeFestivalDays(
   return onSnapshot(doc(db, "settings", "festival"), (snap) => {
     const days = snap.data()?.days;
     callback(
-      Array.isArray(days) ? days.filter((d): d is string => typeof d === "string") : [],
+      Array.isArray(days)
+        ? days.filter((d): d is string => typeof d === "string")
+        : [],
     );
   });
 }
@@ -386,7 +382,11 @@ export async function getStaffAnnouncements(
   boothId?: string,
 ): Promise<Announcement[]> {
   const snap = await getDocs(
-    query(collection(db, "staffAnnouncements"), orderBy("createdAt", "desc"), limit(20)),
+    query(
+      collection(db, "staffAnnouncements"),
+      orderBy("createdAt", "desc"),
+      limit(20),
+    ),
   );
   const all = snap.docs.map((d) => {
     const data = d.data();
@@ -396,7 +396,9 @@ export async function getStaffAnnouncements(
       body: data.body ?? "",
       pinned: !!data.pinned,
       createdAt: data.createdAt?.toMillis?.() ?? null,
-      targetBoothIds: Array.isArray(data.targetBoothIds) ? data.targetBoothIds : null,
+      targetBoothIds: Array.isArray(data.targetBoothIds)
+        ? data.targetBoothIds
+        : null,
     };
   });
 
@@ -407,27 +409,45 @@ export async function getStaffAnnouncements(
   );
 }
 
-// 運営ダッシュボード用。企画担当者向けの連絡をリアルタイムで一覧購読する。
+// 企画担当者向けの連絡をリアルタイムで購読する。
+// 運営ダッシュボードは boothId なしで全件を、企画担当者ページは自分の boothId を
+// 渡して「自分あて＋全企画あて」だけを受け取る。
+// 運営が編集・削除した内容がその場で反映される（読み込み直し不要）。
 export function subscribeStaffAnnouncements(
   callback: (announcements: Announcement[]) => void,
+  boothId?: string,
 ): () => void {
   return onSnapshot(
-    query(collection(db, "staffAnnouncements"), orderBy("createdAt", "desc"), limit(50)),
+    query(
+      collection(db, "staffAnnouncements"),
+      orderBy("createdAt", "desc"),
+      limit(50),
+    ),
     (snap) => {
+      const all = snap.docs.map((d) => {
+        const data = d.data();
+        return {
+          id: d.id,
+          title: data.title ?? "",
+          body: data.body ?? "",
+          pinned: !!data.pinned,
+          createdAt: data.createdAt?.toMillis?.() ?? null,
+          targetBoothIds: Array.isArray(data.targetBoothIds)
+            ? data.targetBoothIds
+            : null,
+        };
+      });
+
+      if (!boothId) {
+        callback(all);
+        return;
+      }
+      // 全企画あて（targetBoothIds が null）か、自分あてのものだけ渡す
       callback(
-        snap.docs.map((d) => {
-          const data = d.data();
-          return {
-            id: d.id,
-            title: data.title ?? "",
-            body: data.body ?? "",
-            pinned: !!data.pinned,
-            createdAt: data.createdAt?.toMillis?.() ?? null,
-            targetBoothIds: Array.isArray(data.targetBoothIds)
-              ? data.targetBoothIds
-              : null,
-          };
-        }),
+        all.filter(
+          (a) =>
+            a.targetBoothIds === null || a.targetBoothIds.includes(boothId),
+        ),
       );
     },
   );
@@ -469,7 +489,11 @@ export function subscribeVisitorAnnouncements(
   callback: (announcements: Announcement[]) => void,
 ): () => void {
   return onSnapshot(
-    query(collection(db, "announcements"), orderBy("createdAt", "desc"), limit(50)),
+    query(
+      collection(db, "announcements"),
+      orderBy("createdAt", "desc"),
+      limit(50),
+    ),
     (snap) => {
       callback(
         snap.docs.map((d) => {
@@ -516,7 +540,10 @@ export async function deleteVisitorAnnouncement(id: string) {
   await deleteDoc(doc(db, "announcements", id));
 }
 
-export async function setVisitorAnnouncementPinned(id: string, pinned: boolean) {
+export async function setVisitorAnnouncementPinned(
+  id: string,
+  pinned: boolean,
+) {
   await updateDoc(doc(db, "announcements", id), { pinned });
 }
 
@@ -610,7 +637,9 @@ export function subscribeEvents(
 
 export async function updateEvent(
   id: string,
-  fields: Partial<Pick<FestivalEvent, "name" | "startAt" | "endAt" | "venue" | "status">>,
+  fields: Partial<
+    Pick<FestivalEvent, "name" | "startAt" | "endAt" | "venue" | "status">
+  >,
 ) {
   await updateDoc(doc(db, "events", id), {
     ...fields,

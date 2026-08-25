@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import {
   Announcement,
@@ -10,7 +10,7 @@ import {
   FestivalPhase,
   GENRE_LABELS,
   getBoothByToken,
-  getStaffAnnouncements,
+  subscribeStaffAnnouncements,
   registerLostItem,
   sendEmergencyAlert,
   subscribeFestivalPhase,
@@ -58,9 +58,9 @@ function AnnouncementBoard({
       {pinned.length > 0 && (
         <ul className="mb-2 space-y-1">
           {pinned.map((a) => (
-            <li key={a.id} className="flex items-start gap-1 text-sm">
+            <li key={a.id} className="flex items-center gap-1 text-sm">
               <span className="shrink-0 text-amber-400">📌</span>
-              <span>{a.title}</span>
+              <span className="truncate">{a.title}</span>
             </li>
           ))}
         </ul>
@@ -73,7 +73,7 @@ function AnnouncementBoard({
               className="absolute inset-0 flex items-center transition-transform duration-500 ease-in-out"
               style={{ transform: `translateY(${(i - tickerIndex) * 100}%)` }}
             >
-              {a.title}
+              <span className="truncate">{a.title}</span>
             </span>
           ))}
         </div>
@@ -142,6 +142,9 @@ export default function BoothManagePage() {
   const [emergencySending, setEmergencySending] = useState(false);
   const [emergencySent, setEmergencySent] = useState(false);
 
+  // 連絡の購読を解除するための関数。企画が分かってから購読を始める。
+  const unsubscribeAnnouncements = useRef<(() => void) | null>(null);
+
   useEffect(() => {
     if (!token) return;
     getBoothByToken(token).then((b) => {
@@ -152,12 +155,20 @@ export default function BoothManagePage() {
         setGenre(b.genre ?? "");
         setTimePerGroup(b.timePerGroup ?? "");
         setWaitingGroups(b.waitingGroups ?? 0);
-        // 自分あて（と全企画あて）の連絡だけを読む
-        getStaffAnnouncements(b.id).then(setAnnouncements);
+        // 自分あて（と全企画あて）の連絡を購読する。
+        // 購読にすることで、運営が編集・削除した内容がその場で反映される。
+        unsubscribeAnnouncements.current = subscribeStaffAnnouncements(
+          setAnnouncements,
+          b.id,
+        );
       }
     });
-    const unsubscribe = subscribeFestivalPhase(setFestivalPhase);
-    return unsubscribe;
+    const unsubscribePhase = subscribeFestivalPhase(setFestivalPhase);
+    return () => {
+      unsubscribePhase();
+      unsubscribeAnnouncements.current?.();
+      unsubscribeAnnouncements.current = null;
+    };
   }, [token]);
 
   // 運営の全体スイッチで自動的に切り替わる。文化祭前は常に設定画面、
