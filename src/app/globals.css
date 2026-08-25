@@ -4,10 +4,20 @@
    デザイントークン（claude_デザイン仕様_カラーとフォント.md 準拠）
    「湖青（こせい）」9段階＋役割別カラー。Tailwindのクラスとして
    bg-kosei-500 / text-kosei-800 のように使える。
+   ※ @theme に直接値を書く（@theme inline + 同名var参照は循環になり無効になるため避ける）
    ========================================================================== */
 :root {
   --background: #ffffff;
   --foreground: #171717;
+}
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-zen-maru-gothic);
+  --font-body: var(--font-noto-sans-jp);
 
   /* 湖青（メインカラー） */
   --color-kosei-50: #EAF6FA;
@@ -46,45 +56,6 @@
   --color-inkgray-800: #2E2E2C;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-zen-maru-gothic);
-  --font-body: var(--font-noto-sans-jp);
-
-  --color-kosei-50: var(--color-kosei-50);
-  --color-kosei-100: var(--color-kosei-100);
-  --color-kosei-200: var(--color-kosei-200);
-  --color-kosei-300: var(--color-kosei-300);
-  --color-kosei-400: var(--color-kosei-400);
-  --color-kosei-500: var(--color-kosei-500);
-  --color-kosei-600: var(--color-kosei-600);
-  --color-kosei-700: var(--color-kosei-700);
-  --color-kosei-800: var(--color-kosei-800);
-
-  --color-accent-50: var(--color-accent-50);
-  --color-accent-400: var(--color-accent-400);
-  --color-accent-700: var(--color-accent-700);
-
-  --color-success-50: var(--color-success-50);
-  --color-success-600: var(--color-success-600);
-  --color-success-800: var(--color-success-800);
-
-  --color-warn-50: var(--color-warn-50);
-  --color-warn-600: var(--color-warn-600);
-  --color-warn-800: var(--color-warn-800);
-
-  --color-danger-50: var(--color-danger-50);
-  --color-danger-600: var(--color-danger-600);
-  --color-danger-800: var(--color-danger-800);
-
-  --color-inkgray-50: var(--color-inkgray-50);
-  --color-inkgray-400: var(--color-inkgray-400);
-  --color-inkgray-800: var(--color-inkgray-800);
-}
-
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -92,8 +63,10 @@
   }
 }
 
+/* 背景色は layout.tsx 側で Tailwind クラス（bg-kosei-50 等）として
+   ページごとに指定する。ここで直接 background を指定すると、
+   Tailwind の @layer utilities より優先されてクラス指定を上書きしてしまうため書かない。 */
 body {
-  background: var(--background);
   color: var(--foreground);
   font-family: var(--font-body), Arial, Helvetica, sans-serif;
 }

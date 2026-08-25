@@ -61,7 +61,7 @@ function MapContent() {
         className="fixed inset-x-0 top-0"
         style={{ bottom: "calc(69px + max(env(safe-area-inset-bottom), 10px))" }}
       >
-        <PannableZoom className="h-full w-full bg-kosei-800">
+        <PannableZoom className="h-full w-full bg-kosei-50">
           {/* 校内図と企画ピンをひとまとめにする。ピンの位置は図の左上を基準にした
               パーセント指定なので、拡大縮小しても図とピンがズレない。 */}
           <div className="flex h-full w-full items-center justify-center">
@@ -79,7 +79,7 @@ function MapContent() {
               />
 
               {rooms.length === 0 && (
-                <p className="absolute inset-0 flex items-center justify-center bg-kosei-800/60 text-sm text-kosei-100">
+                <p className="absolute inset-0 flex items-center justify-center bg-kosei-800/60 text-sm text-white">
                   このフロアの企画情報は準備中です
                 </p>
               )}
@@ -108,23 +108,23 @@ function MapContent() {
         </PannableZoom>
 
         {/* 上部オーバーレイ：エリア選択 */}
-        <div className="animate-fade-in-up pointer-events-none absolute inset-x-0 top-0 z-10 bg-gradient-to-b from-kosei-800/85 to-transparent p-3 pt-4">
+        <div className="animate-fade-in-up pointer-events-none absolute inset-x-0 top-0 z-10 bg-gradient-to-b from-kosei-50 via-kosei-50/90 to-transparent p-3 pt-4">
           <div className="pointer-events-auto mx-auto grid max-w-md grid-cols-4 gap-2">
             {areas.map((area) => (
               <button
                 key={area.id}
                 onClick={() => setActiveArea(area.id)}
-                className={`pressable flex h-14 items-center justify-center rounded-2xl border-2 px-2 text-xs font-bold backdrop-blur-sm ${
+                className={`pressable flex h-14 items-center justify-center rounded-full border-2 px-2 text-xs font-bold ${
                   activeArea === area.id
-                    ? "border-white bg-kosei-500 text-white shadow-[0_3px_0_rgba(255,255,255,0.6)]"
-                    : "border-white/30 bg-kosei-800/50 text-kosei-100 shadow-[0_3px_0_rgba(255,255,255,0.15)]"
+                    ? "border-kosei-800 bg-kosei-500 text-white shadow-[0_3px_0_var(--color-kosei-800)]"
+                    : "border-kosei-700 bg-white text-kosei-700 shadow-[0_3px_0_var(--color-kosei-700)]"
                 }`}
               >
                 {area.name}
               </button>
             ))}
           </div>
-          <p className="pointer-events-none mt-2 text-center text-[11px] text-kosei-200">
+          <p className="pointer-events-none mt-2 text-center text-[11px] font-bold text-kosei-600">
             ピンチ／Ctrl+ホイールで拡大縮小、ドラッグで移動できます
           </p>
         </div>

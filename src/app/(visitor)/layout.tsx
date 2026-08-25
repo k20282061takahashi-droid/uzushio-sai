@@ -16,8 +16,10 @@ export default function VisitorLayout({
       <SplashScreen />
       {/* 来場者がアプリを開いたことを記録する（人数集計用・画面には出ない） */}
       <VisitRecorder />
-      <div className="flex-1 pb-20">{children}</div>
-      <BottomNav />
+      <div className="relative z-10 flex-1 pb-20">{children}</div>
+      <div className="relative z-10">
+        <BottomNav />
+      </div>
     </div>
   );
 }

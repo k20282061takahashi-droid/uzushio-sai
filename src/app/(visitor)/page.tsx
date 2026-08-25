@@ -61,17 +61,39 @@ export default function VisitorHome() {
       >
         <Link
           href="/lost-items"
-          className="pressable rounded-[22px] border-2 border-kosei-800 bg-kosei-500 p-4 text-center shadow-[0_5px_0_var(--color-kosei-800)]"
+          className="pressable flex flex-col items-center rounded-[22px] border-2 border-kosei-800 bg-kosei-500 p-4 text-center shadow-[0_5px_0_var(--color-kosei-800)]"
         >
-          <p className="text-2xl">🔍</p>
-          <p className="mt-1 font-heading text-sm font-bold text-white">落とし物</p>
+          <svg
+            viewBox="0 0 24 24"
+            className="h-9 w-9"
+            fill="none"
+            stroke="white"
+            strokeWidth={1.8}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="10.5" cy="10.5" r="6.5" />
+            <line x1="20" y1="20" x2="15.8" y2="15.8" />
+          </svg>
+          <p className="mt-1.5 font-heading text-sm font-bold text-white">落とし物</p>
         </Link>
         <Link
           href="/rules"
-          className="pressable rounded-[22px] border-2 border-accent-700 bg-accent-400 p-4 text-center shadow-[0_5px_0_var(--color-accent-700)]"
+          className="pressable flex flex-col items-center rounded-[22px] border-2 border-accent-700 bg-accent-400 p-4 text-center shadow-[0_5px_0_var(--color-accent-700)]"
         >
-          <p className="text-2xl">📖</p>
-          <p className="mt-1 font-heading text-sm font-bold text-white">来場者の皆さんへ</p>
+          <svg
+            viewBox="0 0 24 24"
+            className="h-9 w-9"
+            fill="none"
+            stroke="white"
+            strokeWidth={1.8}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M4 5.5C4 4.7 4.7 4 5.5 4H11v16H5.5C4.7 20 4 19.3 4 18.5z" />
+            <path d="M20 5.5C20 4.7 19.3 4 18.5 4H13v16h5.5c.8 0 1.5-.7 1.5-1.5z" />
+          </svg>
+          <p className="mt-1.5 font-heading text-sm font-bold text-white">来場者の皆さんへ</p>
         </Link>
       </section>
 

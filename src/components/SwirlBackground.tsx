@@ -6,7 +6,7 @@ export default function SwirlBackground() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
+      className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
       style={{
         background:
           "radial-gradient(120% 90% at 12% -10%, #bfe9f3 0%, transparent 55%), " +

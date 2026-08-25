@@ -58,36 +58,54 @@ export default function FloorSlider({
     return () => el.removeEventListener("wheel", onWheel);
   }, [floors, value, onChange]);
 
+  // 1階分のセルの高さ。選択中の階はこのセル全体がカプセル状にハイライトされる
+  // （エレベーターの階数ボタンのような見た目）。
+  const CELL_H = 52;
+
   return (
     <div
-      className={`absolute right-3 z-10 flex flex-col items-center gap-1 rounded-full border-2 border-white/40 bg-kosei-800/70 px-2 py-4 backdrop-blur-sm ${className ?? ""}`}
+      className={`absolute right-3 z-10 rounded-full border-2 border-white/30 bg-kosei-800/70 p-1.5 backdrop-blur-sm ${className ?? ""}`}
       style={{ touchAction: "none" }}
     >
       <div
         ref={trackRef}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
-        className="relative flex w-8 cursor-pointer flex-col items-center justify-between py-1"
-        style={{ height: `${floors.length * 34}px` }}
+        className="relative flex w-11 cursor-pointer flex-col"
+        style={{ height: `${floors.length * CELL_H}px` }}
       >
-        <div className="absolute top-1 bottom-1 left-1/2 w-px -translate-x-1/2 bg-white/25" />
+        {/* 選択中の階を示す縦長カプセル。階から階へ滑らかに移動する */}
+        <div
+          className="pointer-events-none absolute inset-x-0.5 rounded-full border-2 border-kosei-200 bg-white shadow-[0_0_0_4px_rgba(160,219,234,0.45),0_2px_6px_rgba(18,73,90,0.35)] transition-[top] duration-200 ease-out"
+          style={{
+            top: `${activeIndex * CELL_H}px`,
+            height: `${CELL_H}px`,
+          }}
+        />
         {floors.map((floor, i) => (
-          <div key={floor} className="relative z-10 flex h-0 items-center justify-center">
+          <div
+            key={floor}
+            className="relative z-10 flex flex-col items-center justify-center leading-none"
+            style={{ height: `${CELL_H}px` }}
+          >
             <span
-              className={`pointer-events-none select-none text-xs font-bold transition-colors ${
-                i === activeIndex ? "text-white" : "text-kosei-300"
+              className={`pointer-events-none select-none text-base font-heading font-black transition-colors ${
+                i === activeIndex ? "text-kosei-800" : "text-white/85"
               }`}
             >
               {floor === -1 ? "B1" : floor}
             </span>
+            {floor !== -1 && (
+              <span
+                className={`pointer-events-none select-none text-[10px] font-bold transition-colors ${
+                  i === activeIndex ? "text-kosei-600" : "text-white/60"
+                }`}
+              >
+                F
+              </span>
+            )}
           </div>
         ))}
-        <div
-          className="pointer-events-none absolute left-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-kosei-500 shadow-[0_2px_0_rgba(0,0,0,0.25)] transition-[top] duration-150 ease-out"
-          style={{
-            top: `${(activeIndex / Math.max(1, floors.length - 1)) * 100}%`,
-          }}
-        />
       </div>
     </div>
   );
