@@ -4,14 +4,16 @@ import { useCallback, useState } from "react";
 import OverallTab from "@/components/organizer/OverallTab";
 import BoothsTab from "@/components/organizer/BoothsTab";
 import EventsTab from "@/components/organizer/EventsTab";
+import StampsTab from "@/components/organizer/StampsTab";
 import RefreshBar, { useLastUpdated } from "@/components/organizer/RefreshBar";
 
-type Mode = "overall" | "booths" | "events";
+type Mode = "overall" | "booths" | "events" | "stamps";
 
 const TABS: { key: Mode; label: string }[] = [
   { key: "overall", label: "全体運営" },
   { key: "booths", label: "企画運営" },
   { key: "events", label: "イベント運営" },
+  { key: "stamps", label: "スタンプ" },
 ];
 
 // 運営ダッシュボード。iPad・Macで開く前提で、横幅を使って
@@ -72,6 +74,9 @@ export default function OrganizerPage() {
         )}
         {mode === "events" && (
           <EventsTab key={`events-${reloadKey}`} onDataUpdate={onDataUpdate} />
+        )}
+        {mode === "stamps" && (
+          <StampsTab key={`stamps-${reloadKey}`} onDataUpdate={onDataUpdate} />
         )}
       </main>
     </div>
