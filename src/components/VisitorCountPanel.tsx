@@ -47,9 +47,9 @@ function CountBlock({
       >
         {loading && value === null ? "…" : (value ?? 0).toLocaleString("ja-JP")}
       </p>
-      <p className="text-xs text-slate-500">
+      <p className="text-xs text-slate-400">
         {label}
-        {sub && <span className="ml-1 text-slate-600">{sub}</span>}
+        {sub && <span className="ml-1 text-slate-400">{sub}</span>}
       </p>
     </div>
   );
@@ -120,12 +120,12 @@ export default function VisitorCountPanel() {
   if (!day1 && !day2) {
     return (
       <div className="flex flex-1 items-center justify-center gap-3 px-4">
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-slate-400">
           来場者数を表示するには開催日の設定が必要です
         </p>
         <button
           onClick={openEditor}
-          className="rounded-lg bg-white/10 px-3 py-1.5 text-xs font-semibold active:scale-95"
+          className="rounded-lg bg-white/10 px-3.5 py-2 text-sm font-semibold active:scale-95"
         >
           日程を設定
         </button>
@@ -171,7 +171,7 @@ export default function VisitorCountPanel() {
         )}
       </div>
 
-      <div className="flex items-center gap-2 text-[10px] text-slate-600">
+      <div className="flex items-center gap-2 text-[12px] text-slate-400">
         <span>来場者数（アプリを開いた端末の数）</span>
         <button
           onClick={refresh}
@@ -187,7 +187,7 @@ export default function VisitorCountPanel() {
         </button>
       </div>
       {error && (
-        <p className="text-[10px] text-red-300">
+        <p className="text-[12px] text-red-300">
           集計に失敗しました（Firestoreの権限設定を確認してください）
         </p>
       )}
@@ -228,7 +228,7 @@ function DayEditor({
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="mb-1 text-base font-semibold">文化祭の開催日</h2>
-        <p className="mb-4 text-xs text-slate-500">
+        <p className="mb-4 text-xs text-slate-400">
           ここで設定した日付ごとに来場者数を集計します。
         </p>
 

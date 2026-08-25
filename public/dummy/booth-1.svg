@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" width="640" height="360">
+  <rect width="640" height="360" fill="#7f1d1d"/>
+  <rect x="16" y="16" width="608" height="328" rx="14" fill="none" stroke="#fca5a5" stroke-width="4" opacity="0.5"/>
+  <path d="M274 196 L274 140
+              a46 46 0 0 1 92 0 L366 196
+              l-23 -18 -23 18 -23 -18 Z" fill="#fca5a5" opacity="0.9"/>
+              <circle cx="304" cy="142" r="7" fill="#0f172a"/>
+              <circle cx="336" cy="142" r="7" fill="#0f172a"/>
+  <text x="320" y="304" fill="#ffffff" font-size="42" font-weight="700"
+        text-anchor="middle" font-family="sans-serif">お化け屋敷</text>
+  <text x="320" y="334" fill="#fca5a5" font-size="18"
+        text-anchor="middle" font-family="sans-serif">看板画像のダミーです</text>
+</svg>

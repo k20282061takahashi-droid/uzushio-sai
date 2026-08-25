@@ -114,7 +114,7 @@ export default function BulkImportFloat({
           <div className="mb-2 rounded-lg border border-white/10 bg-white/5 p-3 text-xs text-slate-400">
             <p className="mb-1 font-semibold text-slate-300">貼り付け方</p>
             <p>1行につき1つの企画。列は左から順に次のとおりです。</p>
-            <p className="mt-1 font-mono text-[11px] text-slate-300">
+            <p className="mt-1 font-mono text-[13px] text-slate-300">
               クラス名（必須） / 種別 / 場所
             </p>
             <p className="mt-1">
@@ -163,7 +163,7 @@ export default function BulkImportFloat({
           )}
 
           {rows.length === 0 ? (
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-400">
               左に貼り付けると、ここに確認用の一覧が出ます
             </p>
           ) : (
@@ -178,13 +178,13 @@ export default function BulkImportFloat({
                     }`}
                   >
                     <span className="font-medium">{r.name || "（名前なし）"}</span>
-                    <span className="ml-2 text-slate-500">
+                    <span className="ml-2 text-slate-400">
                       {BOOTH_TYPE_LABELS[r.type]}
                       {r.location && ` ・ ${r.location}`}
                     </span>
                     {dup && <span className="ml-2">（登録済みのため飛ばします）</span>}
                     {r.warning && (
-                      <span className="ml-2 text-slate-500">{r.warning}</span>
+                      <span className="ml-2 text-slate-400">{r.warning}</span>
                     )}
                   </li>
                 );

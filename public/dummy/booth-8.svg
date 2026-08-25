@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" width="640" height="360">
+  <rect width="640" height="360" fill="#831843"/>
+  <rect x="16" y="16" width="608" height="328" rx="14" fill="none" stroke="#f9a8d4" stroke-width="4" opacity="0.5"/>
+  <circle cx="298" cy="176" r="16" fill="#f9a8d4"/>
+              <circle cx="350" cy="166" r="16" fill="#f9a8d4"/>
+              <rect x="310" y="106" width="8" height="72" fill="#f9a8d4"/>
+              <rect x="362" y="96" width="8" height="72" fill="#f9a8d4"/>
+              <path d="M310 106 L370 96 v14 L310 120 Z" fill="#f9a8d4"/>
+  <text x="320" y="304" fill="#ffffff" font-size="42" font-weight="700"
+        text-anchor="middle" font-family="sans-serif">ステージ</text>
+  <text x="320" y="334" fill="#f9a8d4" font-size="18"
+        text-anchor="middle" font-family="sans-serif">看板画像のダミーです</text>
+</svg>

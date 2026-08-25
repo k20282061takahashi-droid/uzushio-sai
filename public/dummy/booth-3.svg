@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" width="640" height="360">
+  <rect width="640" height="360" fill="#164e63"/>
+  <rect x="16" y="16" width="608" height="328" rx="14" fill="none" stroke="#67e8f9" stroke-width="4" opacity="0.5"/>
+  <circle cx="290" cy="150" r="30" fill="none" stroke="#67e8f9" stroke-width="12"/>
+              <rect x="316" y="143" width="76" height="14" rx="6" fill="#67e8f9"/>
+              <rect x="366" y="157" width="12" height="20" rx="4" fill="#67e8f9"/>
+  <text x="320" y="304" fill="#ffffff" font-size="42" font-weight="700"
+        text-anchor="middle" font-family="sans-serif">脱出ゲーム</text>
+  <text x="320" y="334" fill="#67e8f9" font-size="18"
+        text-anchor="middle" font-family="sans-serif">看板画像のダミーです</text>
+</svg>

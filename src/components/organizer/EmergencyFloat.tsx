@@ -64,7 +64,7 @@ export default function EmergencyFloat({
       </div>
 
       {shown.length === 0 ? (
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-400">
           {tab === "open"
             ? "未対応の緊急連絡はありません"
             : "対応済みの記録はありません"}
@@ -86,18 +86,18 @@ export default function EmergencyFloat({
                   {a.message ? (
                     <p className="mt-1 text-sm text-slate-300">{a.message}</p>
                   ) : (
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="mt-1 text-sm text-slate-400">
                       （内容なし・至急の呼び出し）
                     </p>
                   )}
-                  <p className="mt-1 text-[11px] text-slate-500">
+                  <p className="mt-1 text-[13px] text-slate-400">
                     {formatTime(a.createdAt)}
                   </p>
                 </div>
                 {a.status === "open" && (
                   <button
                     onClick={() => resolveEmergencyAlert(a.id)}
-                    className="shrink-0 rounded-lg bg-white/15 px-3 py-1.5 text-xs font-semibold active:scale-95"
+                    className="shrink-0 rounded-lg bg-white/15 px-3.5 py-2 text-sm font-semibold active:scale-95"
                   >
                     対応済みにする
                   </button>

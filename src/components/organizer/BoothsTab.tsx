@@ -73,7 +73,7 @@ function BoothCard({
             className="h-full w-full object-cover"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-center text-[9px] leading-tight text-slate-600">
+          <div className="flex h-full w-full items-center justify-center text-center text-[11px] leading-tight text-slate-400">
             画像
             <br />
             未登録
@@ -88,23 +88,23 @@ function BoothCard({
             <p className="truncate text-sm font-bold leading-tight">
               {booth.projectName || "（企画名未設定）"}
             </p>
-            <p className="truncate text-[11px] text-slate-400">{booth.name}</p>
+            <p className="truncate text-[13px] text-slate-400">{booth.name}</p>
           </div>
           <div className="flex shrink-0 flex-col items-end gap-1">
             <span
-              className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${statusClass(booth)}`}
+              className={`rounded-full px-2.5 py-1 text-[12px] font-semibold ${statusClass(booth)}`}
             >
               {STATUS_LABELS[booth.status]}
             </span>
             {stale && (
-              <span className="rounded bg-amber-400 px-1.5 py-0.5 text-[9px] font-bold text-slate-950">
+              <span className="rounded bg-amber-400 px-2 py-1 text-[11px] font-bold text-slate-950">
                 待ち未更新
               </span>
             )}
           </div>
         </div>
 
-        <p className="mt-0.5 truncate text-[10px] text-slate-500">
+        <p className="mt-0.5 truncate text-[12px] text-slate-400">
           {BOOTH_TYPE_LABELS[booth.type] ?? booth.type}
           {booth.genre && ` ・ ${GENRE_LABELS[booth.genre]}`}
           {" ・ "}
@@ -117,17 +117,17 @@ function BoothCard({
             : "場所未設定"}
         </p>
 
-        <p className="mt-0.5 truncate text-[10px] leading-snug text-slate-500">
+        <p className="mt-0.5 truncate text-[12px] leading-snug text-slate-400">
           {booth.description || "（説明未入力）"}
         </p>
 
         <div className="mt-auto flex items-center gap-2 pt-1">
           {minutes !== null ? (
-            <span className="rounded bg-white/10 px-1.5 py-0.5 text-[10px] text-slate-200">
+            <span className="rounded bg-white/10 px-1.5 py-0.5 text-[12px] text-slate-200">
               待ち {minutes}分
             </span>
           ) : (
-            <span className="rounded bg-white/5 px-1.5 py-0.5 text-[10px] text-slate-500">
+            <span className="rounded bg-white/5 px-1.5 py-0.5 text-[12px] text-slate-400">
               待ち時間なし
             </span>
           )}
@@ -136,7 +136,7 @@ function BoothCard({
               e.stopPropagation();
               onOpenDetail();
             }}
-            className="ml-auto rounded-lg bg-white/10 px-2 py-0.5 text-[10px] font-semibold active:scale-95"
+            className="ml-auto rounded-lg bg-white/10 px-2.5 py-1 text-[12px] font-semibold active:scale-95"
           >
             詳細・編集
           </button>
@@ -222,7 +222,7 @@ function BoothDetailForm({
                 className="aspect-[16/9] w-full object-cover"
               />
             ) : (
-              <div className="flex aspect-[16/9] w-full items-center justify-center text-xs text-slate-600">
+              <div className="flex aspect-[16/9] w-full items-center justify-center text-xs text-slate-400">
                 看板画像は未登録です
               </div>
             )}
@@ -230,7 +230,7 @@ function BoothDetailForm({
 
           <div className="space-y-1.5 text-sm">
             <div className="flex justify-between">
-              <span className="text-slate-500">状態</span>
+              <span className="text-slate-400">状態</span>
               <span
                 className={`rounded-full px-2 py-0.5 text-xs font-semibold ${statusClass(booth)}`}
               >
@@ -238,19 +238,19 @@ function BoothDetailForm({
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500">待ち時間</span>
+              <span className="text-slate-400">待ち時間</span>
               <span>
                 {minutes !== null ? `約${minutes}分` : "待ち時間なし"}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500">待ちグループ数</span>
+              <span className="text-slate-400">待ちグループ数</span>
               <span>
                 {booth.hasWaiting ? `${booth.waitingGroups ?? 0}組` : "―"}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500">情報の入力</span>
+              <span className="text-slate-400">情報の入力</span>
               <span>{booth.isSetupDone ? "済み" : "未完了"}</span>
             </div>
           </div>
@@ -263,11 +263,11 @@ function BoothDetailForm({
             <input
               readOnly
               value={manageUrl}
-              className="flex-1 truncate rounded-lg border border-white/10 bg-slate-950 p-2 text-[11px] text-slate-400"
+              className="flex-1 truncate rounded-lg border border-white/10 bg-slate-950 p-2 text-[13px] text-slate-400"
             />
             <button
               onClick={() => navigator.clipboard.writeText(manageUrl)}
-              className="shrink-0 rounded-lg bg-white/10 px-2 py-2 text-[11px] active:scale-95"
+              className="shrink-0 rounded-lg bg-white/10 px-2 py-2 text-[13px] active:scale-95"
             >
               URLをコピー
             </button>
@@ -366,7 +366,7 @@ function BoothDetailForm({
               />
               待ち時間の仕組みを使う
             </label>
-            <p className="mt-1 text-[11px] text-slate-500">
+            <p className="mt-1 text-[13px] text-slate-400">
               入れると、企画担当者が待ちグループ数を入力でき、来場者のマップに待ち時間が出ます。
             </p>
             {hasWaiting && (
@@ -389,7 +389,7 @@ function BoothDetailForm({
             )}
           </div>
 
-          <p className="mt-3 text-[11px] text-slate-500">
+          <p className="mt-3 text-[13px] text-slate-400">
             ※ 場所（部屋）は、この画面を閉じたあと右側の地図から設定できます。
           </p>
 
@@ -516,19 +516,19 @@ export default function BoothsTab({ onDataUpdate }: { onDataUpdate: () => void }
           <>
             <button
               onClick={() => setShowMap((v) => !v)}
-              className="rounded-lg bg-white/10 px-3 py-1.5 text-xs text-slate-200 active:scale-95"
+              className="rounded-lg bg-white/10 px-3.5 py-2 text-sm text-slate-200 active:scale-95"
             >
               {showMap ? "地図を隠す" : "地図を表示"}
             </button>
             <button
               onClick={() => setAdding(true)}
-              className="rounded-lg bg-white/10 px-3 py-1.5 text-xs text-slate-200 active:scale-95"
+              className="rounded-lg bg-white/10 px-3.5 py-2 text-sm text-slate-200 active:scale-95"
             >
               ＋ 1件追加
             </button>
             <button
               onClick={() => setBulkOpen(true)}
-              className="rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-bold text-white active:scale-95"
+              className="rounded-lg bg-emerald-500 px-3.5 py-2 text-sm font-bold text-white active:scale-95"
             >
               まとめて登録
             </button>
@@ -536,10 +536,10 @@ export default function BoothsTab({ onDataUpdate }: { onDataUpdate: () => void }
         }
       />
 
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 xl:grid-cols-5">
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 lg:grid-cols-5">
         {/* 企画カード一覧 */}
         <div
-          className={`min-h-0 overflow-y-auto pr-1 ${showMap ? "xl:col-span-3" : "xl:col-span-5"}`}
+          className={`min-h-[24rem] overflow-y-auto pr-1 lg:min-h-0 ${showMap ? "lg:col-span-3" : "lg:col-span-5"}`}
         >
           {groups.map((group) => (
             <div key={group.label || "all"} className="mb-4">
@@ -571,22 +571,22 @@ export default function BoothsTab({ onDataUpdate }: { onDataUpdate: () => void }
             </div>
           ))}
           {filtered.length === 0 && (
-            <p className="text-sm text-slate-500">該当する企画がありません</p>
+            <p className="text-sm text-slate-400">該当する企画がありません</p>
           )}
         </div>
 
         {/* 地図 */}
         {showMap && (
-          <div className="min-h-0 xl:col-span-2">
+          <div className="min-h-[24rem] lg:min-h-0 lg:col-span-2">
             <div className="flex h-full flex-col rounded-xl border border-white/10 bg-white/5 p-3">
               <div className="mb-2 flex shrink-0 items-center justify-between">
                 <h2 className="text-sm font-semibold text-slate-300">地図</h2>
                 {selected ? (
-                  <p className="truncate text-[11px] text-emerald-300">
+                  <p className="truncate text-[13px] text-emerald-300">
                     選択中：{selected.name}
                   </p>
                 ) : (
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[13px] text-slate-400">
                     企画を選ぶと場所を設定できます
                   </p>
                 )}
@@ -627,7 +627,7 @@ export default function BoothsTab({ onDataUpdate }: { onDataUpdate: () => void }
             className="w-full rounded-lg border border-white/10 bg-slate-950 p-2.5 text-sm"
           />
         </label>
-        <p className="mt-2 text-[11px] text-slate-500">
+        <p className="mt-2 text-[13px] text-slate-400">
           管理用URLは自動で発行されます。種別・場所・説明は追加したあとで設定できます。
         </p>
         <button

@@ -71,8 +71,8 @@ export default function BoothMapPicker({
               onClick={() => setArea(a.id)}
               className={
                 area === a.id
-                  ? "rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-slate-950"
-                  : "rounded-lg bg-white/10 px-3 py-1.5 text-xs text-slate-300"
+                  ? "rounded-lg bg-white px-3.5 py-2 text-sm font-bold text-slate-950"
+                  : "rounded-lg bg-white/10 px-3.5 py-2 text-sm text-slate-300"
               }
             >
               {a.name}
@@ -87,8 +87,8 @@ export default function BoothMapPicker({
                 onClick={() => setFloor(f)}
                 className={
                   floor === f
-                    ? "rounded-lg bg-sky-400 px-2.5 py-1.5 text-xs font-bold text-slate-950"
-                    : "rounded-lg bg-white/10 px-2.5 py-1.5 text-xs text-slate-300"
+                    ? "rounded-lg bg-sky-400 px-3 py-2 text-sm font-bold text-slate-950"
+                    : "rounded-lg bg-white/10 px-3 py-2 text-sm text-slate-300"
                 }
               >
                 {floorLabel(f)}
@@ -97,7 +97,7 @@ export default function BoothMapPicker({
           </div>
         )}
         {selectedBooth && (
-          <p className="ml-auto text-[11px] text-emerald-300">
+          <p className="ml-auto text-[13px] text-emerald-300">
             図面の部屋を押すと「{selectedBooth.name}」の場所になります
           </p>
         )}
@@ -134,7 +134,7 @@ export default function BoothMapPicker({
                 style={{ left: `${room.x}%`, top: `${room.y}%` }}
               >
                 <span
-                  className={`flex h-9 w-9 items-center justify-center rounded-full border-2 text-[10px] font-bold text-white shadow ${
+                  className={`flex h-9 w-9 items-center justify-center rounded-full border-2 text-[12px] font-bold text-white shadow ${
                     isTarget
                       ? "border-emerald-300 ring-2 ring-emerald-300"
                       : "border-white/70"
@@ -150,7 +150,7 @@ export default function BoothMapPicker({
                 >
                   {minutes !== null ? `${minutes}分` : booth ? "―" : ""}
                 </span>
-                <span className="mt-0.5 max-w-[86px] truncate rounded bg-black/70 px-1 text-[9px] text-white">
+                <span className="mt-0.5 max-w-[86px] truncate rounded bg-black/70 px-1 text-[11px] text-white">
                   {booth ? booth.name : room.label}
                 </span>
               </button>

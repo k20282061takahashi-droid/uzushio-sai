@@ -16,9 +16,14 @@ import {
   subscribeVisitorAnnouncements,
   updateStaffAnnouncement,
   updateVisitorAnnouncement,
+  type VisitorRule,
+  createVisitorRule,
+  updateVisitorRule,
+  deleteVisitorRule,
+  subscribeVisitorRules,
 } from "@/lib/booth";
 
-type Target = "visitor" | "staff";
+type Target = "visitor" | "staff" | "rules";
 
 function formatTime(ms: number | null): string {
   if (!ms) return "";
@@ -79,17 +84,17 @@ function BoothPicker({
       <div className="mb-2 flex items-center gap-2">
         <button
           onClick={() => onChange(new Set(booths.map((b) => b.id)))}
-          className="rounded-lg bg-white/10 px-3 py-1.5 text-xs font-semibold active:scale-95"
+          className="rounded-lg bg-white/10 px-3.5 py-2 text-sm font-semibold active:scale-95"
         >
           すべて選択
         </button>
         <button
           onClick={() => onChange(new Set())}
-          className="rounded-lg bg-white/5 px-3 py-1.5 text-xs text-slate-300 active:scale-95"
+          className="rounded-lg bg-white/5 px-3.5 py-2 text-sm text-slate-300 active:scale-95"
         >
           選択を解除
         </button>
-        <p className="ml-auto text-xs text-slate-500">
+        <p className="ml-auto text-xs text-slate-400">
           {selected.size === 0
             ? "未選択"
             : selected.size === booths.length
@@ -113,7 +118,7 @@ function BoothPicker({
                   }`}
                 />
                 {location}
-                <span className="font-normal text-slate-600">
+                <span className="font-normal text-slate-400">
                   ({list.length}件)
                 </span>
               </button>
@@ -140,6 +145,173 @@ function BoothPicker({
           );
         })}
       </div>
+    </div>
+  );
+}
+
+// 「来場者の皆さんへ」（校内ルール・注意事項）の編集部分
+function VisitorRulesEditor() {
+  const [rules, setRules] = useState<VisitorRule[]>([]);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [heading, setHeading] = useState("");
+  const [text, setText] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [done, setDone] = useState(false);
+
+  useEffect(() => subscribeVisitorRules(setRules), []);
+
+  function reset() {
+    setEditingId(null);
+    setHeading("");
+    setText("");
+    setDone(false);
+  }
+
+  function startEdit(rule: VisitorRule) {
+    setEditingId(rule.id);
+    setHeading(rule.heading);
+    setText(rule.text);
+    setDone(false);
+  }
+
+  async function submit() {
+    if (!heading.trim()) return;
+    setSaving(true);
+    if (editingId) {
+      const current = rules.find((r) => r.id === editingId);
+      await updateVisitorRule(editingId, {
+        heading,
+        text,
+        order: current?.order ?? rules.length + 1,
+      });
+    } else {
+      const nextOrder =
+        rules.length > 0 ? Math.max(...rules.map((r) => r.order)) + 1 : 1;
+      await createVisitorRule({ heading, text, order: nextOrder });
+    }
+    setSaving(false);
+    reset();
+    setDone(true);
+  }
+
+  // 並び順を1つ上／下に入れ替える
+  async function move(rule: VisitorRule, direction: -1 | 1) {
+    const index = rules.findIndex((r) => r.id === rule.id);
+    const swapWith = rules[index + direction];
+    if (!swapWith) return;
+    await updateVisitorRule(rule.id, {
+      heading: rule.heading,
+      text: rule.text,
+      order: swapWith.order,
+    });
+    await updateVisitorRule(swapWith.id, {
+      heading: swapWith.heading,
+      text: swapWith.text,
+      order: rule.order,
+    });
+  }
+
+  return (
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      {/* 左：作成・編集 */}
+      <section>
+        <h3 className="mb-2 text-sm font-semibold text-slate-300">
+          {editingId ? "案内を編集する" : "新しい案内を作る"}
+        </h3>
+        <p className="mb-3 text-[13px] text-slate-400">
+          来場者アプリの「来場者の皆さんへ」に表示されます。
+          タイトルは全文表示され、本文は長い場合に途中まで表示されます。
+        </p>
+
+        <input
+          type="text"
+          value={heading}
+          onChange={(e) => {
+            setHeading(e.target.value);
+            setDone(false);
+          }}
+          placeholder="タイトル（例：校内は全面禁煙です）"
+          className="mb-2 w-full rounded-lg border border-white/10 bg-slate-950 p-3 text-sm"
+        />
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          rows={8}
+          placeholder="本文。改行するとそのまま反映されます。"
+          className="mb-3 w-full rounded-lg border border-white/10 bg-slate-950 p-3 text-sm"
+        />
+
+        <div className="flex gap-2">
+          <button
+            onClick={submit}
+            disabled={saving || !heading.trim()}
+            className="flex-1 rounded-lg bg-emerald-500 p-3 text-sm font-semibold text-white active:scale-95 disabled:opacity-40"
+          >
+            {saving ? "保存中..." : editingId ? "保存する" : "追加する"}
+          </button>
+          {editingId && (
+            <button
+              onClick={reset}
+              className="rounded-lg bg-white/10 px-5 text-sm active:scale-95"
+            >
+              やめる
+            </button>
+          )}
+        </div>
+        {done && <p className="mt-2 text-sm text-emerald-400">保存しました</p>}
+      </section>
+
+      {/* 右：一覧 */}
+      <section>
+        <h3 className="mb-2 text-sm font-semibold text-slate-300">
+          いまの案内（{rules.length}件）
+        </h3>
+        {rules.length === 0 ? (
+          <p className="text-sm text-slate-400">まだ登録されていません</p>
+        ) : (
+          <ul className="max-h-[26rem] space-y-2 overflow-y-auto pr-1">
+            {rules.map((rule, i) => (
+              <li
+                key={rule.id}
+                className="rounded-lg border border-white/10 bg-white/5 p-3"
+              >
+                <p className="text-sm font-bold">{rule.heading}</p>
+                <p className="mt-1 line-clamp-2 whitespace-pre-line text-[13px] text-slate-400">
+                  {rule.text}
+                </p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  <button
+                    onClick={() => startEdit(rule)}
+                    className="rounded-md bg-white/10 px-3 py-1.5 text-[13px] active:scale-95"
+                  >
+                    編集
+                  </button>
+                  <button
+                    onClick={() => move(rule, -1)}
+                    disabled={i === 0}
+                    className="rounded-md bg-white/10 px-3 py-1.5 text-[13px] active:scale-95 disabled:opacity-30"
+                  >
+                    ↑ 上へ
+                  </button>
+                  <button
+                    onClick={() => move(rule, 1)}
+                    disabled={i === rules.length - 1}
+                    className="rounded-md bg-white/10 px-3 py-1.5 text-[13px] active:scale-95 disabled:opacity-30"
+                  >
+                    ↓ 下へ
+                  </button>
+                  <button
+                    onClick={() => deleteVisitorRule(rule.id)}
+                    className="ml-auto rounded-md bg-red-500/20 px-3 py-1.5 text-[13px] text-red-200 active:scale-95"
+                  >
+                    削除
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   );
 }
@@ -172,7 +344,7 @@ export default function AnnouncementFloat({
   useEffect(() => subscribeStaffAnnouncements(setStaffList), []);
   useEffect(() => subscribeBooths(setBooths), []);
 
-  const list = target === "visitor" ? visitorList : staffList;
+  const list = target === "staff" ? staffList : visitorList;
 
   function resetForm() {
     setEditingId(null);
@@ -257,8 +429,9 @@ export default function AnnouncementFloat({
       <div className="mb-4 flex gap-2">
         {(
           [
-            { key: "visitor", label: "来場者向け" },
-            { key: "staff", label: "企画担当者向け" },
+            { key: "visitor", label: "来場者へのお知らせ" },
+            { key: "staff", label: "企画担当者への連絡" },
+            { key: "rules", label: "来場者への案内（校内ルール）" },
           ] as { key: Target; label: string }[]
         ).map((t) => (
           <button
@@ -278,6 +451,9 @@ export default function AnnouncementFloat({
         ))}
       </div>
 
+      {target === "rules" ? (
+        <VisitorRulesEditor />
+      ) : (
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* 左：作成・編集 */}
         <section>
@@ -322,8 +498,8 @@ export default function AnnouncementFloat({
                   onClick={() => setSendToAll(true)}
                   className={
                     sendToAll
-                      ? "flex-1 rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-slate-950"
-                      : "flex-1 rounded-lg bg-white/10 px-3 py-1.5 text-xs text-slate-300"
+                      ? "flex-1 rounded-lg bg-white px-3.5 py-2 text-sm font-bold text-slate-950"
+                      : "flex-1 rounded-lg bg-white/10 px-3.5 py-2 text-sm text-slate-300"
                   }
                 >
                   すべての企画へ
@@ -332,8 +508,8 @@ export default function AnnouncementFloat({
                   onClick={() => setSendToAll(false)}
                   className={
                     !sendToAll
-                      ? "flex-1 rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-slate-950"
-                      : "flex-1 rounded-lg bg-white/10 px-3 py-1.5 text-xs text-slate-300"
+                      ? "flex-1 rounded-lg bg-white px-3.5 py-2 text-sm font-bold text-slate-950"
+                      : "flex-1 rounded-lg bg-white/10 px-3.5 py-2 text-sm text-slate-300"
                   }
                 >
                   企画を選んで送る
@@ -350,7 +526,7 @@ export default function AnnouncementFloat({
           )}
 
           {target === "staff" && editingId && (
-            <p className="mb-3 text-xs text-slate-500">
+            <p className="mb-3 text-xs text-slate-400">
               ※ 送り先は作成時に決まります。変更したい場合は削除して作り直してください。
             </p>
           )}
@@ -383,7 +559,7 @@ export default function AnnouncementFloat({
             送信済みの連絡（{list.length}件）
           </h3>
           {list.length === 0 ? (
-            <p className="text-xs text-slate-500">まだ送信していません</p>
+            <p className="text-xs text-slate-400">まだ送信していません</p>
           ) : (
             <ul className="max-h-[26rem] space-y-2 overflow-y-auto pr-1">
               {[...list]
@@ -406,7 +582,7 @@ export default function AnnouncementFloat({
                         {a.body && (
                           <p className="mt-1 text-xs text-slate-400">{a.body}</p>
                         )}
-                        <p className="mt-1 text-[11px] text-slate-600">
+                        <p className="mt-1 text-[13px] text-slate-400">
                           {formatTime(a.createdAt)} ・ {targetSummary(a)}
                         </p>
                       </div>
@@ -414,19 +590,19 @@ export default function AnnouncementFloat({
                     <div className="mt-2 flex gap-1">
                       <button
                         onClick={() => startEdit(a)}
-                        className="rounded-md bg-white/10 px-2 py-1 text-[11px] active:scale-95"
+                        className="rounded-md bg-white/10 px-3 py-1.5 text-[13px] active:scale-95"
                       >
                         編集
                       </button>
                       <button
                         onClick={() => togglePin(a)}
-                        className="rounded-md bg-white/10 px-2 py-1 text-[11px] active:scale-95"
+                        className="rounded-md bg-white/10 px-3 py-1.5 text-[13px] active:scale-95"
                       >
                         {a.pinned ? "ピン留めを外す" : "ピン留め"}
                       </button>
                       <button
                         onClick={() => remove(a.id)}
-                        className="ml-auto rounded-md bg-red-500/20 px-2 py-1 text-[11px] text-red-200 active:scale-95"
+                        className="ml-auto rounded-md bg-red-500/20 px-3 py-1.5 text-[13px] text-red-200 active:scale-95"
                       >
                         削除
                       </button>
@@ -437,6 +613,7 @@ export default function AnnouncementFloat({
           )}
         </section>
       </div>
+      )}
     </FloatPanel>
   );
 }

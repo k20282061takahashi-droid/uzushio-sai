@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" width="640" height="360">
+  <rect width="640" height="360" fill="#1e3a8a"/>
+  <rect x="16" y="16" width="608" height="328" rx="14" fill="none" stroke="#93c5fd" stroke-width="4" opacity="0.5"/>
+  <rect x="268" y="110" width="104" height="80" rx="6" fill="none" stroke="#93c5fd" stroke-width="9"/>
+              <path d="M280 176 l28 -34 20 22 14 -16 20 28 Z" fill="#93c5fd"/>
+  <text x="320" y="304" fill="#ffffff" font-size="42" font-weight="700"
+        text-anchor="middle" font-family="sans-serif">展示</text>
+  <text x="320" y="334" fill="#93c5fd" font-size="18"
+        text-anchor="middle" font-family="sans-serif">看板画像のダミーです</text>
+</svg>

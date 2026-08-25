@@ -71,10 +71,10 @@ export default function RefreshBar({
   return (
     <div className="flex shrink-0 items-center gap-3">
       <div className="text-right leading-tight">
-        <p className="text-[11px] text-slate-500">最終更新</p>
+        <p className="text-[13px] text-slate-400">最終更新</p>
         <p className="font-mono text-xs text-slate-300">
           {formatClock(lastUpdated)}
-          {agoText && <span className="ml-1 text-slate-600">({agoText})</span>}
+          {agoText && <span className="ml-1 text-slate-400">({agoText})</span>}
         </p>
       </div>
       <button

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" width="640" height="360">
+  <rect width="640" height="360" fill="#14532d"/>
+  <rect x="16" y="16" width="608" height="328" rx="14" fill="none" stroke="#86efac" stroke-width="4" opacity="0.5"/>
+  <path d="M320 102 l14 32 35 4 -26 24 7 34 -30 -18 -30 18 7 -34 -26 -24 35 -4 Z" fill="#86efac"/>
+  <text x="320" y="304" fill="#ffffff" font-size="42" font-weight="700"
+        text-anchor="middle" font-family="sans-serif">縁日</text>
+  <text x="320" y="334" fill="#86efac" font-size="18"
+        text-anchor="middle" font-family="sans-serif">看板画像のダミーです</text>
+</svg>

@@ -51,7 +51,7 @@ export default function LostItemsFloat({
       </div>
 
       {shown.length === 0 ? (
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-400">
           {tab === "unclaimed"
             ? "お預かり中の落とし物はありません"
             : "返却済みの記録はありません"}
@@ -74,7 +74,7 @@ export default function LostItemsFloat({
                   className="aspect-square w-full object-cover"
                 />
               ) : (
-                <div className="flex aspect-square w-full items-center justify-center bg-slate-950 text-xs text-slate-600">
+                <div className="flex aspect-square w-full items-center justify-center bg-slate-950 text-xs text-slate-400">
                   画像なし
                 </div>
               )}
@@ -82,24 +82,24 @@ export default function LostItemsFloat({
                 <p className="text-sm font-medium">
                   {item.description || "（内容未入力）"}
                 </p>
-                <p className="mt-1 text-[11px] text-slate-500">
+                <p className="mt-1 text-[13px] text-slate-400">
                   拾得: {item.foundLocation || "-"}
                 </p>
-                <p className="text-[11px] text-slate-500">
+                <p className="text-[13px] text-slate-400">
                   保管: {item.storageLocation || "-"}
                 </p>
-                <p className="mt-0.5 text-[11px] text-slate-600">
+                <p className="mt-0.5 text-[13px] text-slate-400">
                   登録: {item.boothName || "-"}
                 </p>
                 {item.status === "unclaimed" ? (
                   <button
                     onClick={() => markLostItemClaimed(item.id)}
-                    className="mt-2 w-full rounded-lg bg-white/10 py-1.5 text-xs font-semibold active:scale-95"
+                    className="mt-3 w-full rounded-lg bg-white/15 py-3 text-sm font-semibold active:scale-95"
                   >
                     返却済みにする
                   </button>
                 ) : (
-                  <p className="mt-2 rounded-lg bg-emerald-500/20 py-1.5 text-center text-xs text-emerald-200">
+                  <p className="mt-3 rounded-lg bg-emerald-500/20 py-3 text-center text-sm text-emerald-200">
                     返却済み
                   </p>
                 )}

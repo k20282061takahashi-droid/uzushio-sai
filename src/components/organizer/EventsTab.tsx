@@ -56,8 +56,8 @@ function HighlightCard({
     >
       <div className="min-w-0 flex-1">
         <p
-          className={`text-[11px] font-bold ${
-            tone === "now" ? "text-emerald-300" : "text-slate-500"
+          className={`text-[13px] font-bold ${
+            tone === "now" ? "text-emerald-300" : "text-slate-400"
           }`}
         >
           {label}
@@ -67,7 +67,7 @@ function HighlightCard({
             <p className="mt-0.5 truncate text-lg font-bold">
               {event.name || "（名前未設定）"}
               {event.delayed && (
-                <span className="ml-2 rounded bg-amber-400/20 px-1.5 py-0.5 text-[11px] text-amber-200">
+                <span className="ml-2 rounded bg-amber-400/20 px-1.5 py-0.5 text-[13px] text-amber-200">
                   遅延
                 </span>
               )}
@@ -76,14 +76,14 @@ function HighlightCard({
               {event.startAt ?? "--:--"}
               {event.endAt && `〜${event.endAt}`}
               {event.originalStartAt && (
-                <span className="ml-2 text-slate-600 line-through">
+                <span className="ml-2 text-slate-400 line-through">
                   {event.originalStartAt}
                 </span>
               )}
             </p>
           </>
         ) : (
-          <p className="mt-1 text-sm text-slate-500">予定はありません</p>
+          <p className="mt-1 text-sm text-slate-400">予定はありません</p>
         )}
       </div>
       {children}

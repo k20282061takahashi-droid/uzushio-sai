@@ -213,6 +213,108 @@ const emergencyAlerts = [
   },
 ];
 
+
+// ------------------------------------------------------------------
+// 企画（運営画面の表示確認用）
+//
+// ※ 本番のクラス一覧が用意できたら、このスクリプトを --clear で消してから
+//   運営画面の「まとめて登録」で本物を入れてください。
+// ------------------------------------------------------------------
+const BOOTH_PROJECTS = [
+  { project: "お化け屋敷", genre: "attraction", photo: 1, desc: "暗闇の中を進む脱出型お化け屋敷。所要時間は約8分です。", wait: 6, per: 5 },
+  { project: "手作りカフェ", genre: "food", photo: 2, desc: "手作りスイーツとドリンクの喫茶店。座席は20席です。", wait: 3, per: 4 },
+  { project: "謎解き脱出ゲーム", genre: "attraction", photo: 3, desc: "1グループ最大6人で挑戦できる謎解きです。", wait: 8, per: 6 },
+  { project: "縁日コーナー", genre: "attraction", photo: 4, desc: "ヨーヨー釣り・輪投げなどが楽しめます。", wait: 2, per: 3 },
+  { project: "プラネタリウム", genre: "exhibit", photo: 5, desc: "手作りドームでの星空上映。15分ごとの入れ替え制です。", wait: 5, per: 8 },
+  { project: "焼きそば屋台", genre: "food", photo: 6, desc: "できたての焼きそばを販売します。", wait: 4, per: 2 },
+  { project: "写真展", genre: "exhibit", photo: 7, desc: "3年間の思い出を集めた写真展示です。", wait: 0, per: null },
+  { project: "ミニライブ", genre: "performance", photo: 8, desc: "30分ごとにミニライブを行います。", wait: 0, per: null },
+];
+
+const BOOTH_NAMES = [
+  "3年A組", "3年B組", "3年C組", "3年D組", "3年E組", "3年F組", "3年G組", "3年H組",
+  "2年A組", "2年B組", "2年C組", "2年D組", "2年E組", "2年F組", "2年G組", "2年H組",
+  "1年A組", "1年B組", "1年C組", "1年D組", "1年E組", "1年F組",
+  "中3A組", "中3B組", "中3C組", "中2A組", "中2B組", "中2C組", "中1A組", "中1B組",
+  "吹奏楽部", "軽音楽部", "美術部", "写真部", "science部", "茶道部", "華道部", "演劇部",
+  "放送部", "書道部", "囲碁将棋部", "コンピュータ研究部", "図書委員会", "生徒会",
+  "有志ダンス", "有志バンド", "有志お笑い", "PTAバザー", "同窓会喫茶", "売店",
+];
+
+const LOCATIONS = [
+  { name: "高校棟", floors: [4, 3, 2], rooms: ["3-A", "3-B", "3-C", "3-D", "3-E", "3-F", "多目的室", "2-A", "2-B", "2-C", "2-D", "視聴覚室", "1-A", "1-B", "図書室"] },
+  { name: "中学棟", floors: [4, 3, 2], rooms: ["中3-A", "中3-B", "中3-C", "理科室", "中2-A", "中2-B", "中2-C", "音楽室", "中1-A", "中1-B", "美術室"] },
+  { name: "体育館", floors: [], rooms: ["ステージ", "アリーナ右"] },
+  { name: "校庭", floors: [], rooms: ["屋台エリアA", "屋台エリアB", "屋台エリアC", "休憩スペース"] },
+];
+
+const TYPES = ["class", "class", "class", "club", "volunteer", "grade", "shop", "alumni"];
+const STATUSES = ["open", "open", "open", "open", "break", "closed"];
+
+const TOKEN_CHARS = "abcdefghjkmnpqrstuvwxyz23456789";
+function makeToken(len = 10) {
+  let out = "";
+  for (let i = 0; i < len; i++) {
+    out += TOKEN_CHARS[Math.floor(Math.random() * TOKEN_CHARS.length)];
+  }
+  return out;
+}
+
+function buildBooths() {
+  return BOOTH_NAMES.map((name, i) => {
+    const p = BOOTH_PROJECTS[i % BOOTH_PROJECTS.length];
+    const loc = LOCATIONS[i % LOCATIONS.length];
+    const floor = loc.floors.length ? loc.floors[i % loc.floors.length] : null;
+    const room = loc.rooms[i % loc.rooms.length];
+    const hasWaiting = p.per !== null;
+    return {
+      name,
+      projectName: p.project,
+      type: TYPES[i % TYPES.length],
+      status: STATUSES[i % STATUSES.length],
+      accessToken: makeToken(),
+      description: p.desc,
+      location: loc.name,
+      floor,
+      roomName: room,
+      hasWaiting,
+      waitingGroups: hasWaiting ? (i * 2) % 9 : 0,
+      timePerGroup: p.per,
+      genre: p.genre,
+      isSetupDone: i % 7 !== 0,
+      signboardUrl: `/dummy/booth-${p.photo}.svg`,
+    };
+  });
+}
+
+// ------------------------------------------------------------------
+// イベント（タイムテーブル）
+// ------------------------------------------------------------------
+function buildEvents(day1, day2) {
+  return [
+    { day: day1, venue: "体育館", name: "開会式", startAt: "9:00", endAt: "9:20" },
+    { day: day1, venue: "体育館", name: "吹奏楽部 演奏会", startAt: "9:40", endAt: "10:30" },
+    { day: day1, venue: "体育館", name: "有志ダンス", startAt: "10:50", endAt: "11:40" },
+    { day: day1, venue: "体育館", name: "演劇部 公演", startAt: "13:00", endAt: "14:00" },
+    { day: day1, venue: "体育館", name: "軽音楽部 ライブ", startAt: "14:20", endAt: "15:20" },
+    { day: day1, venue: "校庭", name: "和太鼓演奏", startAt: "10:00", endAt: "10:40" },
+    { day: day1, venue: "校庭", name: "チアリーディング", startAt: "11:00", endAt: "11:40" },
+    { day: day1, venue: "校庭", name: "有志バンド", startAt: "13:30", endAt: "14:30" },
+
+    { day: day2, venue: "体育館", name: "合唱部 発表会", startAt: "9:30", endAt: "10:10" },
+    { day: day2, venue: "体育館", name: "ダンス部 発表会", startAt: "10:30", endAt: "11:30" },
+    { day: day2, venue: "体育館", name: "有志コンテスト決勝", startAt: "13:00", endAt: "14:30" },
+    { day: day2, venue: "体育館", name: "閉会式・表彰", startAt: "15:00", endAt: "16:00" },
+    { day: day2, venue: "校庭", name: "書道パフォーマンス", startAt: "10:00", endAt: "10:30" },
+    { day: day2, venue: "校庭", name: "有志お笑いライブ", startAt: "11:30", endAt: "12:10" },
+    { day: day2, venue: "校庭", name: "抽選会", startAt: "14:00", endAt: "14:40" },
+  ];
+}
+
+// 開催日（未設定なら、この日付で settings/festival にも入れる）
+const DAY1 = "2026-09-19";
+const DAY2 = "2026-09-20";
+
 // ------------------------------------------------------------------
 
 async function clearSeeded(collectionName) {
@@ -232,6 +334,8 @@ async function main() {
     await clearSeeded("lostItems");
     await clearSeeded("announcements");
     await clearSeeded("emergencyAlerts");
+    await clearSeeded("booths");
+    await clearSeeded("events");
     console.log("完了しました。");
     return;
   }
@@ -243,6 +347,8 @@ async function main() {
   await clearSeeded("lostItems");
   await clearSeeded("announcements");
   await clearSeeded("emergencyAlerts");
+  await clearSeeded("booths");
+  await clearSeeded("events");
 
   for (const rule of visitorRules) {
     await db.collection("visitorRules").add({ ...rule, seeded: true });
@@ -279,6 +385,41 @@ async function main() {
     });
   }
   console.log(`  emergencyAlerts: ${emergencyAlerts.length}件を登録`);
+
+  const booths = buildBooths();
+  for (const booth of booths) {
+    await db.collection("booths").add({
+      ...booth,
+      waitingUpdatedAt: FieldValue.serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
+      seeded: true,
+    });
+  }
+  console.log(`  booths: ${booths.length}件を登録`);
+
+  const events = buildEvents(DAY1, DAY2);
+  for (const [i, event] of events.entries()) {
+    await db.collection("events").add({
+      ...event,
+      order: i,
+      status: "scheduled",
+      delayed: false,
+      originalStartAt: null,
+      createdAt: FieldValue.serverTimestamp(),
+      seeded: true,
+    });
+  }
+  console.log(`  events: ${events.length}件を登録`);
+
+  // 開催日が未設定なら、あわせて入れておく（来場者数の集計に必要）
+  const settings = await db.collection("settings").doc("festival").get();
+  if (!settings.exists || !Array.isArray(settings.data()?.days) || settings.data().days.length === 0) {
+    await db.collection("settings").doc("festival").set(
+      { days: [DAY1, DAY2] },
+      { merge: true },
+    );
+    console.log(`  開催日を ${DAY1} / ${DAY2} に設定しました`);
+  }
 
   console.log("完了しました。アプリを再読み込みして確認してください。");
 }

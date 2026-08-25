@@ -29,13 +29,15 @@ export default function OrganizerPage() {
     mark();
   }, [mark]);
 
+  // 広い画面（1024px以上）は1画面に収める。
+  // それより狭いときは縦に積んで、ページごとスクロールして見られるようにする。
   return (
-    <div className="flex h-screen flex-col overflow-hidden px-6 pb-5 pt-4 text-white">
+    <div className="flex min-h-screen flex-col px-4 pb-5 pt-4 text-white lg:h-screen lg:overflow-hidden lg:px-6">
       {/* 見出しとタブ、右上に更新ボタン */}
       <header className="mb-3 flex shrink-0 items-center gap-4">
         <div>
           <h1 className="text-sm font-bold text-slate-300">渦潮祭</h1>
-          <p className="text-xs text-slate-500">運営用</p>
+          <p className="text-xs text-slate-400">運営用</p>
         </div>
 
         <div className="flex gap-2">
@@ -60,7 +62,7 @@ export default function OrganizerPage() {
       </header>
 
       {/* 本体。ここだけが縦に伸び、はみ出す部分は各カードの中でスクロールする */}
-      <main className="min-h-0 flex-1">
+      <main className="min-h-0 flex-1 pb-4 lg:pb-0">
         {mode === "overall" && (
           <OverallTab key={`overall-${reloadKey}`} onDataUpdate={onDataUpdate} />
         )}

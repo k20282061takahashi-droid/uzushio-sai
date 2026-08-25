@@ -55,7 +55,7 @@ export default function FloatPanel({
           <div>
             <h2 className="text-lg font-bold">{title}</h2>
             {subtitle && (
-              <p className="mt-0.5 text-xs text-slate-500">{subtitle}</p>
+              <p className="mt-0.5 text-xs text-slate-400">{subtitle}</p>
             )}
           </div>
           <button

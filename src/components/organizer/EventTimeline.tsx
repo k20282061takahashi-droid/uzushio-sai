@@ -94,7 +94,7 @@ export default function EventTimeline({
     <div className="flex h-full flex-col">
       {/* 拡大縮小 */}
       <div className="mb-2 flex shrink-0 items-center gap-2">
-        <span className="text-[11px] text-slate-500">表示の細かさ</span>
+        <span className="text-[13px] text-slate-400">表示の細かさ</span>
         <button
           onClick={() => setZoom((z) => Math.max(MIN_ZOOM, z / 1.3))}
           className="rounded-md bg-white/10 px-2.5 py-1 text-xs active:scale-95"
@@ -109,7 +109,7 @@ export default function EventTimeline({
         </button>
         <button
           onClick={() => setZoom(1.6)}
-          className="rounded-md bg-white/5 px-2.5 py-1 text-[11px] text-slate-400 active:scale-95"
+          className="rounded-md bg-white/5 px-3 py-1.5 text-[13px] text-slate-400 active:scale-95"
         >
           標準に戻す
         </button>
@@ -124,7 +124,7 @@ export default function EventTimeline({
           <div className="w-12 shrink-0">
             {hourMarks.map((m) => (
               <div key={m} style={{ height: 60 * zoom }} className="relative">
-                <span className="absolute -top-2 right-2 text-[11px] text-slate-500">
+                <span className="absolute -top-2 right-2 text-[13px] text-slate-400">
                   {formatMinutes(m)}
                 </span>
               </div>
@@ -180,7 +180,7 @@ export default function EventTimeline({
                   {/* 高さが足りないときは、時刻と名前を1行にまとめて表示する */}
                   {height < 44 ? (
                     <p className="flex items-center gap-2 truncate text-xs">
-                      <span className="shrink-0 text-[11px] text-slate-300">
+                      <span className="shrink-0 text-[13px] text-slate-300">
                         {formatMinutes(start)}
                         {end !== null && `〜${formatMinutes(end)}`}
                       </span>
@@ -188,19 +188,19 @@ export default function EventTimeline({
                         {e.name || "（名前未設定）"}
                       </span>
                       {e.delayed && (
-                        <span className="shrink-0 text-[10px] text-amber-300">
+                        <span className="shrink-0 text-[12px] text-amber-300">
                           遅延
                         </span>
                       )}
                       {cancelled && (
-                        <span className="shrink-0 text-[10px] text-red-300">
+                        <span className="shrink-0 text-[12px] text-red-300">
                           中止
                         </span>
                       )}
                     </p>
                   ) : (
                     <>
-                      <p className="truncate text-[11px] text-slate-300">
+                      <p className="truncate text-[13px] text-slate-300">
                         {formatMinutes(start)}
                         {end !== null && `〜${formatMinutes(end)}`}
                         {e.delayed && (
@@ -227,7 +227,7 @@ export default function EventTimeline({
               >
                 <span className="-ml-1 h-2.5 w-2.5 shrink-0 rounded-full bg-red-500" />
                 <span className="h-px flex-1 bg-red-500" />
-                <span className="ml-1 shrink-0 rounded bg-red-500 px-1 text-[10px] font-bold text-white">
+                <span className="ml-1 shrink-0 rounded bg-red-500 px-1 text-[12px] font-bold text-white">
                   {formatMinutes(nowMin)}
                 </span>
               </div>
