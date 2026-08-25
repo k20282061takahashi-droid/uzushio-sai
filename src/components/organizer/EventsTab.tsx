@@ -13,20 +13,10 @@ import {
   updateEvent,
 } from "@/lib/booth";
 import { todayInJapan } from "@/lib/visits";
+import { useNowMinutes } from "@/lib/nowLine";
 
 // ステージ発表を行う会場。増やしたいときはここに足してください。
 const VENUES = ["体育館", "校庭"];
-
-function nowMinutesInJapan(): number {
-  const text = new Intl.DateTimeFormat("ja-JP", {
-    timeZone: "Asia/Tokyo",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).format(new Date());
-  const [h, m] = text.split(":").map(Number);
-  return h * 60 + m;
-}
 
 function dayLabel(date: string, index: number): string {
   if (!date) return `${index + 1}日目`;
@@ -354,7 +344,6 @@ export default function EventsTab({ onDataUpdate }: { onDataUpdate: () => void }
   const [editing, setEditing] = useState<FestivalEvent | null>(null);
   const [creating, setCreating] = useState(false);
   const [delaying, setDelaying] = useState<FestivalEvent | null>(null);
-  const [nowMin, setNowMin] = useState<number | null>(null);
 
   useEffect(
     () =>
@@ -366,19 +355,10 @@ export default function EventsTab({ onDataUpdate }: { onDataUpdate: () => void }
   );
   useEffect(() => subscribeFestivalDays(setDays), []);
 
-  useEffect(() => {
-    const update = () => setNowMin(nowMinutesInJapan());
-    const first = setTimeout(update, 0);
-    const timer = setInterval(update, 30_000);
-    return () => {
-      clearTimeout(first);
-      clearInterval(timer);
-    };
-  }, []);
-
   const day = days[dayIndex] ?? "";
   const today = todayInJapan();
   const isToday = day === today;
+  const nowMin = useNowMinutes(isToday);
 
   // 選んでいる日・会場のイベント
   const shown = useMemo(
@@ -483,6 +463,7 @@ export default function EventsTab({ onDataUpdate }: { onDataUpdate: () => void }
           showNowLine={isToday}
           onSelect={setEditing}
           selectedId={editing?.id ?? null}
+          scrollSignal={`${day}-${venue}`}
         />
       </div>
 

@@ -1,11 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import DetailSheet from "@/components/DetailSheet";
+import { useNowMinutes } from "@/lib/nowLine";
+import { todayInJapan } from "@/lib/visits";
 
+// 開催日。fullDate は「今日かどうか」を判定するために使う。
 const days = [
-  { date: "9/19", label: "1日目" },
-  { date: "9/20", label: "2日目" },
+  { fullDate: "2026-09-19", date: "9/19", label: "1日目" },
+  { fullDate: "2026-09-20", date: "9/20", label: "2日目" },
 ];
 
 type EventItem = {
@@ -39,11 +42,24 @@ function formatTime(min: number) {
   return `${h}:${m.toString().padStart(2, "0")}`;
 }
 
+// 今日が開催日なら、その日を最初に開く
+function initialDayIndex(): number {
+  const today = todayInJapan();
+  const index = days.findIndex((d) => d.fullDate === today);
+  return index >= 0 ? index : 0;
+}
+
 export default function TimelinePage() {
-  const [dayIndex, setDayIndex] = useState(0);
+  const [dayIndex, setDayIndex] = useState(initialDayIndex);
   const [selected, setSelected] = useState<EventItem | null>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const scrolled = useRef(false);
 
   const events = eventsByDay[dayIndex];
+
+  // 表示している日が今日のときだけ、現在時刻の赤い線を出す
+  const isToday = days[dayIndex]?.fullDate === todayInJapan();
+  const nowMin = useNowMinutes(isToday);
 
   const { hourMarks, axisStart, totalHeight, venues } = useMemo(() => {
     const marks: number[] = [];
@@ -57,8 +73,31 @@ export default function TimelinePage() {
     };
   }, [events]);
 
+  // 開いたとき、現在時刻の線が画面の中央あたりに来るようにスクロールする
+  useEffect(() => {
+    if (scrolled.current || nowMin === null) return;
+    if (nowMin < axisStart || nowMin > TIMELINE_END) return;
+    const el = gridRef.current;
+    if (!el) return;
+
+    const timer = setTimeout(() => {
+      const rect = el.getBoundingClientRect();
+      const lineY = rect.top + window.scrollY + (nowMin - axisStart) * PX_PER_MIN;
+      window.scrollTo({
+        top: Math.max(0, lineY - window.innerHeight / 2),
+        behavior: "smooth",
+      });
+      scrolled.current = true;
+    }, 120);
+    return () => clearTimeout(timer);
+  }, [nowMin, axisStart]);
+
+  // 赤い線を出す位置（時間の範囲の外なら出さない）
+  const showNowLine =
+    nowMin !== null && nowMin >= axisStart && nowMin <= TIMELINE_END;
+
   return (
-    <div className="mx-auto max-w-md px-4 pt-8">
+    <div className="mx-auto max-w-md px-4 pb-8 pt-8">
       <h1 className="animate-fade-in-up mb-4 text-2xl font-bold">
         タイムテーブル
       </h1>
@@ -104,6 +143,7 @@ export default function TimelinePage() {
 
         {/* イベントグリッド */}
         <div
+          ref={gridRef}
           className="relative flex-1 rounded-lg border-l border-white/10"
           style={{ height: totalHeight }}
         >
@@ -141,6 +181,20 @@ export default function TimelinePage() {
               </button>
             );
           })}
+
+          {/* 現在時刻の赤い線 */}
+          {showNowLine && nowMin !== null && (
+            <div
+              className="pointer-events-none absolute inset-x-0 z-10 flex items-center"
+              style={{ top: (nowMin - axisStart) * PX_PER_MIN }}
+            >
+              <span className="-ml-1.5 h-3 w-3 shrink-0 rounded-full bg-red-500" />
+              <span className="h-[2px] flex-1 bg-red-500" />
+              <span className="ml-1 shrink-0 rounded bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                {formatTime(nowMin)}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 

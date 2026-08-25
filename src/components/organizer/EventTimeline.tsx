@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { FestivalEvent } from "@/lib/booth";
+import { useNowMinutes } from "@/lib/nowLine";
 
 // Appleのカレンダーのような、時間軸に沿ってイベントを並べる表示。
 // ・拡大／縮小できる
@@ -31,44 +32,28 @@ export function formatMinutes(total: number): string {
   return `${h}:${m.toString().padStart(2, "0")}`;
 }
 
-// 日本時間での「今」を、0時からの分数で返す
-function nowMinutesInJapan(): number {
-  const text = new Intl.DateTimeFormat("ja-JP", {
-    timeZone: "Asia/Tokyo",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).format(new Date());
-  const [h, m] = text.split(":").map(Number);
-  return h * 60 + m;
-}
-
 export default function EventTimeline({
   events,
   showNowLine,
   onSelect,
   selectedId,
+  scrollSignal,
 }: {
   events: FestivalEvent[];
   showNowLine: boolean;
   onSelect?: (event: FestivalEvent) => void;
   selectedId?: string | null;
+  // 日付や会場を切り替えたときに、現在時刻の位置まで表示を戻すための合図。
+  // 値が変わると、もう一度その位置までスクロールし直す。
+  scrollSignal?: string;
 }) {
   const [zoom, setZoom] = useState(1.6);
-  const [nowMin, setNowMin] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  // 一度スクロールしたかどうか。表示中に勝手に動かないようにするための印。
+  const scrolledFor = useRef<string | null>(null);
 
-  // 現在時刻の赤線を1分ごとに動かす
-  useEffect(() => {
-    const update = () =>
-      setNowMin(showNowLine ? nowMinutesInJapan() : null);
-    const first = setTimeout(update, 0);
-    const timer = setInterval(update, 60_000);
-    return () => {
-      clearTimeout(first);
-      clearInterval(timer);
-    };
-  }, [showNowLine]);
+  // 現在時刻の赤線（1分ごとに動く）
+  const nowMin = useNowMinutes(showNowLine);
 
   // 表示する時間の範囲。イベントがはみ出す場合は自動で広げる
   const times = events
@@ -89,6 +74,30 @@ export default function EventTimeline({
 
   const hourMarks: number[] = [];
   for (let h = startHour; h <= endHour; h++) hourMarks.push(h * 60);
+
+  // 開いたときに、現在時刻の赤線が画面の中央に来るようにスクロールする。
+  // 開催日でないときは、いちばん早いイベントが見えるところまで動かす。
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const signal = scrollSignal ?? "default";
+    if (scrolledFor.current === signal) return;
+    // 表示できる高さが決まる前だと計算がずれるので、描画後に実行する
+    const timer = setTimeout(() => {
+      const target =
+        nowMin !== null
+          ? nowMin
+          : times.length
+            ? Math.min(...times)
+            : rangeStart;
+      const y = (target - rangeStart) * zoom;
+      el.scrollTop = Math.max(0, y - el.clientHeight / 2);
+      scrolledFor.current = signal;
+    }, 60);
+    return () => clearTimeout(timer);
+    // zoom を入れると拡大縮小のたびに戻ってしまうので、あえて見ていない
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nowMin, scrollSignal, rangeStart]);
 
   return (
     <div className="flex h-full flex-col">
