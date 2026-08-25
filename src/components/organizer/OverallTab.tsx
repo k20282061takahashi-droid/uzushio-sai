@@ -171,8 +171,8 @@ export default function OverallTab({
   return (
     <div className="flex h-full flex-col gap-3">
       {/* 上部バー */}
-      <section className="flex shrink-0 flex-wrap items-center justify-between gap-4 rounded-xl border border-white/10 bg-white/5 p-4">
-        <div>
+      <section className="flex shrink-0 flex-col items-center gap-4 rounded-xl border border-white/10 bg-white/5 p-4 sm:flex-row sm:flex-wrap sm:justify-between">
+        <div className="w-full sm:w-auto">
           <p className="text-xs text-slate-400">
             {phase === "before" ? "文化祭前" : "文化祭中"}
           </p>
@@ -191,7 +191,7 @@ export default function OverallTab({
 
         <VisitorCountPanel />
 
-        <div className="flex gap-6 text-center">
+        <div className="flex w-full justify-center gap-6 text-center sm:w-auto">
           <div>
             <p className="text-2xl font-bold text-emerald-200">{counts.open}</p>
             <p className="text-xs text-slate-400">開催中</p>

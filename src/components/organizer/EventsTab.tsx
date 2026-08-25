@@ -5,6 +5,8 @@ import FloatPanel from "./FloatPanel";
 import EventTimeline, { formatMinutes, parseTime } from "./EventTimeline";
 import {
   type FestivalEvent,
+  buildDelayMessage,
+  cancelEventDelay,
   createEvent,
   delayEvent,
   deleteEvent,
@@ -104,6 +106,11 @@ function DelayForm({
   const [newStart, setNewStart] = useState(event.startAt ?? "");
   const [newEnd, setNewEnd] = useState(event.endAt ?? "");
   const [saving, setSaving] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+
+  // もとの予定時刻。すでに遅らせている場合は最初の予定を使う。
+  const baseStart = event.originalStartAt ?? event.startAt;
+  const preview = buildDelayMessage(event.name ?? "", baseStart, newStart || "");
 
   // 「◯分遅らせる」ボタンで時刻を組み立てる
   function shiftBy(minutes: number) {
@@ -119,6 +126,14 @@ function DelayForm({
     setSaving(true);
     await delayEvent(event, newStart, newEnd || null);
     setSaving(false);
+    onClose();
+  }
+
+  // 遅延を取り消して、送ったお知らせも消す
+  async function cancel() {
+    setCancelling(true);
+    await cancelEventDelay(event);
+    setCancelling(false);
     onClose();
   }
 
@@ -163,23 +178,41 @@ function DelayForm({
         </label>
       </div>
 
-      <div className="mt-3 rounded-lg bg-white/5 p-3 text-xs text-slate-400">
-        <p className="mb-1 font-semibold text-slate-300">
+      <div className="mt-3 rounded-lg bg-white/5 p-3 text-sm text-slate-300">
+        <p className="mb-1 text-xs font-semibold text-slate-400">
           来場者に流れるお知らせ（自動）
         </p>
-        <p>
-          {event.name || "イベント"}の開始が{newStart || "--:--"}
-          に変更になりました
-        </p>
+        <p>{newStart ? preview : "（新しい開始時刻を入れてください）"}</p>
       </div>
 
       <button
         onClick={submit}
         disabled={saving || !newStart}
-        className="mt-4 w-full rounded-lg bg-amber-500 p-3 text-sm font-semibold text-white active:scale-95 disabled:opacity-40"
+        className="mt-4 w-full rounded-lg bg-amber-500 p-3.5 text-sm font-semibold text-white active:scale-95 disabled:opacity-40"
       >
-        {saving ? "送信中..." : "変更してお知らせを送る"}
+        {saving
+          ? "送信中..."
+          : event.delayed
+            ? "お知らせを出し直す"
+            : "変更してお知らせを送る"}
       </button>
+
+      {/* すでに遅延を知らせている場合は、取り消しもできるようにする */}
+      {event.delayed && (
+        <div className="mt-3 rounded-lg border border-white/10 bg-white/5 p-3">
+          <p className="mb-2 text-xs text-slate-400">
+            遅延を取り消すと、来場者に送ったお知らせを削除し、
+            開始時刻をもとの{event.originalStartAt ?? "予定"}に戻します。
+          </p>
+          <button
+            onClick={cancel}
+            disabled={cancelling}
+            className="w-full rounded-lg bg-white/10 p-3 text-sm font-semibold active:scale-95 disabled:opacity-40"
+          >
+            {cancelling ? "取り消し中..." : "遅延を取り消して、お知らせを削除する"}
+          </button>
+        </div>
+      )}
     </FloatPanel>
   );
 }
@@ -191,12 +224,14 @@ function EventEditFloat({
   venue,
   creating,
   onClose,
+  onDelay,
 }: {
   event: FestivalEvent | null;
   day: string;
   venue: string;
   creating: boolean;
   onClose: () => void;
+  onDelay: (event: FestivalEvent) => void;
 }) {
   const open = creating || event !== null;
   if (!open) return null;
@@ -209,6 +244,7 @@ function EventEditFloat({
       venue={venue}
       creating={creating}
       onClose={onClose}
+      onDelay={onDelay}
     />
   );
 }
@@ -219,12 +255,14 @@ function EventEditForm({
   venue,
   creating,
   onClose,
+  onDelay,
 }: {
   event: FestivalEvent | null;
   day: string;
   venue: string;
   creating: boolean;
   onClose: () => void;
+  onDelay: (event: FestivalEvent) => void;
 }) {
   const [name, setName] = useState(event?.name ?? "");
   const [startAt, setStartAt] = useState(event?.startAt ?? "");
@@ -303,11 +341,27 @@ function EventEditForm({
         </label>
       )}
 
+      {/* このイベントの遅れを知らせる／取り消す */}
+      {!creating && event && (
+        <button
+          onClick={() => onDelay(event)}
+          className={`mt-4 w-full rounded-lg p-3 text-sm font-semibold active:scale-95 ${
+            event.delayed
+              ? "bg-amber-400/20 text-amber-200"
+              : "bg-amber-500 text-white"
+          }`}
+        >
+          {event.delayed
+            ? "遅延の知らせを出し直す／取り消す"
+            : "開始の遅れを知らせる"}
+        </button>
+      )}
+
       <div className="mt-4 flex gap-2">
         <button
           onClick={submit}
           disabled={saving || !name || !startAt}
-          className="flex-1 rounded-lg bg-emerald-500 p-2.5 text-sm font-semibold text-white active:scale-95 disabled:opacity-40"
+          className="flex-1 rounded-lg bg-emerald-500 p-3 text-sm font-semibold text-white active:scale-95 disabled:opacity-40"
         >
           {saving ? "保存中..." : creating ? "追加する" : "保存する"}
         </button>
@@ -427,7 +481,7 @@ export default function EventsTab({ onDataUpdate }: { onDataUpdate: () => void }
         <button
           onClick={() => setCreating(true)}
           disabled={!day}
-          className="ml-auto rounded-lg bg-emerald-500 px-4 py-2 text-sm font-bold text-white active:scale-95 disabled:opacity-40"
+          className="w-full rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-bold text-white active:scale-95 disabled:opacity-40 sm:ml-auto sm:w-auto"
         >
           ＋ イベントを追加
         </button>
@@ -440,7 +494,7 @@ export default function EventsTab({ onDataUpdate }: { onDataUpdate: () => void }
       )}
 
       {/* 今のイベント／次のイベント */}
-      <div className="flex shrink-0 gap-3">
+      <div className="flex shrink-0 flex-col gap-3 sm:flex-row">
         <HighlightCard label="今のイベント" event={current} tone="now" />
         <HighlightCard label="次のイベント" event={next} tone="next">
           {next && (
@@ -475,6 +529,10 @@ export default function EventsTab({ onDataUpdate }: { onDataUpdate: () => void }
         onClose={() => {
           setEditing(null);
           setCreating(false);
+        }}
+        onDelay={(e) => {
+          setEditing(null);
+          setDelaying(e);
         }}
       />
       <DelayFloat event={delaying} onClose={() => setDelaying(null)} />

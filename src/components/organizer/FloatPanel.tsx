@@ -44,14 +44,14 @@ export default function FloatPanel({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-2 backdrop-blur-sm sm:p-6"
       onClick={onClose}
     >
       <div
-        className={`flex max-h-[88vh] w-full ${widthClass} flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-900 shadow-2xl`}
+        className={`flex max-h-[94vh] w-full ${widthClass} flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-900 shadow-2xl sm:max-h-[88vh]`}
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="flex shrink-0 items-start justify-between gap-4 border-b border-white/10 px-6 py-4">
+        <header className="flex shrink-0 items-start justify-between gap-4 border-b border-white/10 px-4 py-3 sm:px-6 sm:py-4">
           <div>
             <h2 className="text-lg font-bold">{title}</h2>
             {subtitle && (
@@ -66,10 +66,10 @@ export default function FloatPanel({
           </button>
         </header>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6">{children}</div>
 
         {footer && (
-          <footer className="shrink-0 border-t border-white/10 px-6 py-3">
+          <footer className="shrink-0 border-t border-white/10 px-4 py-3 sm:px-6">
             {footer}
           </footer>
         )}

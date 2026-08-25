@@ -342,16 +342,29 @@ export default function BoothManagePage() {
                   未設定
                 </div>
               )}
-              <label className="cursor-pointer rounded-lg bg-white/10 px-3 py-2 text-xs">
-                {uploadingSignboard ? "アップロード中..." : "画像を選択"}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleSignboardChange}
-                  className="hidden"
-                  disabled={uploadingSignboard}
-                />
-              </label>
+              <div className="flex flex-col gap-2">
+                <label className="cursor-pointer rounded-lg bg-white px-4 py-2.5 text-center text-sm font-semibold text-slate-950 active:scale-95">
+                  {uploadingSignboard ? "アップロード中..." : "写真を撮る"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={handleSignboardChange}
+                    className="hidden"
+                    disabled={uploadingSignboard}
+                  />
+                </label>
+                <label className="cursor-pointer rounded-lg bg-white/10 px-4 py-2.5 text-center text-sm active:scale-95">
+                  画像を選ぶ
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleSignboardChange}
+                    className="hidden"
+                    disabled={uploadingSignboard}
+                  />
+                </label>
+              </div>
             </div>
           </div>
 
@@ -536,15 +549,28 @@ export default function BoothManagePage() {
                   未設定
                 </div>
               )}
-              <label className="cursor-pointer rounded-lg bg-white/10 px-3 py-2 text-xs">
-                画像を選択
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleLostItemPhotoChange}
-                  className="hidden"
-                />
-              </label>
+              <div className="flex flex-col gap-2">
+                {/* capture を付けると、スマホでは撮影画面が直接ひらく */}
+                <label className="cursor-pointer rounded-lg bg-white px-4 py-2.5 text-center text-sm font-semibold text-slate-950 active:scale-95">
+                  写真を撮る
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={handleLostItemPhotoChange}
+                    className="hidden"
+                  />
+                </label>
+                <label className="cursor-pointer rounded-lg bg-white/10 px-4 py-2.5 text-center text-sm active:scale-95">
+                  画像を選ぶ
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLostItemPhotoChange}
+                    className="hidden"
+                  />
+                </label>
+              </div>
             </div>
           </label>
 

@@ -171,7 +171,7 @@ export default function VisitorCountPanel() {
         )}
       </div>
 
-      <div className="flex items-center gap-2 text-[12px] text-slate-400">
+      <div className="flex flex-wrap items-center justify-center gap-2 text-[12px] text-slate-400">
         <span>来場者数（アプリを開いた端末の数）</span>
         <button
           onClick={refresh}

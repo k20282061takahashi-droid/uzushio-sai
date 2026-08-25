@@ -34,21 +34,22 @@ export default function OrganizerPage() {
   return (
     <div className="flex min-h-screen flex-col px-4 pb-5 pt-4 text-white lg:h-screen lg:overflow-hidden lg:px-6">
       {/* 見出しとタブ、右上に更新ボタン */}
-      <header className="mb-3 flex shrink-0 items-center gap-4">
+      <header className="mb-3 flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2">
         <div>
           <h1 className="text-sm font-bold text-slate-300">渦潮祭</h1>
           <p className="text-xs text-slate-400">運営用</p>
         </div>
 
-        <div className="flex gap-2">
+        {/* スマホではタブを2段目に回して、幅いっぱいに並べる */}
+        <div className="order-last flex w-full gap-2 sm:order-none sm:w-auto sm:flex-1">
           {TABS.map((t) => (
             <button
               key={t.key}
               onClick={() => setMode(t.key)}
               className={
                 mode === t.key
-                  ? "rounded-lg bg-white px-4 py-2 text-sm font-bold text-slate-950"
-                  : "rounded-lg bg-white/10 px-4 py-2 text-sm text-slate-300"
+                  ? "flex-1 whitespace-nowrap rounded-lg bg-white px-3 py-2 text-sm font-bold text-slate-950 sm:flex-none sm:px-4"
+                  : "flex-1 whitespace-nowrap rounded-lg bg-white/10 px-3 py-2 text-sm text-slate-300 sm:flex-none sm:px-4"
               }
             >
               {t.label}
@@ -56,7 +57,7 @@ export default function OrganizerPage() {
           ))}
         </div>
 
-        <div className="ml-auto">
+        <div className="ml-auto shrink-0">
           <RefreshBar lastUpdated={lastUpdated} onRefresh={refresh} />
         </div>
       </header>

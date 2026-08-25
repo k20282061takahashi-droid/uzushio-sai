@@ -494,14 +494,15 @@ export async function createVisitorAnnouncement(input: {
   title: string;
   body: string;
   pinned: boolean;
-}) {
-  await addDoc(collection(db, "announcements"), {
+}): Promise<string> {
+  const docRef = await addDoc(collection(db, "announcements"), {
     title: input.title,
     body: input.body,
     pinned: input.pinned,
     targetBoothIds: null,
     createdAt: serverTimestamp(),
   });
+  return docRef.id;
 }
 
 export async function updateVisitorAnnouncement(
@@ -576,6 +577,9 @@ export type FestivalEvent = {
   // 開始が遅れたときに立つ印と、もともとの予定時刻
   delayed: boolean;
   originalStartAt: string | null;
+  // 遅延を知らせるために自動で送ったお知らせのID。
+  // 遅延を取り消すときに、このお知らせも一緒に消せるようにしている。
+  delayAnnouncementId: string | null;
 };
 
 // 運営ダッシュボード用。タイムテーブル(events)をリアルタイムで一覧購読する。
@@ -596,6 +600,7 @@ export function subscribeEvents(
         status: data.status ?? "scheduled",
         delayed: !!data.delayed,
         originalStartAt: data.originalStartAt ?? null,
+        delayAnnouncementId: data.delayAnnouncementId ?? null,
       } satisfies FestivalEvent;
     });
     events.sort((a, b) => a.day.localeCompare(b.day) || a.order - b.order);
@@ -713,6 +718,39 @@ export async function deleteEvent(id: string) {
   await deleteDoc(doc(db, "events", id));
 }
 
+// 「9:30」のような時刻を分に直す（遅れた分数を計算するために使う）
+function timeToMinutes(text: string | null): number | null {
+  if (!text) return null;
+  const m = text.trim().match(/^(\d{1,2})[:：](\d{1,2})$/);
+  if (!m) return null;
+  return Number(m[1]) * 60 + Number(m[2]);
+}
+
+// 来場者に流す遅延のお知らせの文面を作る。
+// 例）有志ダンスは開始時間が10分遅れて、10時40分から開始いたします
+export function buildDelayMessage(
+  eventName: string,
+  originalStartAt: string | null,
+  newStartAt: string,
+): string {
+  const before = timeToMinutes(originalStartAt);
+  const after = timeToMinutes(newStartAt);
+  const name = eventName || "イベント";
+
+  const [hourText, minuteText] = newStartAt.split(/[:：]/);
+  const hour = Number(hourText);
+  const minute = Number(minuteText);
+  const timeText = Number.isNaN(hour)
+    ? newStartAt
+    : `${hour}時${Number.isNaN(minute) || minute === 0 ? "" : `${minute}分`}`;
+
+  if (before !== null && after !== null && after > before) {
+    return `${name}は開始時間が${after - before}分遅れて、${timeText}から開始いたします`;
+  }
+  // 遅れた分数が計算できないときは、新しい開始時刻だけ伝える
+  return `${name}は${timeText}から開始いたします`;
+}
+
 // イベントの開始を遅らせる。
 // 予定時刻を書き換えたうえで、来場者アプリのお知らせにも自動で流す。
 export async function delayEvent(
@@ -720,17 +758,44 @@ export async function delayEvent(
   newStartAt: string,
   newEndAt: string | null,
 ) {
+  const message = buildDelayMessage(
+    event.name ?? "",
+    event.originalStartAt ?? event.startAt,
+    newStartAt,
+  );
+
+  // すでに遅延のお知らせを出していれば、古いものは消してから出し直す
+  if (event.delayAnnouncementId) {
+    await deleteVisitorAnnouncement(event.delayAnnouncementId).catch(() => {});
+  }
+
+  const announcementId = await createVisitorAnnouncement({
+    title: message,
+    body: "",
+    pinned: true,
+  });
+
   await updateDoc(doc(db, "events", event.id), {
     startAt: newStartAt,
     endAt: newEndAt,
     delayed: true,
-    originalStartAt: event.startAt,
+    // 何度遅らせても、もとの予定時刻は最初のものを残しておく
+    originalStartAt: event.originalStartAt ?? event.startAt,
+    delayAnnouncementId: announcementId,
     updatedAt: serverTimestamp(),
   });
+}
 
-  await createVisitorAnnouncement({
-    title: `${event.name ?? "イベント"}の開始が${newStartAt}に変更になりました`,
-    body: `${event.venue ?? ""}で予定していた「${event.name ?? "イベント"}」は、開始時刻が ${event.startAt ?? "未定"} から ${newStartAt} に変更になりました。ご迷惑をおかけします。`,
-    pinned: true,
+// 遅延を取り消して、送ったお知らせも消す。もとの予定時刻に戻す。
+export async function cancelEventDelay(event: FestivalEvent) {
+  if (event.delayAnnouncementId) {
+    await deleteVisitorAnnouncement(event.delayAnnouncementId).catch(() => {});
+  }
+  await updateDoc(doc(db, "events", event.id), {
+    startAt: event.originalStartAt ?? event.startAt,
+    delayed: false,
+    originalStartAt: null,
+    delayAnnouncementId: null,
+    updatedAt: serverTimestamp(),
   });
 }

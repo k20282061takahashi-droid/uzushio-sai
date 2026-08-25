@@ -443,7 +443,10 @@ export default function BoothsTab({ onDataUpdate }: { onDataUpdate: () => void }
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [bulkOpen, setBulkOpen] = useState(false);
-  const [showMap, setShowMap] = useState(true);
+  // 画面が狭いときは地図を出すと窮屈なので、最初は隠しておく
+  const [showMap, setShowMap] = useState(() =>
+    typeof window === "undefined" ? true : window.innerWidth >= 1024,
+  );
   const [now, setNow] = useState<number | null>(null);
   const [adding, setAdding] = useState(false);
   const [newName, setNewName] = useState("");

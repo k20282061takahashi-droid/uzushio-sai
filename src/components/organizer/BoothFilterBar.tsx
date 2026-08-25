@@ -67,7 +67,11 @@ export default function BoothFilterBar({
         </select>
       </label>
 
-      {right && <div className="ml-auto flex items-center gap-2">{right}</div>}
+      {right && (
+        <div className="flex w-full flex-wrap items-center gap-2 sm:ml-auto sm:w-auto">
+          {right}
+        </div>
+      )}
     </div>
   );
 }
