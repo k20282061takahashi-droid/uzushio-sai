@@ -20,6 +20,12 @@ import {
 
 const GENRE_OPTIONS = Object.keys(GENRE_LABELS) as BoothGenre[];
 
+// 企画データを取り直す間隔（30秒）。
+// 運営が場所や企画名を変えても、担当者側の画面が古いままにならないようにする。
+const REFRESH_INTERVAL_MS = 30_000;
+// 自分で操作した直後は、取り直した古い値で上書きしないための猶予時間。
+const LOCAL_EDIT_GRACE_MS = 30_000;
+
 function visitorStatusLabel(booth: Booth): string {
   if (booth.status === "closed") return "終了";
   if (booth.status === "break") return "休憩中";
@@ -144,6 +150,10 @@ export default function BoothManagePage() {
 
   // 連絡の購読を解除するための関数。企画が分かってから購読を始める。
   const unsubscribeAnnouncements = useRef<(() => void) | null>(null);
+  // 自分が最後に待ち組数やステータスを操作した時刻
+  const lastLocalEditAt = useRef(0);
+  // 最後にデータを取り直した時刻（画面に表示する）
+  const [lastFetchedAt, setLastFetchedAt] = useState<string>("");
 
   useEffect(() => {
     if (!token) return;
@@ -164,7 +174,36 @@ export default function BoothManagePage() {
       }
     });
     const unsubscribePhase = subscribeFestivalPhase(setFestivalPhase);
+
+    // 30秒ごとに企画データを取り直す。
+    // ただし自分が直前に操作した待ち組数・ステータスは上書きしない
+    // （送信中の値を古い値で戻してしまわないため）。
+    const timer = setInterval(async () => {
+      const fresh = await getBoothByToken(token);
+      if (!fresh) return;
+      const recentlyEdited =
+        Date.now() - lastLocalEditAt.current < LOCAL_EDIT_GRACE_MS;
+      setBooth((prev) =>
+        prev && recentlyEdited
+          ? {
+              ...fresh,
+              waitingGroups: prev.waitingGroups,
+              status: prev.status,
+            }
+          : fresh,
+      );
+      if (!recentlyEdited) setWaitingGroups(fresh.waitingGroups ?? 0);
+      setLastFetchedAt(
+        new Intl.DateTimeFormat("ja-JP", {
+          timeZone: "Asia/Tokyo",
+          hour: "2-digit",
+          minute: "2-digit",
+        }).format(new Date()),
+      );
+    }, REFRESH_INTERVAL_MS);
+
     return () => {
+      clearInterval(timer);
       unsubscribePhase();
       unsubscribeAnnouncements.current?.();
       unsubscribeAnnouncements.current = null;
@@ -204,6 +243,7 @@ export default function BoothManagePage() {
 
   async function adjustWaiting(delta: number) {
     if (!booth) return;
+    lastLocalEditAt.current = Date.now();
     const next = Math.max(0, waitingGroups + delta);
     setWaitingGroups(next);
     setSavingWait(true);
@@ -214,6 +254,7 @@ export default function BoothManagePage() {
 
   async function changeStatus(status: BoothStatus) {
     if (!booth) return;
+    lastLocalEditAt.current = Date.now();
     setChangingStatus(true);
     await updateBooth(booth.id, { status });
     setBooth({ ...booth, status });
@@ -296,6 +337,11 @@ export default function BoothManagePage() {
         <p className="mt-1 text-3xl font-bold tracking-tight text-white sm:text-4xl">
           {booth.name}
         </p>
+        {lastFetchedAt && (
+          <p className="mt-1 text-xs text-slate-500">
+            最終更新 {lastFetchedAt}（30秒ごとに自動更新）
+          </p>
+        )}
       </div>
 
       {/* パソコン・iPadでは左に操作パネル、右に運営からの連絡を並べる。
