@@ -6,6 +6,7 @@ import {
   subscribeStaffAlertsForBooth,
   type StaffAlertRecord,
 } from "@/lib/booth";
+import { AlertIcon } from "./Icon";
 
 // 運営から届いた緊急一斉連絡を、企画担当者の画面に割り込みで出す。
 // ・赤い全画面表示 ＋ 音 ＋ バイブ（対応端末のみ）
@@ -76,7 +77,7 @@ export default function StaffAlertOverlay({ boothId }: { boothId: string }) {
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-red-950/95 p-4">
       <div className="w-full max-w-lg rounded-2xl border-2 border-red-400 bg-red-600 p-6 text-white shadow-2xl">
         <p className="mb-2 flex items-center gap-2 text-sm font-bold tracking-widest">
-          <span className="animate-pulse text-2xl">⚠</span>
+          <AlertIcon className="h-6 w-6 animate-pulse" />
           運営からの緊急連絡
         </p>
         <p className="mb-6 whitespace-pre-wrap text-2xl font-bold leading-snug sm:text-3xl">

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Announcement, subscribeVisitorAnnouncements } from "@/lib/booth";
+import { PinIcon } from "./Icon";
 
 // ホームに出すお知らせのバナー。
 // ・出すのは最新3件まで（全部は出さない。全部見たい人は一覧ページへ）
@@ -49,7 +50,9 @@ export default function AnnouncementTicker() {
               transform: `translateY(${(i - (index % items.length)) * 100}%)`,
             }}
           >
-            {a.pinned && <span className="mr-1 shrink-0">📌</span>}
+            {a.pinned && (
+              <PinIcon className="mr-1 h-3.5 w-3.5 shrink-0 text-accent-700" />
+            )}
             <span className="truncate text-sm font-bold text-accent-700">{a.title}</span>
           </span>
         ))}

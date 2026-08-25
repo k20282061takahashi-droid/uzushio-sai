@@ -7,6 +7,7 @@ import {
   subscribeStampSpots,
   type StampSpot,
 } from "@/lib/stamp";
+import { StampIcon } from "./Icon";
 
 // ホームに出すスタンプラリーの進み具合。
 // 獲得状況はこの端末のブラウザに保存してあるものを読む。
@@ -64,7 +65,9 @@ export default function StampSummary() {
                 : "rounded-full border-2 border-dashed border-kosei-300 bg-kosei-50 opacity-70"
             }`}
           >
-            {collected.includes(spot.id) ? "🎫" : ""}
+            {collected.includes(spot.id) && (
+              <StampIcon className="h-5 w-5 text-white" />
+            )}
           </div>
         ))}
       </div>

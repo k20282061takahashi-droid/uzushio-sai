@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import FloatPanel from "./FloatPanel";
+import { PinIcon } from "../Icon";
 import AnnouncementFloat from "./AnnouncementFloat";
 import EmergencyFloat from "./EmergencyFloat";
 import StaffAlertFloat from "./StaffAlertFloat";
@@ -293,7 +294,9 @@ export default function OverallTab({
                       className="rounded-lg bg-white/5 px-3 py-2 text-sm"
                     >
                       <p className="truncate font-medium">
-                        {a.pinned && <span className="mr-1">📌</span>}
+                        {a.pinned && (
+                          <PinIcon className="mr-1 inline h-4 w-4 text-amber-400" />
+                        )}
                         {a.title}
                       </p>
                       <p className="text-[12px] text-slate-400">

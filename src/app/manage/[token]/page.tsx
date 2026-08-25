@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import StaffAlertOverlay from "@/components/StaffAlertOverlay";
+import { PinIcon } from "@/components/Icon";
 import {
   Announcement,
   Booth,
@@ -66,7 +67,7 @@ function AnnouncementBoard({
         <ul className="mb-2 space-y-1">
           {pinned.map((a) => (
             <li key={a.id} className="flex items-center gap-1 text-sm">
-              <span className="shrink-0 text-amber-400">📌</span>
+              <PinIcon className="h-4 w-4 shrink-0 text-amber-400" />
               <span className="truncate">{a.title}</span>
             </li>
           ))}
@@ -603,7 +604,7 @@ export default function BoothManagePage() {
                 >
                   <p className="flex items-start gap-1 text-sm font-medium">
                     {a.pinned && (
-                      <span className="shrink-0 text-amber-400">📌</span>
+                      <PinIcon className="h-4 w-4 shrink-0 text-amber-400" />
                     )}
                     <span>{a.title}</span>
                   </p>

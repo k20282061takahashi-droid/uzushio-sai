@@ -6,6 +6,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import QrScanner from "@/components/QrScanner";
 import StampGetEffect from "@/components/StampGetEffect";
 import {
+  CheckCircleIcon,
+  CheckIcon,
+  StampIcon,
+  TicketIcon,
+} from "@/components/Icon";
+import {
   addCollectedId,
   extractCode,
   getCollectedIds,
@@ -154,11 +160,28 @@ export default function StampPage() {
           {complete && (
             <Link
               href="/stamp/complete"
-              className="pressable animate-fade-in-up mb-6 block rounded-2xl border-2 border-warn-800 bg-warn-50 p-3 text-center font-heading text-sm font-black text-warn-800 shadow-[0_4px_0_var(--color-warn-800)]"
+              className="pressable animate-fade-in-up mb-6 flex items-center gap-3 rounded-3xl border-2 border-accent-700 bg-accent-400 p-5 text-left shadow-[0_6px_0_var(--color-accent-700)]"
             >
-              {ticket?.used
-                ? "✅ 特別企画に参加しました"
-                : "🎉 コンプリート！特別企画の挑戦券を見る"}
+              {ticket?.used ? (
+                <CheckCircleIcon className="h-11 w-11 shrink-0 text-white" />
+              ) : (
+                <TicketIcon className="h-11 w-11 shrink-0 text-white" />
+              )}
+              <span className="min-w-0 flex-1">
+                <span className="block font-heading text-xl font-black leading-tight text-white">
+                  {ticket?.used
+                    ? "特別企画に参加しました"
+                    : "特別企画に挑戦できます"}
+                </span>
+                <span className="mt-0.5 block text-sm font-bold text-white/90">
+                  {ticket?.used
+                    ? "挑戦券は使用済みです"
+                    : "タップして挑戦券を表示"}
+                </span>
+              </span>
+              <span className="shrink-0 font-heading text-2xl font-black text-white">
+                ›
+              </span>
             </Link>
           )}
 
@@ -177,7 +200,12 @@ export default function StampPage() {
                         : "scale-90 border-dashed border-kosei-300 bg-kosei-50 opacity-70"
                     }`}
                   >
-                    {isCollected ? (ticket?.used ? "✅" : "🎫") : ""}
+                    {isCollected &&
+                      (ticket?.used ? (
+                        <CheckIcon className="h-5 w-5 text-white" />
+                      ) : (
+                        <StampIcon className="h-5 w-5 text-white" />
+                      ))}
                   </div>
                   <span className="text-center text-[9px] font-bold leading-tight text-kosei-500">
                     {isCollected ? spot.name : spot.hint}

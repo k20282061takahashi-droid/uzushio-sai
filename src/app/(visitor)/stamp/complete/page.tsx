@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import Confetti from "@/components/Confetti";
+import { CheckCircleIcon, CrownIcon, MapPinIcon } from "@/components/Icon";
 import QrCode from "@/components/organizer/QrCode";
 import {
   getOrCreateRewardTicket,
@@ -39,7 +40,7 @@ export default function StampCompletePage() {
       <Confetti mode="party" />
 
       <div className="animate-fade-in-up mb-6 text-center">
-        <p className="mb-2 text-4xl">🎉</p>
+        <CrownIcon className="mx-auto mb-2 h-14 w-14 text-warn-600" />
         <h1 className="font-heading text-3xl font-black leading-tight text-kosei-800">
           コンプリート
           <br />
@@ -66,8 +67,9 @@ export default function StampCompletePage() {
           href="/map"
           className="pressable block rounded-2xl border-2 border-kosei-800 bg-white p-3 text-center shadow-[0_4px_0_var(--color-kosei-800)]"
         >
-          <p className="font-heading text-sm font-black text-kosei-800">
-            📍 特別企画の場所をマップで見る
+          <p className="flex items-center justify-center gap-2 font-heading text-sm font-black text-kosei-800">
+            <MapPinIcon className="h-5 w-5 text-accent-700" />
+            特別企画の場所をマップで見る
           </p>
         </Link>
       </section>
@@ -89,7 +91,7 @@ export default function StampCompletePage() {
           </p>
         ) : ticket.used ? (
           <div className="py-8">
-            <p className="mb-2 text-5xl">✅</p>
+            <CheckCircleIcon className="mx-auto mb-2 h-16 w-16 text-success-800" />
             <p className="font-heading text-lg font-black text-success-800">
               使用済みです
             </p>

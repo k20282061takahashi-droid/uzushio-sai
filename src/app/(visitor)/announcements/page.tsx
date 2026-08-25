@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Announcement, subscribeVisitorAnnouncements } from "@/lib/booth";
+import { PinIcon } from "@/components/Icon";
 import { truncate } from "@/lib/text";
 
 function formatTime(ms: number | null) {
@@ -55,7 +56,7 @@ export default function AnnouncementsPage() {
           {pinned.length > 0 && (
             <section>
               <p className="mb-2 flex items-center gap-1 text-xs font-bold text-accent-700">
-                <span aria-hidden>📌</span> ピン留めのお知らせ
+                <PinIcon className="inline h-4 w-4" /> ピン留めのお知らせ
               </p>
               <ul className="space-y-3">
                 {pinned.map((a, i) => (

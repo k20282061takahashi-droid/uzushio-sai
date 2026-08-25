@@ -2,6 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import QrScanner from "@/components/QrScanner";
+import {
+  AlertIcon,
+  CheckCircleIcon,
+  QuestionIcon,
+} from "@/components/Icon";
 import { extractTicketCode, redeemRewardTicket } from "@/lib/stamp";
 
 // 特別企画のスタッフが使うページ。QRコードを読み取るだけの画面。
@@ -96,7 +101,7 @@ export default function RewardScanPage() {
             <p className="py-10 text-base font-bold text-kosei-600">確認中...</p>
           ) : result?.kind === "ok" ? (
             <div className="py-6">
-              <p className="mb-3 text-6xl">✅</p>
+              <CheckCircleIcon className="mx-auto mb-3 h-20 w-20 text-success-800" />
               <p className="font-heading text-2xl font-black text-success-800">
                 読み込み完了
               </p>
@@ -106,7 +111,7 @@ export default function RewardScanPage() {
             </div>
           ) : result?.kind === "already" ? (
             <div className="py-6">
-              <p className="mb-3 text-6xl">⚠️</p>
+              <AlertIcon className="mx-auto mb-3 h-20 w-20 text-danger-800" />
               <p className="font-heading text-2xl font-black text-danger-800">
                 スキャン済みです
               </p>
@@ -121,7 +126,7 @@ export default function RewardScanPage() {
             </div>
           ) : result?.kind === "notfound" ? (
             <div className="py-6">
-              <p className="mb-3 text-6xl">❓</p>
+              <QuestionIcon className="mx-auto mb-3 h-20 w-20 text-danger-800" />
               <p className="font-heading text-xl font-black text-danger-800">
                 この券は見つかりません
               </p>
@@ -131,7 +136,7 @@ export default function RewardScanPage() {
             </div>
           ) : (
             <div className="py-6">
-              <p className="mb-3 text-6xl">❓</p>
+              <QuestionIcon className="mx-auto mb-3 h-20 w-20 text-danger-800" />
               <p className="font-heading text-xl font-black text-danger-800">
                 読み取れませんでした
               </p>

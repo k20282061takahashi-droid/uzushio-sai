@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import FloatPanel from "./FloatPanel";
+import { PinIcon } from "../Icon";
 import {
   type Announcement,
   type Booth,
@@ -576,7 +577,9 @@ export default function AnnouncementFloat({
                     <div className="flex items-start gap-2">
                       <div className="min-w-0 flex-1">
                         <p className="font-medium">
-                          {a.pinned && <span className="mr-1">📌</span>}
+                          {a.pinned && (
+                            <PinIcon className="mr-1 inline h-4 w-4 text-amber-400" />
+                          )}
                           {a.title}
                         </p>
                         {a.body && (
