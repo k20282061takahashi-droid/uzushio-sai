@@ -15,12 +15,12 @@ export default function LostItemsPage() {
     <div className="mx-auto max-w-md px-4 pt-8">
       <Link
         href="/"
-        className="animate-fade-in-up mb-4 inline-block text-sm text-slate-400 transition-transform active:scale-95"
+        className="animate-fade-in-up mb-4 inline-block text-sm font-bold text-kosei-700 transition-transform active:scale-95"
       >
         ← ホームへ戻る
       </Link>
       <h1
-        className="animate-fade-in-up mb-4 text-2xl font-bold"
+        className="animate-fade-in-up mb-4 font-heading text-2xl font-black text-kosei-800"
         style={{ animationDelay: "40ms" }}
       >
         落とし物
@@ -28,7 +28,7 @@ export default function LostItemsPage() {
 
       {unclaimed.length === 0 ? (
         <p
-          className="animate-fade-in-up text-sm text-slate-500"
+          className="animate-fade-in-up text-sm text-kosei-600"
           style={{ animationDelay: "80ms" }}
         >
           現在届いている落とし物はありません
@@ -38,7 +38,7 @@ export default function LostItemsPage() {
           {unclaimed.map((item, i) => (
             <div
               key={item.id}
-              className="animate-fade-in-up overflow-hidden rounded-xl border border-white/10 bg-white/5"
+              className="pressable animate-fade-in-up overflow-hidden rounded-2xl border-2 border-kosei-700 bg-white shadow-[0_4px_0_var(--color-kosei-700)]"
               style={{ animationDelay: `${80 + i * 40}ms` }}
             >
               {item.photoUrl ? (
@@ -49,13 +49,15 @@ export default function LostItemsPage() {
                   className="aspect-square w-full object-cover"
                 />
               ) : (
-                <div className="flex aspect-square w-full items-center justify-center bg-slate-900 text-xs text-slate-600">
+                <div className="flex aspect-square w-full items-center justify-center bg-kosei-100 text-xs text-kosei-500">
                   画像なし
                 </div>
               )}
               <div className="p-3">
-                <p className="text-sm font-bold">{item.description || "（内容未登録）"}</p>
-                <p className="mt-1 text-xs text-slate-400">
+                <p className="text-sm font-bold text-kosei-800">
+                  {item.description || "（内容未登録）"}
+                </p>
+                <p className="mt-1 text-xs text-kosei-600">
                   保管場所: {item.storageLocation || "本部にお問い合わせください"}
                 </p>
               </div>

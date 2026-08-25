@@ -61,7 +61,7 @@ function MapContent() {
         className="fixed inset-x-0 top-0"
         style={{ bottom: "calc(69px + max(env(safe-area-inset-bottom), 10px))" }}
       >
-        <PannableZoom className="h-full w-full bg-zinc-900">
+        <PannableZoom className="h-full w-full bg-kosei-800">
           {/* 校内図と企画ピンをひとまとめにする。ピンの位置は図の左上を基準にした
               パーセント指定なので、拡大縮小しても図とピンがズレない。 */}
           <div className="flex h-full w-full items-center justify-center">
@@ -79,7 +79,7 @@ function MapContent() {
               />
 
               {rooms.length === 0 && (
-                <p className="absolute inset-0 flex items-center justify-center bg-black/40 text-sm text-zinc-300">
+                <p className="absolute inset-0 flex items-center justify-center bg-kosei-800/60 text-sm text-kosei-100">
                   このフロアの企画情報は準備中です
                 </p>
               )}
@@ -93,12 +93,12 @@ function MapContent() {
                   style={{ left: `${room.x}%`, top: `${room.y}%` }}
                 >
                   <span
-                    className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-white/70 text-xs font-bold text-white shadow-lg"
+                    className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-white text-xs font-bold text-white shadow-[0_3px_0_rgba(18,73,90,0.55)]"
                     style={{ backgroundColor: waitColor(room.waitMinutes) }}
                   >
                     {room.waitMinutes}分
                   </span>
-                  <span className="mt-1 max-w-[84px] truncate rounded bg-black/70 px-1 text-[9px] text-white">
+                  <span className="mt-1 max-w-[84px] truncate rounded-full bg-kosei-800/85 px-2 py-0.5 text-[9px] font-bold text-white">
                     {room.name}
                   </span>
                 </button>
@@ -108,23 +108,23 @@ function MapContent() {
         </PannableZoom>
 
         {/* 上部オーバーレイ：エリア選択 */}
-        <div className="animate-fade-in-up pointer-events-none absolute inset-x-0 top-0 z-10 bg-gradient-to-b from-black/70 to-transparent p-3 pt-4">
+        <div className="animate-fade-in-up pointer-events-none absolute inset-x-0 top-0 z-10 bg-gradient-to-b from-kosei-800/85 to-transparent p-3 pt-4">
           <div className="pointer-events-auto mx-auto grid max-w-md grid-cols-4 gap-2">
             {areas.map((area) => (
               <button
                 key={area.id}
                 onClick={() => setActiveArea(area.id)}
-                className={`flex h-14 items-center justify-center rounded-full border px-2 text-xs font-bold backdrop-blur-sm transition-transform active:scale-90 ${
+                className={`pressable flex h-14 items-center justify-center rounded-2xl border-2 px-2 text-xs font-bold backdrop-blur-sm ${
                   activeArea === area.id
-                    ? "border-white/40 bg-white/20 text-white"
-                    : "border-white/10 bg-black/30 text-zinc-300"
+                    ? "border-white bg-kosei-500 text-white shadow-[0_3px_0_rgba(255,255,255,0.6)]"
+                    : "border-white/30 bg-kosei-800/50 text-kosei-100 shadow-[0_3px_0_rgba(255,255,255,0.15)]"
                 }`}
               >
                 {area.name}
               </button>
             ))}
           </div>
-          <p className="pointer-events-none mt-2 text-center text-[11px] text-zinc-400">
+          <p className="pointer-events-none mt-2 text-center text-[11px] text-kosei-200">
             ピンチ／Ctrl+ホイールで拡大縮小、ドラッグで移動できます
           </p>
         </div>
@@ -142,11 +142,13 @@ function MapContent() {
       <DetailSheet open={selected != null} onClose={() => setSelected(null)}>
         {selected && (
           <div>
-            <p className="mb-1 text-xs text-zinc-400">
+            <p className="mb-1 text-xs text-kosei-600">
               {selected.category} ・ {selected.room}
             </p>
-            <h2 className="mb-2 text-xl font-bold">{selected.name}</h2>
-            <p className="mb-4 text-sm text-zinc-300">{selected.description}</p>
+            <h2 className="mb-2 font-heading text-xl font-black text-kosei-800">
+              {selected.name}
+            </h2>
+            <p className="mb-4 text-sm text-kosei-700">{selected.description}</p>
             <div className="flex items-center gap-2">
               <span
                 className="rounded-full px-3 py-1 text-sm font-bold text-white"

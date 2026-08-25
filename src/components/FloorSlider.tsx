@@ -60,7 +60,7 @@ export default function FloorSlider({
 
   return (
     <div
-      className={`absolute right-3 z-10 flex flex-col items-center gap-1 rounded-full border border-white/20 bg-black/60 px-2 py-4 ${className ?? ""}`}
+      className={`absolute right-3 z-10 flex flex-col items-center gap-1 rounded-full border-2 border-white/40 bg-kosei-800/70 px-2 py-4 backdrop-blur-sm ${className ?? ""}`}
       style={{ touchAction: "none" }}
     >
       <div
@@ -70,12 +70,12 @@ export default function FloorSlider({
         className="relative flex w-8 cursor-pointer flex-col items-center justify-between py-1"
         style={{ height: `${floors.length * 34}px` }}
       >
-        <div className="absolute top-1 bottom-1 left-1/2 w-px -translate-x-1/2 bg-white/20" />
+        <div className="absolute top-1 bottom-1 left-1/2 w-px -translate-x-1/2 bg-white/25" />
         {floors.map((floor, i) => (
           <div key={floor} className="relative z-10 flex h-0 items-center justify-center">
             <span
               className={`pointer-events-none select-none text-xs font-bold transition-colors ${
-                i === activeIndex ? "text-white" : "text-zinc-500"
+                i === activeIndex ? "text-white" : "text-kosei-300"
               }`}
             >
               {floor === -1 ? "B1" : floor}
@@ -83,7 +83,7 @@ export default function FloorSlider({
           </div>
         ))}
         <div
-          className="pointer-events-none absolute left-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-zinc-800 shadow transition-[top] duration-150 ease-out"
+          className="pointer-events-none absolute left-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-kosei-500 shadow-[0_2px_0_rgba(0,0,0,0.25)] transition-[top] duration-150 ease-out"
           style={{
             top: `${(activeIndex / Math.max(1, floors.length - 1)) * 100}%`,
           }}

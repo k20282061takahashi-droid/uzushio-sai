@@ -37,24 +37,24 @@ export default function AnnouncementsPage() {
     <div className="mx-auto max-w-md px-4 pt-8">
       <Link
         href="/"
-        className="animate-fade-in-up mb-4 inline-block text-sm text-slate-400 transition-transform active:scale-95"
+        className="animate-fade-in-up mb-4 inline-block text-sm font-bold text-kosei-700 transition-transform active:scale-95"
       >
         ← ホームへ戻る
       </Link>
       <h1
-        className="animate-fade-in-up mb-4 text-2xl font-bold"
+        className="animate-fade-in-up mb-4 font-heading text-2xl font-black text-kosei-800"
         style={{ animationDelay: "40ms" }}
       >
         お知らせ一覧
       </h1>
       {announcements.length === 0 ? (
-        <p className="text-sm text-slate-500">現在お知らせはありません</p>
+        <p className="text-sm text-kosei-600">現在お知らせはありません</p>
       ) : (
         <div className="space-y-6">
           {/* ピン留めされたお知らせ（常に一番上） */}
           {pinned.length > 0 && (
             <section>
-              <p className="mb-2 flex items-center gap-1 text-xs font-bold text-amber-300">
+              <p className="mb-2 flex items-center gap-1 text-xs font-bold text-accent-700">
                 <span aria-hidden>📌</span> ピン留めのお知らせ
               </p>
               <ul className="space-y-3">
@@ -76,7 +76,7 @@ export default function AnnouncementsPage() {
           {rest.length > 0 && (
             <section>
               {pinned.length > 0 && (
-                <p className="mb-2 text-xs font-bold text-slate-500">
+                <p className="mb-2 text-xs font-bold text-kosei-600">
                   これまでのお知らせ
                 </p>
               )}
@@ -114,10 +114,10 @@ function AnnouncementItem({
 }) {
   return (
     <li
-      className={`animate-fade-in-up rounded-xl border text-sm ${
+      className={`pressable animate-fade-in-up rounded-2xl border-2 text-sm ${
         highlight
-          ? "border-amber-400/30 bg-amber-400/10"
-          : "border-white/10 bg-white/5"
+          ? "border-accent-700 bg-accent-50 shadow-[0_4px_0_var(--color-accent-700)]"
+          : "border-kosei-700 bg-white shadow-[0_4px_0_var(--color-kosei-700)]"
       }`}
       style={{ animationDelay: `${delay}ms` }}
     >
@@ -125,19 +125,23 @@ function AnnouncementItem({
         onClick={onToggle}
         className="flex w-full items-center gap-2 p-3 text-left"
       >
-        <p className="shrink-0 text-xs text-slate-500">
+        <p className="shrink-0 text-xs text-kosei-600">
           {formatTime(a.createdAt)}
         </p>
-        <p className="flex-1">{isOpen ? a.title : truncate(a.title, 15)}</p>
+        <p className={`flex-1 font-bold ${highlight ? "text-accent-700" : "text-kosei-800"}`}>
+          {isOpen ? a.title : truncate(a.title, 15)}
+        </p>
         <span
-          className={`shrink-0 text-xs text-slate-500 transition-transform ${
+          className={`shrink-0 text-xs transition-transform ${highlight ? "text-accent-700" : "text-kosei-600"} ${
             isOpen ? "rotate-180" : ""
           }`}
         >
           ▾
         </span>
       </button>
-      {isOpen && a.body && <p className="px-3 pb-3 text-slate-300">{a.body}</p>}
+      {isOpen && a.body && (
+        <p className="px-3 pb-3 text-kosei-700">{a.body}</p>
+      )}
     </li>
   );
 }

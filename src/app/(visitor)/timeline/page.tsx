@@ -98,7 +98,7 @@ export default function TimelinePage() {
 
   return (
     <div className="mx-auto max-w-md px-4 pb-8 pt-8">
-      <h1 className="animate-fade-in-up mb-4 text-2xl font-bold">
+      <h1 className="animate-fade-in-up mb-4 font-heading text-2xl font-black text-kosei-800">
         タイムテーブル
       </h1>
 
@@ -107,10 +107,10 @@ export default function TimelinePage() {
           <button
             key={day.date}
             onClick={() => setDayIndex(i)}
-            className={`flex-1 rounded-full border py-2 text-sm font-bold transition-transform active:scale-95 ${
+            className={`pressable flex-1 rounded-full border-2 py-2 text-sm font-bold ${
               i === dayIndex
-                ? "border-white/40 bg-white/10 text-white"
-                : "border-white/10 bg-white/5 text-zinc-400"
+                ? "border-kosei-800 bg-kosei-600 text-white shadow-[0_3px_0_var(--color-kosei-800)]"
+                : "border-kosei-200 bg-white text-kosei-500"
             }`}
           >
             {day.label} {day.date}
@@ -119,7 +119,7 @@ export default function TimelinePage() {
       </div>
 
       {venues.length > 1 && (
-        <div className="mb-2 flex text-center text-[11px] font-bold text-zinc-400">
+        <div className="mb-2 flex text-center text-[11px] font-bold text-kosei-600">
           <div style={{ width: 40 }} />
           {venues.map((v) => (
             <div key={v} className="flex-1">
@@ -129,83 +129,90 @@ export default function TimelinePage() {
         </div>
       )}
 
-      <div className="animate-fade-in-up flex" style={{ animationDelay: "80ms" }}>
-        {/* 時間軸 */}
-        <div className="shrink-0" style={{ width: 40 }}>
-          {hourMarks.map((h) => (
-            <div key={h} style={{ height: 60 * PX_PER_MIN }} className="relative">
-              <span className="absolute -top-2 right-1 text-[11px] text-zinc-500">
-                {formatTime(h)}
-              </span>
-            </div>
-          ))}
-        </div>
+      <div
+        className="animate-fade-in-up rounded-3xl border-2 border-kosei-700 bg-white p-3 shadow-[0_5px_0_var(--color-kosei-700)]"
+        style={{ animationDelay: "80ms" }}
+      >
+        <div className="flex">
+          {/* 時間軸 */}
+          <div className="shrink-0" style={{ width: 40 }}>
+            {hourMarks.map((h) => (
+              <div key={h} style={{ height: 60 * PX_PER_MIN }} className="relative">
+                <span className="absolute -top-2 right-1 text-[11px] text-kosei-500">
+                  {formatTime(h)}
+                </span>
+              </div>
+            ))}
+          </div>
 
-        {/* イベントグリッド */}
-        <div
-          ref={gridRef}
-          className="relative flex-1 rounded-lg border-l border-white/10"
-          style={{ height: totalHeight }}
-        >
-          {hourMarks.map((h) => (
-            <div
-              key={h}
-              className="absolute inset-x-0 border-t border-white/10"
-              style={{ top: (h - axisStart) * PX_PER_MIN }}
-            />
-          ))}
+          {/* イベントグリッド */}
+          <div
+            ref={gridRef}
+            className="relative flex-1 rounded-lg border-l-2 border-kosei-100"
+            style={{ height: totalHeight }}
+          >
+            {hourMarks.map((h) => (
+              <div
+                key={h}
+                className="absolute inset-x-0 border-t border-kosei-100"
+                style={{ top: (h - axisStart) * PX_PER_MIN }}
+              />
+            ))}
 
-          {events.map((ev, i) => {
-            const colIndex = venues.indexOf(ev.venue);
-            const colWidth = 100 / venues.length;
-            return (
-              <button
-                key={ev.title}
-                onClick={() => setSelected(ev)}
-                className="animate-fade-in-up absolute overflow-hidden rounded-lg border border-white/20 bg-white/10 p-2 text-left transition-transform active:scale-[0.97]"
-                style={{
-                  top: (ev.start - axisStart) * PX_PER_MIN + 1,
-                  height: (ev.end - ev.start) * PX_PER_MIN - 2,
-                  left: `${colIndex * colWidth}%`,
-                  width: `${colWidth}%`,
-                  animationDelay: `${80 + i * 40}ms`,
-                }}
+            {events.map((ev, i) => {
+              const colIndex = venues.indexOf(ev.venue);
+              const colWidth = 100 / venues.length;
+              return (
+                <button
+                  key={ev.title}
+                  onClick={() => setSelected(ev)}
+                  className="pressable animate-fade-in-up absolute overflow-hidden rounded-xl border-2 border-kosei-700 bg-kosei-50 p-2 text-left shadow-[0_3px_0_var(--color-kosei-700)]"
+                  style={{
+                    top: (ev.start - axisStart) * PX_PER_MIN + 1,
+                    height: (ev.end - ev.start) * PX_PER_MIN - 2,
+                    left: `${colIndex * colWidth}%`,
+                    width: `${colWidth}%`,
+                    animationDelay: `${80 + i * 40}ms`,
+                  }}
+                >
+                  <p className="text-[10px] text-kosei-600">
+                    {formatTime(ev.start)}〜{formatTime(ev.end)}
+                  </p>
+                  <p className="truncate text-sm font-bold text-kosei-800">{ev.title}</p>
+                  {venues.length === 1 && (
+                    <p className="text-[10px] text-kosei-600">@{ev.venue}</p>
+                  )}
+                </button>
+              );
+            })}
+
+            {/* 現在時刻の線 */}
+            {showNowLine && nowMin !== null && (
+              <div
+                className="pointer-events-none absolute inset-x-0 z-10 flex items-center"
+                style={{ top: (nowMin - axisStart) * PX_PER_MIN }}
               >
-                <p className="text-[10px] text-zinc-400">
-                  {formatTime(ev.start)}〜{formatTime(ev.end)}
-                </p>
-                <p className="truncate text-sm font-bold">{ev.title}</p>
-                {venues.length === 1 && (
-                  <p className="text-[10px] text-zinc-500">@{ev.venue}</p>
-                )}
-              </button>
-            );
-          })}
-
-          {/* 現在時刻の赤い線 */}
-          {showNowLine && nowMin !== null && (
-            <div
-              className="pointer-events-none absolute inset-x-0 z-10 flex items-center"
-              style={{ top: (nowMin - axisStart) * PX_PER_MIN }}
-            >
-              <span className="-ml-1.5 h-3 w-3 shrink-0 rounded-full bg-red-500" />
-              <span className="h-[2px] flex-1 bg-red-500" />
-              <span className="ml-1 shrink-0 rounded bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
-                {formatTime(nowMin)}
-              </span>
-            </div>
-          )}
+                <span className="-ml-1.5 h-3 w-3 shrink-0 rounded-full bg-accent-700" />
+                <span className="h-[2px] flex-1 bg-accent-700" />
+                <span className="ml-1 shrink-0 rounded-full bg-accent-700 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                  {formatTime(nowMin)}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
       <DetailSheet open={selected != null} onClose={() => setSelected(null)}>
         {selected && (
           <div>
-            <p className="mb-1 text-xs text-zinc-400">
+            <p className="mb-1 text-xs text-kosei-600">
               {formatTime(selected.start)}〜{formatTime(selected.end)} ・ {selected.venue}
             </p>
-            <h2 className="mb-2 text-xl font-bold">{selected.title}</h2>
-            <p className="text-sm text-zinc-300">{selected.description}</p>
+            <h2 className="mb-2 font-heading text-xl font-black text-kosei-800">
+              {selected.title}
+            </h2>
+            <p className="text-sm text-kosei-700">{selected.description}</p>
           </div>
         )}
       </DetailSheet>
