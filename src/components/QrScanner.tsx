@@ -76,14 +76,14 @@ export default function QrScanner({
 
   if (error) {
     return (
-      <div className="mt-4 rounded-2xl border border-red-400/40 bg-red-500/10 p-4 text-sm text-red-200">
+      <div className="mt-4 rounded-2xl border-2 border-danger-800 bg-danger-50 p-4 text-sm font-bold text-danger-800">
         {error}
       </div>
     );
   }
 
   return (
-    <div className="relative mt-4 aspect-square w-full overflow-hidden rounded-2xl border border-white/20 bg-black">
+    <div className="relative mt-4 aspect-square w-full overflow-hidden rounded-3xl border-2 border-kosei-700 bg-black shadow-[0_5px_0_var(--color-kosei-700)]">
       <video
         ref={videoRef}
         className="h-full w-full object-cover"

@@ -82,12 +82,12 @@ export default function StampPage() {
 
   return (
     <div className="mx-auto max-w-md px-4 pb-8 pt-8">
-      <h1 className="animate-fade-in-up mb-4 text-2xl font-bold">
+      <h1 className="animate-fade-in-up mb-4 font-heading text-2xl font-black text-kosei-800">
         スタンプラリー
       </h1>
 
       {total === 0 ? (
-        <p className="text-sm text-zinc-400">
+        <p className="text-sm text-kosei-600">
           スタンプラリーはまだ準備中です。
         </p>
       ) : (
@@ -96,23 +96,23 @@ export default function StampPage() {
             className="animate-fade-in-up mb-2 flex items-center justify-between text-sm"
             style={{ animationDelay: "20ms" }}
           >
-            <p className="text-zinc-400">
+            <p className="font-bold text-kosei-600">
               {got} / {total} 個 獲得
             </p>
-            <p className="text-zinc-400">{progress}%</p>
+            <p className="font-bold text-kosei-600">{progress}%</p>
           </div>
           <div
-            className="animate-fade-in-up mb-6 h-2 w-full overflow-hidden rounded-full border border-white/15 bg-white/5"
+            className="animate-fade-in-up mb-6 h-3 w-full overflow-hidden rounded-full border-2 border-kosei-700 bg-kosei-100"
             style={{ animationDelay: "40ms" }}
           >
             <div
-              className="h-full rounded-full bg-white transition-[width] duration-500"
+              className="h-full bg-gradient-to-r from-kosei-400 to-accent-400 transition-[width] duration-500"
               style={{ width: `${progress}%` }}
             />
           </div>
 
           {got === total && (
-            <p className="animate-fade-in-up mb-6 rounded-xl border border-amber-300/40 bg-amber-300/10 p-3 text-center text-sm font-bold text-amber-200">
+            <p className="animate-fade-in-up mb-6 rounded-2xl border-2 border-warn-800 bg-warn-50 p-3 text-center font-heading text-sm font-black text-warn-800 shadow-[0_4px_0_var(--color-warn-800)]">
               コンプリート！おめでとうございます 🎉
             </p>
           )}
@@ -126,15 +126,15 @@ export default function StampPage() {
               return (
                 <div key={spot.id} className="flex flex-col items-center gap-1">
                   <div
-                    className={`flex aspect-square w-full items-center justify-center rounded-full border text-lg transition-transform duration-300 ${
+                    className={`flex aspect-square w-full items-center justify-center rounded-full border-2 text-lg transition-transform duration-300 ${
                       isCollected
-                        ? "scale-100 border-white/50 bg-white/15"
-                        : "scale-90 border-white/10 bg-white/5 opacity-50"
+                        ? "scale-100 border-kosei-800 bg-kosei-500 shadow-[0_3px_0_var(--color-kosei-800)]"
+                        : "scale-90 border-dashed border-kosei-300 bg-kosei-50 opacity-70"
                     }`}
                   >
                     {isCollected ? "🎫" : ""}
                   </div>
-                  <span className="text-center text-[9px] leading-tight text-zinc-500">
+                  <span className="text-center text-[9px] font-bold leading-tight text-kosei-500">
                     {isCollected ? spot.name : spot.hint}
                   </span>
                 </div>
@@ -146,7 +146,7 @@ export default function StampPage() {
 
       <button
         onClick={() => setScanning((s) => !s)}
-        className="animate-fade-in-up w-full rounded-2xl border border-white/30 bg-white/5 py-4 text-center text-lg font-bold text-white transition-all active:scale-95"
+        className="pressable animate-fade-in-up w-full rounded-full border-2 border-kosei-800 bg-kosei-600 py-4 text-center font-heading text-lg font-black text-white shadow-[0_4px_0_var(--color-kosei-800)]"
         style={{ animationDelay: "120ms" }}
       >
         {scanning ? "スキャンを停止" : "QRコードをスキャン"}
@@ -155,7 +155,7 @@ export default function StampPage() {
       {scanning && <QrScanner onDetected={onDetected} />}
 
       {message && (
-        <div className="fixed inset-x-4 bottom-24 z-50 mx-auto max-w-md rounded-xl bg-white p-4 text-center text-base font-bold text-slate-900 shadow-xl">
+        <div className="fixed inset-x-4 bottom-24 z-50 mx-auto max-w-md rounded-3xl border-2 border-kosei-700 bg-white p-4 text-center font-heading text-base font-black text-kosei-800 shadow-[0_5px_0_var(--color-kosei-700)]">
           {message}
         </div>
       )}
