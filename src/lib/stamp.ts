@@ -5,14 +5,20 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
+  getDocs,
+  limit,
   onSnapshot,
   orderBy,
   query,
   serverTimestamp,
+  setDoc,
   updateDoc,
+  where,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { generateAccessToken } from "./booth";
+import { getDeviceId } from "./visits";
 
 // スタンプラリーの1つ分（設置場所）。
 // code は QR に埋め込む合言葉。URLの ?code= に入る。
@@ -116,4 +122,128 @@ export function extractCode(text: string): string | null {
     // URLでなければ、そのものを合言葉として扱う
   }
   return /^[A-Za-z0-9]{6,32}$/.test(trimmed) ? trimmed : null;
+}
+
+// ─────────────────────────────────────────────────────────────
+// 特別企画の挑戦券（コンプリート報酬）
+//
+// スタンプを全部集めると、その端末だけの挑戦券が1枚できる。
+// 券にはQRコードが付いていて、特別企画のスタッフが読み取ると「使用済み」になる。
+// 一度使った券は二度と使えない。
+// ─────────────────────────────────────────────────────────────
+
+export type RewardTicket = {
+  // 券のID（QRコードに入る文字列）
+  code: string;
+  deviceId: string;
+  used: boolean;
+  usedAt: number | null;
+};
+
+const TICKET_KEY = "uzushiosai_reward_ticket";
+
+function toTicket(code: string, data: Record<string, unknown>): RewardTicket {
+  const usedAt = data.usedAt as { toMillis?: () => number } | undefined;
+  return {
+    code,
+    deviceId: typeof data.deviceId === "string" ? data.deviceId : "",
+    used: data.used === true,
+    usedAt: usedAt?.toMillis?.() ?? null,
+  };
+}
+
+// この端末の挑戦券を取り出す。無ければ1枚だけ作る。
+// 端末（＝利用者）ごとに1枚しか作られないようにしている。
+export async function getOrCreateRewardTicket(): Promise<RewardTicket | null> {
+  const deviceId = getDeviceId();
+  if (!deviceId) return null;
+
+  // 1) ブラウザに控えてある券番号から探す
+  let code: string | null = null;
+  try {
+    code = window.localStorage.getItem(TICKET_KEY);
+  } catch {
+    code = null;
+  }
+  if (code) {
+    const snap = await getDoc(doc(db, "rewardTickets", code));
+    if (snap.exists()) return toTicket(snap.id, snap.data());
+  }
+
+  // 2) 控えが消えていても、同じ端末の券がすでにあればそれを使う
+  const existing = await getDocs(
+    query(
+      collection(db, "rewardTickets"),
+      where("deviceId", "==", deviceId),
+      limit(1),
+    ),
+  );
+  if (!existing.empty) {
+    const found = existing.docs[0];
+    try {
+      window.localStorage.setItem(TICKET_KEY, found.id);
+    } catch {}
+    return toTicket(found.id, found.data());
+  }
+
+  // 3) どこにも無ければ新しく1枚作る
+  const newCode = generateAccessToken(16);
+  await setDoc(doc(db, "rewardTickets", newCode), {
+    deviceId,
+    used: false,
+    usedAt: null,
+    createdAt: serverTimestamp(),
+  });
+  try {
+    window.localStorage.setItem(TICKET_KEY, newCode);
+  } catch {}
+  return { code: newCode, deviceId, used: false, usedAt: null };
+}
+
+// 券の使用状況をリアルタイムで見張る（スタッフが読み取った瞬間に画面へ反映される）
+export function subscribeRewardTicket(
+  code: string,
+  callback: (ticket: RewardTicket | null) => void,
+): () => void {
+  return onSnapshot(doc(db, "rewardTickets", code), (snap) => {
+    callback(snap.exists() ? toTicket(snap.id, snap.data()) : null);
+  });
+}
+
+export type RedeemResult =
+  | { status: "ok" }
+  | { status: "already" ; usedAt: number | null }
+  | { status: "notfound" };
+
+// 特別企画のスタッフが券を読み取ったときの処理。
+// すでに使われていれば「スキャン済み」を返す。
+export async function redeemRewardTicket(code: string): Promise<RedeemResult> {
+  const ref = doc(db, "rewardTickets", code);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return { status: "notfound" };
+
+  const ticket = toTicket(snap.id, snap.data());
+  if (ticket.used) return { status: "already", usedAt: ticket.usedAt };
+
+  await updateDoc(ref, { used: true, usedAt: serverTimestamp() });
+  return { status: "ok" };
+}
+
+// QRに入れるURL。スタッフ用ページで読み取る。
+export function rewardUrl(origin: string, code: string): string {
+  return `${origin}/reward?ticket=${code}`;
+}
+
+// QRの中身から券番号を取り出す
+export function extractTicketCode(text: string): string | null {
+  if (!text) return null;
+  const trimmed = text.trim();
+  try {
+    const url = new URL(trimmed);
+    const code = url.searchParams.get("ticket");
+    if (code) return code;
+  } catch {
+    // URLでなければそのものを券番号として扱う
+  }
+  return /^[A-Za-z0-9]{10,40}$/.test(trimmed) ? trimmed : null;
 }

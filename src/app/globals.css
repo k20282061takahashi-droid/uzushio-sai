@@ -171,3 +171,58 @@ body {
     animation: none;
   }
 }
+
+/* ---- スタンプ獲得の演出（StampGetEffect）用 ---- */
+
+/* 大きく振りかぶってから、実際に「押す」ように叩きつける */
+@keyframes stamp-press {
+  0% {
+    opacity: 0;
+    transform: scale(2.6) rotate(-18deg);
+  }
+  45% {
+    opacity: 1;
+    transform: scale(1.02) rotate(-6deg);
+  }
+  /* 押した瞬間のバウンド */
+  60% {
+    transform: scale(1.14) rotate(-6deg);
+  }
+  75% {
+    transform: scale(0.97) rotate(-6deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(-6deg);
+  }
+}
+
+.animate-stamp-press {
+  animation: stamp-press 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+/* 押した衝撃の輪 */
+@keyframes stamp-shock {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  40% {
+    opacity: 0.55;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.2);
+  }
+}
+
+.animate-stamp-shock {
+  animation: stamp-shock 0.7s ease-out 0.32s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-stamp-press,
+  .animate-stamp-shock {
+    animation: none;
+  }
+}

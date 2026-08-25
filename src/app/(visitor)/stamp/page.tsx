@@ -1,12 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 import QrScanner from "@/components/QrScanner";
+import StampGetEffect from "@/components/StampGetEffect";
 import {
   addCollectedId,
   extractCode,
   getCollectedIds,
+  getOrCreateRewardTicket,
+  subscribeRewardTicket,
   subscribeStampSpots,
+  type RewardTicket,
   type StampSpot,
 } from "@/lib/stamp";
 
@@ -14,8 +20,16 @@ export default function StampPage() {
   const [spots, setSpots] = useState<StampSpot[]>([]);
   const [collected, setCollected] = useState<string[]>([]);
   const [scanning, setScanning] = useState(false);
-  // 画面に出す一言（「スタンプGET！」など）
+  // 画面に出す一言（エラーや「すでに獲得済み」など）
   const [message, setMessage] = useState<string | null>(null);
+  // スタンプを取った瞬間の演出に出す場所の名前
+  const [getEffect, setGetEffect] = useState<string | null>(null);
+  const [ticket, setTicket] = useState<RewardTicket | null>(null);
+  const router = useRouter();
+  // コンプリート画面へ飛ばすのは1回だけ
+  const jumped = useRef(false);
+  // 「この画面でスタンプを取った」ことの記録（開き直しただけでは飛ばさない）
+  const justCompleted = useRef(false);
 
   useEffect(() => subscribeStampSpots(setSpots), []);
   useEffect(() => {
@@ -37,8 +51,9 @@ export default function StampPage() {
         return true;
       }
       setCollected(addCollectedId(spot.id));
-      setMessage(`スタンプGET！「${spot.name}」`);
-      navigator.vibrate?.(200);
+      justCompleted.current = true;
+      setGetEffect(spot.name);
+      navigator.vibrate?.([60, 40, 120]);
       return true;
     },
     [spots],
@@ -79,6 +94,31 @@ export default function StampPage() {
   const total = spots.length;
   const got = spots.filter((s) => collected.includes(s.id)).length;
   const progress = total === 0 ? 0 : Math.round((got / total) * 100);
+  const complete = total > 0 && got === total;
+
+  // 全部そろったら挑戦券を用意して、その状態を見張る
+  useEffect(() => {
+    if (!complete) return;
+    let unsubscribe: (() => void) | null = null;
+    const timer = setTimeout(async () => {
+      const t = await getOrCreateRewardTicket();
+      setTicket(t);
+      if (t) unsubscribe = subscribeRewardTicket(t.code, setTicket);
+    }, 0);
+    return () => {
+      clearTimeout(timer);
+      unsubscribe?.();
+    };
+  }, [complete]);
+
+  // 最後の1個を取った直後は、演出が終わったらお祝いの画面へ移動する
+  useEffect(() => {
+    if (!complete || getEffect !== null || jumped.current) return;
+    if (!justCompleted.current) return;
+    jumped.current = true;
+    const timer = setTimeout(() => router.push("/stamp/complete"), 200);
+    return () => clearTimeout(timer);
+  }, [complete, getEffect, router]);
 
   return (
     <div className="mx-auto max-w-md px-4 pb-8 pt-8">
@@ -111,10 +151,15 @@ export default function StampPage() {
             />
           </div>
 
-          {got === total && (
-            <p className="animate-fade-in-up mb-6 rounded-2xl border-2 border-warn-800 bg-warn-50 p-3 text-center font-heading text-sm font-black text-warn-800 shadow-[0_4px_0_var(--color-warn-800)]">
-              コンプリート！おめでとうございます 🎉
-            </p>
+          {complete && (
+            <Link
+              href="/stamp/complete"
+              className="pressable animate-fade-in-up mb-6 block rounded-2xl border-2 border-warn-800 bg-warn-50 p-3 text-center font-heading text-sm font-black text-warn-800 shadow-[0_4px_0_var(--color-warn-800)]"
+            >
+              {ticket?.used
+                ? "✅ 特別企画に参加しました"
+                : "🎉 コンプリート！特別企画の挑戦券を見る"}
+            </Link>
           )}
 
           <div
@@ -132,7 +177,7 @@ export default function StampPage() {
                         : "scale-90 border-dashed border-kosei-300 bg-kosei-50 opacity-70"
                     }`}
                   >
-                    {isCollected ? "🎫" : ""}
+                    {isCollected ? (ticket?.used ? "✅" : "🎫") : ""}
                   </div>
                   <span className="text-center text-[9px] font-bold leading-tight text-kosei-500">
                     {isCollected ? spot.name : spot.hint}
@@ -153,6 +198,13 @@ export default function StampPage() {
       </button>
 
       {scanning && <QrScanner onDetected={onDetected} />}
+
+      {getEffect !== null && (
+        <StampGetEffect
+          spotName={getEffect}
+          onDone={() => setGetEffect(null)}
+        />
+      )}
 
       {message && (
         <div className="fixed inset-x-4 bottom-24 z-50 mx-auto max-w-md rounded-3xl border-2 border-kosei-700 bg-white p-4 text-center font-heading text-base font-black text-kosei-800 shadow-[0_5px_0_var(--color-kosei-700)]">
