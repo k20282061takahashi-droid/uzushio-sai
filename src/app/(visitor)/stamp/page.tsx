@@ -185,31 +185,42 @@ export default function StampPage() {
             </Link>
           )}
 
+          {/* スタンプカード。未獲得のマスには場所のヒントを丸の中に出す */}
           <div
-            className="animate-fade-in-up mb-6 grid grid-cols-5 gap-3"
+            className="animate-fade-in-up mb-6 grid grid-cols-3 gap-4"
             style={{ animationDelay: "80ms" }}
           >
             {spots.map((spot) => {
               const isCollected = collected.includes(spot.id);
               return (
-                <div key={spot.id} className="flex flex-col items-center gap-1">
+                <div
+                  key={spot.id}
+                  className="flex flex-col items-center gap-1.5"
+                >
                   <div
-                    className={`flex aspect-square w-full items-center justify-center rounded-full border-2 text-lg transition-transform duration-300 ${
+                    className={`flex aspect-square w-full items-center justify-center rounded-full border-2 p-2 transition-transform duration-300 ${
                       isCollected
-                        ? "scale-100 border-kosei-800 bg-kosei-500 shadow-[0_3px_0_var(--color-kosei-800)]"
-                        : "scale-90 border-dashed border-kosei-300 bg-kosei-50 opacity-70"
+                        ? "scale-100 border-kosei-800 bg-kosei-500 shadow-[0_4px_0_var(--color-kosei-800)]"
+                        : "scale-95 border-dashed border-kosei-300 bg-kosei-50"
                     }`}
                   >
-                    {isCollected &&
-                      (ticket?.used ? (
-                        <CheckIcon className="h-5 w-5 text-white" />
+                    {isCollected ? (
+                      ticket?.used ? (
+                        <CheckIcon className="h-12 w-12 text-white" />
                       ) : (
-                        <StampIcon className="h-5 w-5 text-white" />
-                      ))}
+                        <StampIcon className="h-12 w-12 text-white" />
+                      )
+                    ) : (
+                      <span className="px-1 text-center text-[11px] font-bold leading-tight text-kosei-400">
+                        {spot.hint}
+                      </span>
+                    )}
                   </div>
-                  <span className="text-center text-[9px] font-bold leading-tight text-kosei-500">
-                    {isCollected ? spot.name : spot.hint}
-                  </span>
+                  {isCollected && (
+                    <span className="text-center text-[11px] font-bold leading-tight text-kosei-700">
+                      {spot.name}
+                    </span>
+                  )}
                 </div>
               );
             })}
