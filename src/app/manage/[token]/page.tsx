@@ -95,7 +95,7 @@ function Modal({
       onClick={onClose}
     >
       <div
-        className="max-h-[85vh] w-full max-w-sm overflow-y-auto rounded-xl bg-slate-900 p-4 shadow-xl sm:max-w-md"
+        className="max-h-[85vh] w-full max-w-sm overflow-y-auto rounded-xl bg-slate-900 p-4 shadow-xl sm:max-w-md sm:p-5 lg:max-w-lg"
         onClick={(e) => e.stopPropagation()}
       >
         {children}
@@ -131,7 +131,9 @@ export default function BoothManagePage() {
   const [lostItemFoundLocation, setLostItemFoundLocation] = useState("");
   const [lostItemStorageLocation, setLostItemStorageLocation] = useState("");
   const [lostItemPhoto, setLostItemPhoto] = useState<File | null>(null);
-  const [lostItemPhotoPreview, setLostItemPhotoPreview] = useState<string | null>(null);
+  const [lostItemPhotoPreview, setLostItemPhotoPreview] = useState<
+    string | null
+  >(null);
   const [lostItemSaving, setLostItemSaving] = useState(false);
   const [lostItemSaved, setLostItemSaved] = useState(false);
 
@@ -259,7 +261,7 @@ export default function BoothManagePage() {
 
   if (booth === undefined) {
     return (
-      <div className="mx-auto max-w-md px-4 pt-8 text-white">
+      <div className="mx-auto w-full max-w-md px-4 pt-8 text-white sm:max-w-2xl sm:px-6">
         <p className="text-sm text-slate-400">読み込み中...</p>
       </div>
     );
@@ -267,7 +269,7 @@ export default function BoothManagePage() {
 
   if (booth === null) {
     return (
-      <div className="mx-auto max-w-md px-4 pt-8 text-white">
+      <div className="mx-auto w-full max-w-md px-4 pt-8 text-white sm:max-w-2xl sm:px-6">
         <p className="text-sm text-red-400">
           このURLは無効です。企画担当のQRコード／URLを再度ご確認ください。
         </p>
@@ -276,7 +278,7 @@ export default function BoothManagePage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-md px-4 pb-16 pt-8 text-white sm:max-w-xl lg:max-w-3xl">
+    <div className="mx-auto w-full max-w-md px-4 pb-16 pt-8 text-white sm:max-w-2xl sm:px-6 lg:max-w-5xl lg:px-8">
       <div className="mb-4">
         <h1 className="text-sm font-bold text-slate-300">渦潮祭</h1>
         <p className="text-xs text-slate-500">企画管理者用</p>
@@ -285,206 +287,226 @@ export default function BoothManagePage() {
         </p>
       </div>
 
-      <section className="mb-4 rounded-xl border border-white/10 bg-white/5 p-4">
-        <h2 className="mb-2 text-sm font-semibold text-slate-300">運営からの連絡</h2>
-        <AnnouncementBoard
-          announcements={announcements}
-          onOpenList={() => setAnnouncementListOpen(true)}
-        />
-      </section>
-
-      {view === "before" ? (
-        <section className="mb-4 rounded-xl border border-amber-400/30 bg-amber-400/10 p-4 sm:grid sm:grid-cols-2 sm:gap-x-6">
-          <h2 className="mb-3 text-sm font-semibold text-amber-200 sm:col-span-2">
-            企画情報の設定
+      {/* パソコン・iPadでは左に操作パネル、右に運営からの連絡を並べる。
+          スマホでは今までどおり縦に並ぶ。 */}
+      <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-6">
+        <section className="mb-4 rounded-xl border border-white/10 bg-white/5 p-4 lg:col-start-2 lg:row-start-1 lg:mb-0">
+          <h2 className="mb-2 text-sm font-semibold text-slate-300">
+            運営からの連絡
           </h2>
+          <AnnouncementBoard
+            announcements={announcements}
+            onOpenList={() => setAnnouncementListOpen(true)}
+          />
+        </section>
 
-          <label className="mb-3 block">
-            <span className="mb-1 block text-xs text-slate-400">企画名</span>
-            <input
-              type="text"
-              value={projectName}
-              onChange={(e) => setProjectName(e.target.value)}
-              placeholder="例）壊れるローラーコースター"
-              className="w-full rounded-lg border border-white/10 bg-slate-900 p-2 text-sm"
-            />
-          </label>
+        <div className="lg:col-start-1 lg:row-start-1">
+          {view === "before" ? (
+            <section className="mb-4 rounded-xl border border-amber-400/30 bg-amber-400/10 p-4 sm:grid sm:grid-cols-2 sm:gap-x-6">
+              <h2 className="mb-3 text-sm font-semibold text-amber-200 sm:col-span-2">
+                企画情報の設定
+              </h2>
 
-          {booth.hasWaiting && (
-            <label className="mb-3 block">
-              <span className="mb-1 block text-xs text-slate-400">
-                1グループあたりの対応時間（分）
-              </span>
-              <input
-                type="number"
-                min={0}
-                value={timePerGroup}
-                onChange={(e) =>
-                  setTimePerGroup(e.target.value === "" ? "" : Number(e.target.value))
-                }
-                className="w-full rounded-lg border border-white/10 bg-slate-900 p-2 text-sm"
-              />
-            </label>
-          )}
-
-          <div className="mb-3">
-            <span className="mb-1 block text-xs text-slate-400">看板画像</span>
-            <div className="mb-1 flex items-center gap-2">
-              {booth.signboardUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={booth.signboardUrl}
-                  alt="看板画像"
-                  className="h-16 w-16 rounded-lg object-cover"
+              <label className="mb-3 block">
+                <span className="mb-1 block text-xs text-slate-400">
+                  企画名
+                </span>
+                <input
+                  type="text"
+                  value={projectName}
+                  onChange={(e) => setProjectName(e.target.value)}
+                  placeholder="例）壊れるローラーコースター"
+                  className="w-full rounded-lg border border-white/10 bg-slate-900 p-2 text-sm"
                 />
-              ) : (
-                <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-slate-900 text-[10px] text-slate-500">
-                  未設定
+              </label>
+
+              {booth.hasWaiting && (
+                <label className="mb-3 block">
+                  <span className="mb-1 block text-xs text-slate-400">
+                    1グループあたりの対応時間（分）
+                  </span>
+                  <input
+                    type="number"
+                    min={0}
+                    value={timePerGroup}
+                    onChange={(e) =>
+                      setTimePerGroup(
+                        e.target.value === "" ? "" : Number(e.target.value),
+                      )
+                    }
+                    className="w-full rounded-lg border border-white/10 bg-slate-900 p-2 text-sm"
+                  />
+                </label>
+              )}
+
+              <div className="mb-3">
+                <span className="mb-1 block text-xs text-slate-400">
+                  看板画像
+                </span>
+                <div className="mb-1 flex items-center gap-2">
+                  {booth.signboardUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={booth.signboardUrl}
+                      alt="看板画像"
+                      className="h-16 w-16 rounded-lg object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-slate-900 text-[10px] text-slate-500">
+                      未設定
+                    </div>
+                  )}
+                  <div className="flex flex-col gap-2">
+                    <label className="cursor-pointer rounded-lg bg-white px-4 py-2.5 text-center text-sm font-semibold text-slate-950 active:scale-95">
+                      {uploadingSignboard ? "アップロード中..." : "写真を撮る"}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        onChange={handleSignboardChange}
+                        className="hidden"
+                        disabled={uploadingSignboard}
+                      />
+                    </label>
+                    <label className="cursor-pointer rounded-lg bg-white/10 px-4 py-2.5 text-center text-sm active:scale-95">
+                      画像を選ぶ
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleSignboardChange}
+                        className="hidden"
+                        disabled={uploadingSignboard}
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <label className="mb-3 block">
+                <span className="mb-1 block text-xs text-slate-400">
+                  カテゴリー
+                </span>
+                <select
+                  value={genre}
+                  onChange={(e) => setGenre(e.target.value as BoothGenre)}
+                  className="w-full rounded-lg border border-white/10 bg-slate-900 p-2 text-sm"
+                >
+                  <option value="">選択してください</option>
+                  {GENRE_OPTIONS.map((g) => (
+                    <option key={g} value={g}>
+                      {GENRE_LABELS[g]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="mb-3 block sm:col-span-2">
+                <span className="mb-1 block text-xs text-slate-400">詳細</span>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={3}
+                  placeholder="来場者向けの企画説明を入力してください"
+                  className="w-full rounded-lg border border-white/10 bg-slate-900 p-2 text-sm"
+                />
+              </label>
+
+              <button
+                onClick={saveSetup}
+                disabled={savingSetup}
+                className="w-full rounded-lg bg-white/10 p-2 text-sm font-semibold active:scale-95 disabled:opacity-50 sm:col-span-2"
+              >
+                {savingSetup ? "保存中..." : "保存する"}
+              </button>
+            </section>
+          ) : (
+            <section className="mb-4 rounded-xl border border-white/10 bg-white/5 p-4">
+              <div className="mb-4 rounded-lg bg-white/5 p-2 text-center">
+                <p className="text-xs text-slate-400">来場者表示</p>
+                <p className="font-semibold">{visitorStatusLabel(booth)}</p>
+              </div>
+
+              {booth.hasWaiting && (
+                <div className="mb-4 flex items-center justify-between gap-3 sm:justify-center sm:gap-10">
+                  <button
+                    onClick={() => adjustWaiting(-1)}
+                    disabled={savingWait || booth.status !== "open"}
+                    className="h-24 w-24 shrink-0 rounded-2xl bg-white/10 text-4xl font-bold active:scale-95 disabled:opacity-40 sm:h-32 sm:w-32 sm:text-5xl"
+                  >
+                    −
+                  </button>
+                  <div className="flex-1 text-center sm:flex-none">
+                    <p className="text-xs text-slate-500">
+                      待っているグループ数
+                    </p>
+                    <p className="text-8xl font-bold tabular-nums sm:text-9xl">
+                      {waitingGroups}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => adjustWaiting(1)}
+                    disabled={savingWait || booth.status !== "open"}
+                    className="h-24 w-24 shrink-0 rounded-2xl bg-white/10 text-4xl font-bold active:scale-95 disabled:opacity-40 sm:h-32 sm:w-32 sm:text-5xl"
+                  >
+                    ＋
+                  </button>
                 </div>
               )}
-              <div className="flex flex-col gap-2">
-                <label className="cursor-pointer rounded-lg bg-white px-4 py-2.5 text-center text-sm font-semibold text-slate-950 active:scale-95">
-                  {uploadingSignboard ? "アップロード中..." : "写真を撮る"}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    onChange={handleSignboardChange}
-                    className="hidden"
-                    disabled={uploadingSignboard}
-                  />
-                </label>
-                <label className="cursor-pointer rounded-lg bg-white/10 px-4 py-2.5 text-center text-sm active:scale-95">
-                  画像を選ぶ
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleSignboardChange}
-                    className="hidden"
-                    disabled={uploadingSignboard}
-                  />
-                </label>
+
+              <div className="mb-3 flex flex-col gap-2 sm:grid sm:grid-cols-3">
+                <button
+                  onClick={() => setConfirmClose(true)}
+                  disabled={changingStatus || booth.status === "closed"}
+                  className="flex-1 rounded-lg bg-red-500/20 p-3 text-sm font-semibold text-red-200 active:scale-95 disabled:opacity-40 sm:p-4 sm:text-base"
+                >
+                  終了
+                </button>
+                {booth.status === "break" || booth.status === "closed" ? (
+                  <button
+                    onClick={() => changeStatus("open")}
+                    disabled={changingStatus}
+                    className="flex-1 rounded-lg bg-emerald-500/20 p-3 text-sm font-semibold text-emerald-200 active:scale-95 sm:p-4 sm:text-base"
+                  >
+                    再開
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => changeStatus("break")}
+                    disabled={changingStatus || booth.status !== "open"}
+                    className="flex-1 rounded-lg bg-white/10 p-3 text-sm font-semibold active:scale-95 disabled:opacity-40 sm:p-4 sm:text-base"
+                  >
+                    一時休憩
+                  </button>
+                )}
+                <button
+                  onClick={openLostItemModal}
+                  className="flex-1 rounded-lg bg-amber-500/20 p-3 text-sm font-semibold text-amber-200 active:scale-95 sm:p-4 sm:text-base"
+                >
+                  落とし物登録
+                </button>
               </div>
-            </div>
-          </div>
+              {lostItemSaved && (
+                <p className="mb-2 text-xs text-emerald-400">登録しました</p>
+              )}
 
-          <label className="mb-3 block">
-            <span className="mb-1 block text-xs text-slate-400">カテゴリー</span>
-            <select
-              value={genre}
-              onChange={(e) => setGenre(e.target.value as BoothGenre)}
-              className="w-full rounded-lg border border-white/10 bg-slate-900 p-2 text-sm"
-            >
-              <option value="">選択してください</option>
-              {GENRE_OPTIONS.map((g) => (
-                <option key={g} value={g}>
-                  {GENRE_LABELS[g]}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="mb-3 block sm:col-span-2">
-            <span className="mb-1 block text-xs text-slate-400">詳細</span>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-              placeholder="来場者向けの企画説明を入力してください"
-              className="w-full rounded-lg border border-white/10 bg-slate-900 p-2 text-sm"
-            />
-          </label>
-
-          <button
-            onClick={saveSetup}
-            disabled={savingSetup}
-            className="w-full rounded-lg bg-white/10 p-2 text-sm font-semibold active:scale-95 disabled:opacity-50 sm:col-span-2"
-          >
-            {savingSetup ? "保存中..." : "保存する"}
-          </button>
-        </section>
-      ) : (
-        <section className="mb-4 rounded-xl border border-white/10 bg-white/5 p-4">
-          <div className="mb-4 rounded-lg bg-white/5 p-2 text-center">
-            <p className="text-xs text-slate-400">来場者表示</p>
-            <p className="font-semibold">{visitorStatusLabel(booth)}</p>
-          </div>
-
-          {booth.hasWaiting && (
-            <div className="mb-4 flex items-center justify-between gap-3 sm:justify-center sm:gap-10">
               <button
-                onClick={() => adjustWaiting(-1)}
-                disabled={savingWait || booth.status !== "open"}
-                className="h-24 w-24 shrink-0 rounded-2xl bg-white/10 text-4xl font-bold active:scale-95 disabled:opacity-40 sm:h-32 sm:w-32 sm:text-5xl"
+                onClick={() => {
+                  setEmergencyOpen(true);
+                  setEmergencySent(false);
+                }}
+                className="w-full rounded-lg bg-red-500 p-3 text-sm font-bold text-white active:scale-95 sm:p-4 sm:text-base"
               >
-                −
+                緊急連絡
               </button>
-              <div className="flex-1 text-center sm:flex-none">
-                <p className="text-xs text-slate-500">待っているグループ数</p>
-                <p className="text-8xl font-bold tabular-nums sm:text-9xl">
-                  {waitingGroups}
+              {emergencySent && (
+                <p className="mt-2 text-xs text-emerald-400">
+                  運営へ通知を送信しました
                 </p>
-              </div>
-              <button
-                onClick={() => adjustWaiting(1)}
-                disabled={savingWait || booth.status !== "open"}
-                className="h-24 w-24 shrink-0 rounded-2xl bg-white/10 text-4xl font-bold active:scale-95 disabled:opacity-40 sm:h-32 sm:w-32 sm:text-5xl"
-              >
-                ＋
-              </button>
-            </div>
+              )}
+            </section>
           )}
-
-          <div className="mb-3 flex flex-col gap-2 sm:grid sm:grid-cols-3">
-            <button
-              onClick={() => setConfirmClose(true)}
-              disabled={changingStatus || booth.status === "closed"}
-              className="flex-1 rounded-lg bg-red-500/20 p-3 text-sm font-semibold text-red-200 active:scale-95 disabled:opacity-40"
-            >
-              終了
-            </button>
-            {booth.status === "break" || booth.status === "closed" ? (
-              <button
-                onClick={() => changeStatus("open")}
-                disabled={changingStatus}
-                className="flex-1 rounded-lg bg-emerald-500/20 p-3 text-sm font-semibold text-emerald-200 active:scale-95"
-              >
-                再開
-              </button>
-            ) : (
-              <button
-                onClick={() => changeStatus("break")}
-                disabled={changingStatus || booth.status !== "open"}
-                className="flex-1 rounded-lg bg-white/10 p-3 text-sm font-semibold active:scale-95 disabled:opacity-40"
-              >
-                一時休憩
-              </button>
-            )}
-            <button
-              onClick={openLostItemModal}
-              className="flex-1 rounded-lg bg-amber-500/20 p-3 text-sm font-semibold text-amber-200 active:scale-95"
-            >
-              落とし物登録
-            </button>
-          </div>
-          {lostItemSaved && (
-            <p className="mb-2 text-xs text-emerald-400">登録しました</p>
-          )}
-
-          <button
-            onClick={() => {
-              setEmergencyOpen(true);
-              setEmergencySent(false);
-            }}
-            className="w-full rounded-lg bg-red-500 p-3 text-sm font-bold text-white active:scale-95"
-          >
-            緊急連絡
-          </button>
-          {emergencySent && (
-            <p className="mt-2 text-xs text-emerald-400">運営へ通知を送信しました</p>
-          )}
-        </section>
-      )}
+        </div>
+      </div>
 
       {confirmClose && (
         <Modal onClose={() => setConfirmClose(false)}>
@@ -517,12 +539,19 @@ export default function BoothManagePage() {
           ) : (
             <ul className="space-y-3">
               {announcements.map((a) => (
-                <li key={a.id} className="border-b border-white/10 pb-2 last:border-0">
+                <li
+                  key={a.id}
+                  className="border-b border-white/10 pb-2 last:border-0"
+                >
                   <p className="flex items-start gap-1 text-sm font-medium">
-                    {a.pinned && <span className="shrink-0 text-amber-400">📌</span>}
+                    {a.pinned && (
+                      <span className="shrink-0 text-amber-400">📌</span>
+                    )}
                     <span>{a.title}</span>
                   </p>
-                  {a.body && <p className="mt-1 text-xs text-slate-400">{a.body}</p>}
+                  {a.body && (
+                    <p className="mt-1 text-xs text-slate-400">{a.body}</p>
+                  )}
                 </li>
               ))}
             </ul>
@@ -586,7 +615,9 @@ export default function BoothManagePage() {
           </label>
 
           <label className="mb-3 block">
-            <span className="mb-1 block text-xs text-slate-400">拾った場所</span>
+            <span className="mb-1 block text-xs text-slate-400">
+              拾った場所
+            </span>
             <input
               type="text"
               value={lostItemFoundLocation}
@@ -626,7 +657,9 @@ export default function BoothManagePage() {
 
       {emergencyOpen && (
         <Modal onClose={() => setEmergencyOpen(false)}>
-          <h2 className="mb-3 text-base font-semibold text-red-200">緊急連絡</h2>
+          <h2 className="mb-3 text-base font-semibold text-red-200">
+            緊急連絡
+          </h2>
           <textarea
             value={emergencyMessage}
             onChange={(e) => setEmergencyMessage(e.target.value)}
