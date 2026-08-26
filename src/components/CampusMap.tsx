@@ -118,7 +118,7 @@ export default function CampusMap() {
 
   return (
     <div className="pressable relative w-full overflow-hidden rounded-3xl border-2 border-kosei-800 bg-kosei-700 shadow-[0_5px_0_var(--color-kosei-800)]">
-      <p className="absolute left-3 top-2 z-20 text-[10px] text-kosei-200">
+      <p className="absolute left-3 top-2 z-20 text-xs text-kosei-200">
         ※ 校内図は仮モデル
       </p>
       <svg
@@ -154,11 +154,11 @@ export default function CampusMap() {
             className="absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1 transition-transform duration-150 ease-out active:scale-90"
             style={{ left: `${labelLeftPct}%`, top: `${labelTopPct}%` }}
           >
-            <span className="whitespace-nowrap rounded-full border-2 border-kosei-800 bg-white px-2.5 py-0.5 font-heading text-[11px] font-bold text-kosei-800">
+            <span className="whitespace-nowrap rounded-full border-2 border-kosei-800 bg-white px-3 py-1 font-heading text-sm font-bold text-kosei-800">
               {b.name}
             </span>
             {b.congested && (
-              <span className="whitespace-nowrap rounded-full bg-accent-700 px-2 py-[1px] text-[9px] font-bold text-white">
+              <span className="whitespace-nowrap rounded-full bg-accent-700 px-2 py-[1px] text-[10px] font-bold text-white">
                 混雑中
               </span>
             )}

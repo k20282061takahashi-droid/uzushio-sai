@@ -38,13 +38,13 @@ export default function VisitorHome() {
           </span>
           <span className="text-sm font-medium text-kosei-700">{currentEvent.time}</span>
         </div>
-        <p className="mb-1 truncate font-heading text-xl font-black text-kosei-800">
+        <p className="mb-1 truncate font-heading text-2xl font-black text-kosei-800">
           {currentEvent.title}
         </p>
-        <p className="mb-3 text-xs text-kosei-600">@{currentEvent.venue}</p>
+        <p className="mb-3 text-sm text-kosei-600">@{currentEvent.venue}</p>
 
-        <div className="flex items-center gap-2 border-t border-dashed border-kosei-200 pt-2 text-xs">
-          <span className="shrink-0 rounded-full bg-kosei-500 px-2.5 py-0.5 font-bold text-white">
+        <div className="flex items-center gap-2 border-t border-dashed border-kosei-200 pt-2 text-sm">
+          <span className="shrink-0 rounded-full bg-kosei-500 px-2.5 py-0.5 text-xs font-bold text-white">
             Next
           </span>
           <span className="text-kosei-700">{nextEvent.time}</span>

@@ -83,6 +83,25 @@ export function stampUrl(origin: string, code: string): string {
   return `${origin}/stamp?code=${code}`;
 }
 
+// ヒントの文字数に合わせて大きさを変える。
+// 短ければ大きく、長ければ小さくして、丸の中に収まるようにする。
+// compact: ホーム画面の小さいマス用（スタンプページ本体より一回り小さい）
+export function hintSizeClass(hint: string, compact = false): string {
+  const length = hint.length;
+  if (compact) {
+    if (length <= 4) return "text-sm";
+    if (length <= 7) return "text-xs";
+    if (length <= 11) return "text-[10px]";
+    if (length <= 16) return "text-[9px]";
+    return "text-[8px]";
+  }
+  if (length <= 4) return "text-xl";
+  if (length <= 7) return "text-lg";
+  if (length <= 11) return "text-base";
+  if (length <= 16) return "text-sm";
+  return "text-xs";
+}
+
 // ─────────────────────────────────────────────
 // 集めたスタンプは、この端末のブラウザに保存する。
 // ログイン不要にするため、サーバーには送らない。

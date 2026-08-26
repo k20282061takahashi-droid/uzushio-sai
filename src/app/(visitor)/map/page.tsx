@@ -111,7 +111,7 @@ function MapContent() {
                     style={{ left: `${room.x}%`, top: `${room.y}%` }}
                   >
                     <span
-                      className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-white text-[11px] font-bold text-white shadow-[0_3px_0_rgba(18,73,90,0.55)]"
+                      className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-white text-xs font-bold text-white shadow-[0_3px_0_rgba(18,73,90,0.55)]"
                       style={{
                         backgroundColor: closed
                           ? "#9C9C97"
@@ -126,7 +126,7 @@ function MapContent() {
                           ? `${minutes}分`
                           : "開催"}
                     </span>
-                    <span className="mt-1 max-w-[84px] truncate rounded-full bg-kosei-800/85 px-2 py-0.5 text-[9px] font-bold text-white">
+                    <span className="mt-1 max-w-[92px] truncate rounded-full bg-kosei-800/85 px-2 py-0.5 text-[10px] font-bold text-white">
                       {room.projectName || room.name}
                     </span>
                   </button>
@@ -153,7 +153,7 @@ function MapContent() {
               </button>
             ))}
           </div>
-          <p className="pointer-events-none mt-2 text-center text-[11px] font-bold text-kosei-600">
+          <p className="pointer-events-none mt-2 text-center text-xs font-bold text-kosei-600">
             ピンチ／Ctrl+ホイールで拡大縮小、ドラッグで移動できます
           </p>
         </div>

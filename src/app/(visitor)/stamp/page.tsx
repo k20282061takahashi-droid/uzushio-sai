@@ -16,22 +16,12 @@ import {
   extractCode,
   getCollectedIds,
   getOrCreateRewardTicket,
+  hintSizeClass,
   subscribeRewardTicket,
   subscribeStampSpots,
   type RewardTicket,
   type StampSpot,
 } from "@/lib/stamp";
-
-// ヒントの文字数に合わせて大きさを変える。
-// 短ければ大きく、長ければ小さくして、丸の中に収まるようにする。
-function hintSizeClass(hint: string): string {
-  const length = hint.length;
-  if (length <= 4) return "text-lg";
-  if (length <= 7) return "text-base";
-  if (length <= 11) return "text-sm";
-  if (length <= 16) return "text-[13px]";
-  return "text-[11px]";
-}
 
 export default function StampPage() {
   const [spots, setSpots] = useState<StampSpot[]>([]);
@@ -88,6 +78,16 @@ export default function StampPage() {
     const timer = setTimeout(() => collect(code), 0);
     return () => clearTimeout(timer);
   }, [spots, collect]);
+
+  // ホーム画面の「QRコードをスキャン」から ?scan=1 付きで開いたときは、
+  // このタブに来た時点でカメラをすぐ起動する。
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("scan") !== "1") return;
+    window.history.replaceState(null, "", window.location.pathname);
+    const timer = setTimeout(() => setScanning(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   // 数秒でメッセージを消す
   useEffect(() => {
@@ -196,49 +196,63 @@ export default function StampPage() {
             </Link>
           )}
 
-          {/* スタンプカード。未獲得のマスには場所のヒントを丸の中に出す */}
+          {/* スタンプの台紙。未獲得のマスには場所のヒントを丸の中に出す。
+              実物のスタンプ台紙のように、上に名札タブを付け、
+              各マスに通し番号を振り、押したスタンプは少し斜めにずらして
+              「実際に手で押した」感じを出す。 */}
           <div
-            className="animate-fade-in-up mb-6 grid grid-cols-3 gap-4"
+            className="animate-fade-in-up relative mb-6 rounded-[28px] border-2 border-kosei-700 bg-white p-5 pt-8 shadow-[0_6px_0_var(--color-kosei-700)]"
             style={{ animationDelay: "80ms" }}
           >
-            {spots.map((spot) => {
-              const isCollected = collected.includes(spot.id);
-              return (
-                <div
-                  key={spot.id}
-                  className="flex flex-col items-center gap-1.5"
-                >
-                  <div
-                    className={`flex aspect-square w-full items-center justify-center rounded-full border-2 p-2 transition-transform duration-300 ${
-                      isCollected
-                        ? "scale-100 border-kosei-800 bg-kosei-500 shadow-[0_4px_0_var(--color-kosei-800)]"
-                        : "scale-95 border-dashed border-kosei-300 bg-kosei-50"
-                    }`}
-                  >
-                    {isCollected ? (
-                      ticket?.used ? (
-                        <CheckIcon className="h-12 w-12 text-white" />
-                      ) : (
-                        <StampIcon className="h-12 w-12 text-white" />
-                      )
-                    ) : (
-                      <span
-                        className={`px-1 text-center font-bold leading-tight text-kosei-400 ${hintSizeClass(
-                          spot.hint,
-                        )}`}
+            <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border-2 border-kosei-700 bg-kosei-600 px-4 py-1 font-heading text-xs font-black tracking-wide text-white shadow-[0_3px_0_var(--color-kosei-800)]">
+              STAMP CARD
+            </span>
+
+            <div className="grid grid-cols-3 gap-5">
+              {spots.map((spot, i) => {
+                const isCollected = collected.includes(spot.id);
+                // 実際に手でスタンプを押したような、少しだけ斜めのズレをマスごとに変える
+                const tilt =
+                  i % 3 === 0 ? "-rotate-3" : i % 3 === 1 ? "rotate-2" : "-rotate-1";
+                return (
+                  <div key={spot.id} className="flex flex-col items-center gap-1.5">
+                    <div className="relative w-full">
+                      <span className="absolute -left-1 -top-1 z-10 flex h-5 w-5 items-center justify-center rounded-full border border-kosei-300 bg-white text-[10px] font-bold text-kosei-500">
+                        {i + 1}
+                      </span>
+                      <div
+                        className={`flex aspect-square w-full items-center justify-center rounded-full border-2 p-2 transition-transform duration-300 ${
+                          isCollected
+                            ? `${tilt} scale-100 border-kosei-800 bg-kosei-500 shadow-[0_4px_0_var(--color-kosei-800)]`
+                            : "scale-95 border-dashed border-kosei-300 bg-kosei-50"
+                        }`}
                       >
-                        {spot.hint}
+                        {isCollected ? (
+                          ticket?.used ? (
+                            <CheckIcon className="h-12 w-12 text-white" />
+                          ) : (
+                            <StampIcon className="h-12 w-12 text-white" />
+                          )
+                        ) : (
+                          <span
+                            className={`px-1 text-center font-bold leading-tight text-kosei-400 ${hintSizeClass(
+                              spot.hint,
+                            )}`}
+                          >
+                            {spot.hint}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    {isCollected && (
+                      <span className="text-center text-sm font-bold leading-tight text-kosei-700">
+                        {spot.name}
                       </span>
                     )}
                   </div>
-                  {isCollected && (
-                    <span className="text-center text-[11px] font-bold leading-tight text-kosei-700">
-                      {spot.name}
-                    </span>
-                  )}
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </>
       )}

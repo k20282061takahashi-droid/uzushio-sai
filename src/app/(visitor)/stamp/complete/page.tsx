@@ -95,7 +95,7 @@ export default function StampCompletePage() {
             <p className="font-heading text-lg font-black text-success-800">
               使用済みです
             </p>
-            <p className="mt-1 text-xs text-kosei-600">
+            <p className="mt-1 text-sm text-kosei-600">
               特別企画への参加ありがとうございました
             </p>
           </div>
@@ -104,7 +104,7 @@ export default function StampCompletePage() {
             <div className="mx-auto mb-3 inline-block rounded-2xl border-2 border-kosei-200 bg-white p-3">
               <QrCode value={rewardUrl(origin, ticket.code)} size={200} />
             </div>
-            <p className="text-xs font-bold text-kosei-600">
+            <p className="text-sm font-bold text-kosei-600">
               1回だけ使えます。読み取られると使用済みになります
             </p>
           </>

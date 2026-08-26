@@ -72,7 +72,7 @@ export default function BottomNav() {
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={`flex flex-col items-center justify-center gap-1 rounded-2xl px-1 py-1.5 text-[10px] font-bold transition-transform duration-150 ease-out active:scale-90 ${
+                  className={`flex flex-col items-center justify-center gap-1 rounded-2xl px-1 py-1.5 text-[11px] font-bold transition-transform duration-150 ease-out active:scale-90 ${
                     isActive
                       ? "bg-kosei-600 text-white shadow-[0_3px_0_var(--color-kosei-800)]"
                       : "text-kosei-400"

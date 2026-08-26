@@ -157,7 +157,7 @@ export default function TimelinePage() {
       ) : (
         <>
           {venues.length > 1 && (
-            <div className="mb-2 flex text-center text-[11px] font-bold text-kosei-600">
+            <div className="mb-2 flex text-center text-xs font-bold text-kosei-600">
               <div style={{ width: 40 }} />
               {venues.map((v) => (
                 <div key={v} className="flex-1">
@@ -179,7 +179,7 @@ export default function TimelinePage() {
                   style={{ height: 60 * PX_PER_MIN }}
                   className="relative"
                 >
-                  <span className="absolute -top-2 right-1 text-[11px] font-bold text-kosei-500">
+                  <span className="absolute -top-2 right-1 text-xs font-bold text-kosei-500">
                     {formatTime(h)}
                   </span>
                 </div>

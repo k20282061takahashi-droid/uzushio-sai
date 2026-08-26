@@ -115,7 +115,7 @@ function AnnouncementItem({
 }) {
   return (
     <li
-      className={`pressable animate-fade-in-up rounded-2xl border-2 text-sm ${
+      className={`pressable animate-fade-in-up rounded-2xl border-2 text-base ${
         highlight
           ? "border-accent-700 bg-accent-50 shadow-[0_4px_0_var(--color-accent-700)]"
           : "border-kosei-700 bg-white shadow-[0_4px_0_var(--color-kosei-700)]"

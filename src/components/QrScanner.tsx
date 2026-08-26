@@ -93,7 +93,7 @@ export default function QrScanner({
       <canvas ref={canvasRef} className="hidden" />
       {/* 読み取り位置の目安になる枠 */}
       <div className="pointer-events-none absolute inset-8 rounded-xl border-2 border-white/70" />
-      <p className="absolute inset-x-0 bottom-3 text-center text-xs text-white/80">
+      <p className="absolute inset-x-0 bottom-3 text-center text-sm text-white/80">
         QRコードを枠の中に入れてください
       </p>
     </div>

@@ -57,7 +57,7 @@ export default function LostItemsPage() {
                 <p className="text-sm font-bold text-kosei-800">
                   {item.description || "（内容未登録）"}
                 </p>
-                <p className="mt-1 text-xs text-kosei-600">
+                <p className="mt-1 text-sm text-kosei-600">
                   保管場所: {item.storageLocation || "本部にお問い合わせください"}
                 </p>
               </div>

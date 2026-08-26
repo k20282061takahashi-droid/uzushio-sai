@@ -43,7 +43,7 @@ export default function RulesPage() {
             return (
               <li
                 key={rule.id}
-                className="pressable animate-fade-in-up rounded-2xl border-2 border-kosei-700 bg-white text-sm shadow-[0_4px_0_var(--color-kosei-700)]"
+                className="pressable animate-fade-in-up rounded-2xl border-2 border-kosei-700 bg-white text-base shadow-[0_4px_0_var(--color-kosei-700)]"
                 style={{ animationDelay: `${80 + i * 40}ms` }}
               >
                 <button

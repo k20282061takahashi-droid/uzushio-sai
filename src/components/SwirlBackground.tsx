@@ -18,14 +18,14 @@ export default function SwirlBackground() {
       {/* 大きい渦：右上寄り、画面の中をゆっくり大きく動き続ける。
           線がくっきりしすぎないよう、ぼかしをかけて柔らかい印象にする。 */}
       <div
-        className="absolute -right-24 -top-20 opacity-45 blur-[6px] animate-swirl-drift-a"
+        className="absolute -right-24 -top-20 opacity-45 blur-[3px] animate-swirl-drift-a"
       >
         <WhirlpoolAnimation size={480} />
       </div>
 
       {/* 小さい渦：左下寄り、大きい渦とは逆向き・別の速さでゆっくり動く */}
       <div
-        className="absolute -bottom-16 -left-16 opacity-35 blur-[4px] animate-swirl-drift-b"
+        className="absolute -bottom-16 -left-16 opacity-35 blur-[2px] animate-swirl-drift-b"
       >
         <WhirlpoolAnimation size={260} />
       </div>
