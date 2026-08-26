@@ -206,11 +206,15 @@ export default function TimelinePage() {
                 const colIndex = venues.indexOf(ev.venue || "会場未定");
                 const colWidth = 100 / venues.length;
                 const cancelled = ev.status === "cancelled";
+                const boxHeight = Math.max(24, (end - start) * PX_PER_MIN - 2);
+                // 枠が低いと時刻・名前の2行が入りきらず文字が隠れてしまうため、
+                // 短いイベントは時刻＋名前を1行にまとめてコンパクトに表示する
+                const compact = boxHeight < 44;
                 return (
                   <button
                     key={ev.id}
                     onClick={() => setSelectedId(ev.id)}
-                    className={`animate-fade-in-up absolute overflow-hidden rounded-xl border-2 p-2 text-left transition-transform active:scale-[0.97] ${
+                    className={`animate-fade-in-up absolute overflow-hidden rounded-xl border-2 px-2 py-1 text-left transition-transform active:scale-[0.97] ${
                       cancelled
                         ? "border-inkgray-400 bg-inkgray-50"
                         : ev.delayed
@@ -219,27 +223,50 @@ export default function TimelinePage() {
                     }`}
                     style={{
                       top: (start - axisStart) * PX_PER_MIN + 1,
-                      height: Math.max(28, (end - start) * PX_PER_MIN - 2),
+                      height: boxHeight,
                       left: `${colIndex * colWidth}%`,
                       width: `${colWidth}%`,
                       animationDelay: `${80 + i * 40}ms`,
                     }}
                   >
-                    <p className="text-[10px] font-bold text-kosei-600">
-                      {formatTime(start)}〜{formatTime(end)}
-                    </p>
-                    <p className="truncate font-heading text-sm font-black text-kosei-800">
-                      {ev.name || "（名称未定）"}
-                    </p>
-                    {cancelled && (
-                      <p className="text-[10px] font-bold text-danger-800">
-                        中止
+                    {compact ? (
+                      <p className="flex items-center gap-1.5 truncate text-xs">
+                        <span className="shrink-0 text-[10px] font-bold text-kosei-600">
+                          {formatTime(start)}
+                        </span>
+                        <span className="truncate font-heading font-black text-kosei-800">
+                          {ev.name || "（名称未定）"}
+                        </span>
+                        {cancelled && (
+                          <span className="shrink-0 text-[10px] font-bold text-danger-800">
+                            中止
+                          </span>
+                        )}
+                        {!cancelled && ev.delayed && (
+                          <span className="shrink-0 text-[10px] font-bold text-warn-800">
+                            遅れ
+                          </span>
+                        )}
                       </p>
-                    )}
-                    {!cancelled && ev.delayed && (
-                      <p className="text-[10px] font-bold text-warn-800">
-                        開始遅れ
-                      </p>
+                    ) : (
+                      <>
+                        <p className="text-[10px] font-bold text-kosei-600">
+                          {formatTime(start)}〜{formatTime(end)}
+                        </p>
+                        <p className="truncate font-heading text-sm font-black text-kosei-800">
+                          {ev.name || "（名称未定）"}
+                        </p>
+                        {cancelled && (
+                          <p className="text-[10px] font-bold text-danger-800">
+                            中止
+                          </p>
+                        )}
+                        {!cancelled && ev.delayed && (
+                          <p className="text-[10px] font-bold text-warn-800">
+                            開始遅れ
+                          </p>
+                        )}
+                      </>
                     )}
                   </button>
                 );

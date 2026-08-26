@@ -8,6 +8,7 @@ import StampGetEffect from "@/components/StampGetEffect";
 import {
   CheckCircleIcon,
   CheckIcon,
+  CloseIcon,
   StampIcon,
   TicketIcon,
 } from "@/components/Icon";
@@ -138,7 +139,7 @@ export default function StampPage() {
   }, [complete, getEffect, router]);
 
   return (
-    <div className="mx-auto max-w-md px-4 pb-8 pt-8">
+    <div className="mx-auto max-w-md px-4 pb-40 pt-8">
       <h1 className="animate-fade-in-up mb-4 font-heading text-2xl font-black text-kosei-800">
         スタンプラリー
       </h1>
@@ -257,15 +258,41 @@ export default function StampPage() {
         </>
       )}
 
-      <button
-        onClick={() => setScanning((s) => !s)}
-        className="pressable animate-fade-in-up w-full rounded-full border-2 border-kosei-800 bg-kosei-600 py-4 text-center font-heading text-lg font-black text-white shadow-[0_4px_0_var(--color-kosei-800)]"
-        style={{ animationDelay: "120ms" }}
-      >
-        {scanning ? "スキャンを停止" : "QRコードをスキャン"}
-      </button>
+      {/* QRスキャンのボタンは、ページのどこまでスクロールしていても
+          すぐ押せるよう、画面下部に固定しておく。 */}
+      {!scanning && (
+        <div className="fixed inset-x-4 bottom-24 z-40 mx-auto max-w-md">
+          <button
+            onClick={() => setScanning(true)}
+            className="pressable animate-fade-in-up w-full rounded-full border-2 border-kosei-800 bg-kosei-600 py-4 text-center font-heading text-lg font-black text-white shadow-[0_4px_0_var(--color-kosei-800)]"
+          >
+            QRコードをスキャン
+          </button>
+        </div>
+      )}
 
-      {scanning && <QrScanner onDetected={onDetected} />}
+      {/* スキャン中は、画面の中央にカメラをオーバーレイで開く。
+          背景をタップするか×ボタンで閉じられる。 */}
+      {scanning && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-kosei-800/60 p-4"
+          onClick={() => setScanning(false)}
+        >
+          <div
+            className="relative w-full max-w-sm"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setScanning(false)}
+              aria-label="スキャンを閉じる"
+              className="pressable absolute -top-3 -right-3 z-10 flex h-10 w-10 items-center justify-center rounded-full border-2 border-kosei-800 bg-white shadow-[0_3px_0_var(--color-kosei-800)]"
+            >
+              <CloseIcon className="h-5 w-5 text-kosei-800" />
+            </button>
+            <QrScanner onDetected={onDetected} />
+          </div>
+        </div>
+      )}
 
       {getEffect !== null && (
         <StampGetEffect
@@ -275,7 +302,7 @@ export default function StampPage() {
       )}
 
       {message && (
-        <div className="fixed inset-x-4 bottom-24 z-50 mx-auto max-w-md rounded-3xl border-2 border-kosei-700 bg-white p-4 text-center font-heading text-base font-black text-kosei-800 shadow-[0_5px_0_var(--color-kosei-700)]">
+        <div className="fixed inset-x-4 bottom-40 z-[70] mx-auto max-w-md rounded-3xl border-2 border-kosei-700 bg-white p-4 text-center font-heading text-base font-black text-kosei-800 shadow-[0_5px_0_var(--color-kosei-700)]">
           {message}
         </div>
       )}

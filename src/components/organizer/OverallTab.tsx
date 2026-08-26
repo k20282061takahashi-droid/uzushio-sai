@@ -164,9 +164,18 @@ export default function OverallTab({
     ...staffAnnouncements,
   ].sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
 
-  // タイムテーブルは「今日」の分を出す。開催日でなければ1日目を出す。
+  // タイムテーブルは「今日」の分を出す。開催日でなければ、
+  // 登録されている日の中で実際にイベントがある日を優先して出す
+  // （文化祭の前後で「今日」がどの開催日にも当てはまらないとき、
+  //   単純に1日目を出すとイベントが2日目にしか無い場合に何も表示されないため）。
   const today = todayInJapan();
-  const shownDay = days.includes(today) ? today : (days[0] ?? "");
+  const sortedDays = [...days].sort();
+  const dayWithEvents = sortedDays.find((d) =>
+    events.some((e) => e.day === d),
+  );
+  const shownDay = sortedDays.includes(today)
+    ? today
+    : (dayWithEvents ?? sortedDays[0] ?? "");
   const todaysEvents = events.filter((e) => e.day === shownDay);
 
   async function applySwitch() {

@@ -109,6 +109,15 @@ export function MapPinIcon({ className }: Props) {
   );
 }
 
+// 閉じる（×）
+export function CloseIcon({ className }: Props) {
+  return (
+    <Svg className={className}>
+      <path d="M6 6l12 12M18 6L6 18" />
+    </Svg>
+  );
+}
+
 // 挑戦券（チケット）
 export function TicketIcon({ className }: Props) {
   return (
