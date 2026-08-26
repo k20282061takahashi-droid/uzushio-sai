@@ -118,7 +118,7 @@ export default function EventTimeline({
         </button>
         <button
           onClick={() => setZoom(1.6)}
-          className="rounded-md bg-neutral-950/55 px-3 py-1.5 text-[13px] text-neutral-400 active:scale-95"
+          className="rounded-md bg-neutral-950/70 px-3 py-1.5 text-[13px] text-neutral-400 active:scale-95"
         >
           標準に戻す
         </button>
@@ -179,7 +179,7 @@ export default function EventTimeline({
                   onClick={() => onSelect?.(e)}
                   className={`absolute left-1 right-1 overflow-hidden rounded-lg border px-2 py-1 text-left transition-colors ${
                     cancelled
-                      ? "border-white/10 bg-neutral-950/55 opacity-50"
+                      ? "border-white/10 bg-neutral-950/70 opacity-50"
                       : e.delayed
                         ? "border-amber-400/50 bg-amber-400/15"
                         : "border-white/20 bg-white/[0.07]"

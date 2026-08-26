@@ -168,7 +168,7 @@ export default function StaffAlertFloat({
             {closedList.slice(0, 10).map((a) => (
               <li
                 key={a.id}
-                className="rounded-lg border border-white/10 bg-neutral-950/55 p-3 opacity-60"
+                className="rounded-lg border border-white/10 bg-neutral-950/70 p-3 opacity-60"
               >
                 <p className="text-sm">{a.message}</p>
                 <p className="mt-1 text-[13px] text-neutral-400">

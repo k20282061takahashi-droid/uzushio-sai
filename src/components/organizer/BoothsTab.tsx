@@ -60,7 +60,7 @@ function BoothCard({
   return (
     <div
       onClick={onSelect}
-      className={`flex cursor-pointer gap-3 overflow-hidden rounded-xl border bg-neutral-950/55 p-2.5 transition-colors hover:bg-white/[0.08] ${
+      className={`flex cursor-pointer gap-3 overflow-hidden rounded-xl border bg-neutral-950/70 p-2.5 transition-colors hover:bg-white/[0.08] ${
         selected ? "border-emerald-400 ring-1 ring-emerald-400" : "border-white/10"
       }`}
     >
@@ -127,7 +127,7 @@ function BoothCard({
               待ち {minutes}分
             </span>
           ) : (
-            <span className="rounded bg-neutral-950/55 px-1.5 py-0.5 text-[12px] text-neutral-400">
+            <span className="rounded bg-neutral-950/70 px-1.5 py-0.5 text-[12px] text-neutral-400">
               待ち時間なし
             </span>
           )}
@@ -354,7 +354,7 @@ function BoothDetailForm({
             />
           </label>
 
-          <div className="mt-3 rounded-lg border border-white/10 bg-neutral-950/55 p-3">
+          <div className="mt-3 rounded-lg border border-white/10 bg-neutral-950/70 p-3">
             <label className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
@@ -582,7 +582,7 @@ export default function BoothsTab({ onDataUpdate }: { onDataUpdate: () => void }
         {/* 地図 */}
         {showMap && (
           <div className="min-h-[24rem] lg:min-h-0 lg:col-span-2">
-            <div className="flex h-full flex-col rounded-xl border border-white/10 bg-neutral-950/55 p-3">
+            <div className="flex h-full flex-col rounded-xl border border-white/10 bg-neutral-950/70 p-3">
               <div className="mb-2 flex shrink-0 items-center justify-between">
                 <h2 className="text-sm font-medium text-neutral-300">地図</h2>
                 {selected ? (

@@ -77,7 +77,7 @@ export default function EmergencyFloat({
               className={`rounded-lg border p-3 ${
                 tab === "open"
                   ? "border-red-500/40 bg-red-500/10"
-                  : "border-white/10 bg-neutral-950/55 opacity-60"
+                  : "border-white/10 bg-neutral-950/70 opacity-60"
               }`}
             >
               <div className="flex items-start justify-between gap-3">

@@ -43,7 +43,7 @@ function HighlightCard({
       className={`flex min-h-[92px] flex-1 items-center gap-4 rounded-xl border p-4 ${
         tone === "now"
           ? "border-emerald-400/40 bg-emerald-400/10"
-          : "border-white/10 bg-neutral-950/55"
+          : "border-white/10 bg-neutral-950/70"
       }`}
     >
       <div className="min-w-0 flex-1">
@@ -178,7 +178,7 @@ function DelayForm({
         </label>
       </div>
 
-      <div className="mt-3 rounded-lg bg-neutral-950/55 p-3 text-sm text-neutral-300">
+      <div className="mt-3 rounded-lg bg-neutral-950/70 p-3 text-sm text-neutral-300">
         <p className="mb-1 text-xs font-medium text-neutral-400">
           来場者に流れるお知らせ（自動）
         </p>
@@ -199,7 +199,7 @@ function DelayForm({
 
       {/* すでに遅延を知らせている場合は、取り消しもできるようにする */}
       {event.delayed && (
-        <div className="mt-3 rounded-lg border border-white/10 bg-neutral-950/55 p-3">
+        <div className="mt-3 rounded-lg border border-white/10 bg-neutral-950/70 p-3">
           <p className="mb-2 text-xs text-neutral-400">
             遅延を取り消すと、来場者に送ったお知らせを削除し、
             開始時刻をもとの{event.originalStartAt ?? "予定"}に戻します。

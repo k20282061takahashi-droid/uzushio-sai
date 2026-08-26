@@ -40,7 +40,7 @@ function SpotCard({
   }
 
   return (
-    <li className="rounded-xl border border-white/10 bg-neutral-950/55 p-4">
+    <li className="rounded-xl border border-white/10 bg-neutral-950/70 p-4">
       <div className="flex flex-col gap-4 sm:flex-row">
         <div className="shrink-0 self-center rounded-lg bg-white p-2">
           <QrCode value={url} size={140} />
@@ -183,7 +183,7 @@ export default function StampsTab({
 
   return (
     <div className="h-full overflow-y-auto pb-6">
-      <section className="mb-5 rounded-xl border border-white/10 bg-neutral-950/55 p-4">
+      <section className="mb-5 rounded-xl border border-white/10 bg-neutral-950/70 p-4">
         <h2 className="mb-1 text-base font-bold">スタンプの設置場所を追加</h2>
         <p className="mb-3 text-xs text-neutral-400">
           追加するとQRコードが自動で発行されます。印刷して設置してください。

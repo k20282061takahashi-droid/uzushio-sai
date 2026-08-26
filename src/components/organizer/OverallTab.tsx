@@ -65,7 +65,7 @@ function ClickableCard({
       className={`flex h-full cursor-pointer flex-col rounded-xl border p-4 transition-colors ${
         badgeTone === "alert"
           ? "border-red-500/45 bg-red-500/10 hover:bg-red-500/15"
-          : "border-white/12 bg-neutral-950/55 hover:border-white/25 hover:bg-white/[0.05]"
+          : "border-white/12 bg-neutral-950/70 hover:border-white/25 hover:bg-white/[0.05]"
       }`}
     >
       <div className="mb-2 flex shrink-0 items-center justify-between gap-2">
@@ -179,7 +179,7 @@ export default function OverallTab({
   return (
     <div className="flex h-full flex-col gap-4">
       {/* 上部バー */}
-      <section className="flex shrink-0 flex-col items-center gap-4 rounded-xl border border-white/10 bg-neutral-950/55 p-4 sm:flex-row sm:flex-wrap sm:justify-between">
+      <section className="flex shrink-0 flex-col items-center gap-4 rounded-xl border border-white/10 bg-neutral-950/70 p-4 sm:flex-row sm:flex-wrap sm:justify-between">
         <div className="w-full sm:w-auto">
           <p className="text-xs text-neutral-400">
             {phase === "before" ? "文化祭前" : "文化祭中"}
@@ -296,7 +296,7 @@ export default function OverallTab({
                   {allAnnouncements.slice(0, 5).map((a) => (
                     <li
                       key={a.id}
-                      className="rounded-lg bg-neutral-950/55 px-3 py-2 text-sm"
+                      className="rounded-lg bg-neutral-950/70 px-3 py-2 text-sm"
                     >
                       <p className="truncate font-medium">
                         {a.pinned && (
@@ -344,7 +344,7 @@ export default function OverallTab({
                     .map((e) => (
                       <li
                         key={e.id}
-                        className="flex items-center gap-2 rounded-lg bg-neutral-950/55 px-2 py-1 text-xs"
+                        className="flex items-center gap-2 rounded-lg bg-neutral-950/70 px-2 py-1 text-xs"
                       >
                         <span className="shrink-0 font-mono text-[13px] text-neutral-400">
                           {e.startAt ?? "--:--"}
@@ -379,7 +379,7 @@ export default function OverallTab({
                   {unclaimed.slice(0, 4).map((item) => (
                     <li
                       key={item.id}
-                      className="flex items-center gap-3 rounded-lg bg-neutral-950/55 p-2"
+                      className="flex items-center gap-3 rounded-lg bg-neutral-950/70 p-2"
                     >
                       {item.photoUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element

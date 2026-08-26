@@ -84,7 +84,7 @@ export default function RefreshBar({
       <button
         onClick={handle}
         disabled={busy || !onRefresh}
-        className="shrink-0 whitespace-nowrap rounded-lg border border-white/10 bg-neutral-950/55 px-3 py-2 text-xs font-medium text-neutral-200 active:scale-95 disabled:opacity-50"
+        className="shrink-0 whitespace-nowrap rounded-lg border border-white/10 bg-neutral-950/70 px-3 py-2 text-xs font-medium text-neutral-200 active:scale-95 disabled:opacity-50"
       >
         {busy ? "更新中..." : "更新"}
       </button>

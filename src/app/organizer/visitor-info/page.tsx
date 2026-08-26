@@ -34,7 +34,7 @@ function RuleEditor({
 
   if (!editing) {
     return (
-      <div className="rounded-lg border border-white/10 bg-neutral-950/55 p-3 text-sm">
+      <div className="rounded-lg border border-white/10 bg-neutral-950/70 p-3 text-sm">
         <div className="flex items-start justify-between gap-2">
           <p className="font-medium">
             {rule.order}. {rule.heading}
@@ -50,7 +50,7 @@ function RuleEditor({
   }
 
   return (
-    <div className="rounded-lg border border-white/10 bg-neutral-950/55 p-3 text-sm">
+    <div className="rounded-lg border border-white/10 bg-neutral-950/70 p-3 text-sm">
       <div className="mb-2 flex gap-2">
         <input
           type="number"
@@ -128,7 +128,7 @@ export default function OrganizerVisitorInfoPage() {
         ← 運営ダッシュボードへ戻る
       </Link>
 
-      <section className="rounded-xl border border-white/12 bg-neutral-950/55 p-4">
+      <section className="rounded-xl border border-white/12 bg-neutral-950/70 p-4">
         <h2 className="mb-3 text-sm font-medium text-neutral-300">
           来場者の皆さんへ（校内ルール・注意事項）
         </h2>

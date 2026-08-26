@@ -59,7 +59,7 @@ export default function BoothStatusList({
   );
 
   return (
-    <section className="flex h-full flex-col rounded-xl border border-white/10 bg-neutral-950/55 p-4">
+    <section className="flex h-full flex-col rounded-xl border border-white/10 bg-neutral-950/70 p-4">
       <div className="mb-2 flex shrink-0 items-center justify-between gap-3">
         <h2 className="text-sm font-medium tracking-[0.04em] text-neutral-200">
           企画の状況（{filtered.length}
