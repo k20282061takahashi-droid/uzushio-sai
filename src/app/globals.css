@@ -106,47 +106,6 @@ body {
   animation: fade-in-up 0.35s ease-out both;
 }
 
-/* ---- オープニング演出（SplashScreen）用 ---- */
-
-/* 渦の線を外側から順に描いていく */
-@keyframes splash-draw {
-  from {
-    stroke-dashoffset: 900;
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-/* 渦全体をゆっくり回しながら、少しだけ大きくする */
-@keyframes splash-spin {
-  from {
-    transform: rotate(-140deg) scale(0.82);
-    opacity: 0;
-  }
-  35% {
-    opacity: 1;
-  }
-  to {
-    transform: rotate(0deg) scale(1);
-    opacity: 1;
-  }
-}
-
-/* タイトルが下から浮かび上がる */
-@keyframes splash-rise {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-    letter-spacing: 0.4em;
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-    letter-spacing: 0.15em;
-  }
-}
-
 /* 「動きを減らす」設定にしている人には、動かさず静かに出すだけにする */
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-in-up {
