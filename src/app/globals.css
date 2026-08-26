@@ -266,7 +266,8 @@ body {
 
 .organizer-ui::before {
   background: url("/organizer-bg.webp") center / cover no-repeat;
-  opacity: 0.5;
+  /* 渦がうっすら見える強さ。濃すぎ／薄すぎのときはこの数字だけ変える */
+  opacity: 0.9;
 }
 
 /* 上に重ねる暗幕。中央〜下ほど濃くして、情報が詰まる場所を静かにする */
@@ -274,9 +275,9 @@ body {
   background:
     radial-gradient(
       130% 90% at 50% 0%,
-      rgba(8, 8, 10, 0.5) 0%,
-      rgba(8, 8, 10, 0.82) 55%,
-      rgba(8, 8, 10, 0.94) 100%
+      rgba(8, 8, 10, 0.3) 0%,
+      rgba(8, 8, 10, 0.66) 55%,
+      rgba(8, 8, 10, 0.86) 100%
     );
 }
 
