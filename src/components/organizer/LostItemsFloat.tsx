@@ -32,8 +32,8 @@ export default function LostItemsFloat({
           onClick={() => setTab("unclaimed")}
           className={
             tab === "unclaimed"
-              ? "rounded-lg bg-white px-4 py-2 text-sm font-bold text-slate-950"
-              : "rounded-lg bg-white/10 px-4 py-2 text-sm text-slate-300"
+              ? "rounded-lg bg-white px-4 py-2 text-sm font-bold text-neutral-950"
+              : "rounded-lg bg-white/10 px-4 py-2 text-sm text-neutral-300"
           }
         >
           お預かり中（{unclaimed.length}）
@@ -42,8 +42,8 @@ export default function LostItemsFloat({
           onClick={() => setTab("claimed")}
           className={
             tab === "claimed"
-              ? "rounded-lg bg-white px-4 py-2 text-sm font-bold text-slate-950"
-              : "rounded-lg bg-white/10 px-4 py-2 text-sm text-slate-300"
+              ? "rounded-lg bg-white px-4 py-2 text-sm font-bold text-neutral-950"
+              : "rounded-lg bg-white/10 px-4 py-2 text-sm text-neutral-300"
           }
         >
           返却済み（{claimed.length}）
@@ -51,7 +51,7 @@ export default function LostItemsFloat({
       </div>
 
       {shown.length === 0 ? (
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-neutral-400">
           {tab === "unclaimed"
             ? "お預かり中の落とし物はありません"
             : "返却済みの記録はありません"}
@@ -74,7 +74,7 @@ export default function LostItemsFloat({
                   className="aspect-square w-full object-cover"
                 />
               ) : (
-                <div className="flex aspect-square w-full items-center justify-center bg-slate-950 text-xs text-slate-400">
+                <div className="flex aspect-square w-full items-center justify-center bg-neutral-950 text-xs text-neutral-400">
                   画像なし
                 </div>
               )}
@@ -82,19 +82,19 @@ export default function LostItemsFloat({
                 <p className="text-sm font-medium">
                   {item.description || "（内容未入力）"}
                 </p>
-                <p className="mt-1 text-[13px] text-slate-400">
+                <p className="mt-1 text-[13px] text-neutral-400">
                   拾得: {item.foundLocation || "-"}
                 </p>
-                <p className="text-[13px] text-slate-400">
+                <p className="text-[13px] text-neutral-400">
                   保管: {item.storageLocation || "-"}
                 </p>
-                <p className="mt-0.5 text-[13px] text-slate-400">
+                <p className="mt-0.5 text-[13px] text-neutral-400">
                   登録: {item.boothName || "-"}
                 </p>
                 {item.status === "unclaimed" ? (
                   <button
                     onClick={() => markLostItemClaimed(item.id)}
-                    className="mt-3 w-full rounded-lg bg-white/15 py-3 text-sm font-semibold active:scale-95"
+                    className="mt-3 w-full rounded-lg bg-white/15 py-3 text-sm font-medium active:scale-95"
                   >
                     返却済みにする
                   </button>

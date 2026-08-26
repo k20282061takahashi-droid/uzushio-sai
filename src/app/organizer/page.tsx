@@ -36,10 +36,14 @@ export default function OrganizerPage() {
   return (
     <div className="flex min-h-screen flex-col px-4 pb-5 pt-4 text-white lg:h-screen lg:overflow-hidden lg:px-6">
       {/* 見出しとタブ、右上に更新ボタン */}
-      <header className="mb-3 flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2">
-        <div>
-          <h1 className="text-sm font-bold text-slate-300">渦潮祭</h1>
-          <p className="text-xs text-slate-400">運営用</p>
+      <header className="mb-4 flex shrink-0 flex-wrap items-center gap-x-5 gap-y-3 border-b border-white/10 pb-3">
+        <div className="leading-tight">
+          <h1 className="text-[15px] font-medium tracking-[0.08em] text-neutral-100">
+            渦潮祭
+          </h1>
+          <p className="text-[12px] tracking-[0.14em] text-neutral-500">
+            ORGANIZER
+          </p>
         </div>
 
         {/* スマホではタブを2段目に回して、幅いっぱいに並べる */}
@@ -50,8 +54,8 @@ export default function OrganizerPage() {
               onClick={() => setMode(t.key)}
               className={
                 mode === t.key
-                  ? "flex-1 whitespace-nowrap rounded-lg bg-white px-3 py-2 text-sm font-bold text-slate-950 sm:flex-none sm:px-4"
-                  : "flex-1 whitespace-nowrap rounded-lg bg-white/10 px-3 py-2 text-sm text-slate-300 sm:flex-none sm:px-4"
+                  ? "flex-1 whitespace-nowrap rounded-md border border-white/70 bg-white px-3 py-2 text-sm font-medium text-neutral-950 sm:flex-none sm:px-5"
+                  : "flex-1 whitespace-nowrap rounded-md border border-white/15 px-3 py-2 text-sm text-neutral-400 transition-colors hover:border-white/30 hover:text-neutral-200 sm:flex-none sm:px-5"
               }
             >
               {t.label}

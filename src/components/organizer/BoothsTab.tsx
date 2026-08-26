@@ -30,7 +30,7 @@ import { type AreaId } from "@/lib/floorplan";
 function statusClass(booth: Booth): string {
   if (booth.status === "open") return "bg-emerald-500/20 text-emerald-200";
   if (booth.status === "break") return "bg-amber-500/20 text-amber-200";
-  return "bg-white/10 text-slate-400";
+  return "bg-white/10 text-neutral-400";
 }
 
 const AREA_NAMES: Record<AreaId, string> = {
@@ -64,7 +64,7 @@ function BoothCard({
       }`}
     >
       {/* 看板画像（小さめのサムネイル） */}
-      <div className="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-lg bg-slate-950">
+      <div className="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-lg bg-neutral-950">
         {booth.signboardUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -73,7 +73,7 @@ function BoothCard({
             className="h-full w-full object-cover"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-center text-[11px] leading-tight text-slate-400">
+          <div className="flex h-full w-full items-center justify-center text-center text-[12px] leading-tight text-neutral-400">
             画像
             <br />
             未登録
@@ -88,23 +88,23 @@ function BoothCard({
             <p className="truncate text-sm font-bold leading-tight">
               {booth.projectName || "（企画名未設定）"}
             </p>
-            <p className="truncate text-[13px] text-slate-400">{booth.name}</p>
+            <p className="truncate text-[13px] text-neutral-400">{booth.name}</p>
           </div>
           <div className="flex shrink-0 flex-col items-end gap-1">
             <span
-              className={`rounded-full px-2.5 py-1 text-[12px] font-semibold ${statusClass(booth)}`}
+              className={`rounded-full px-2.5 py-1 text-[12px] font-medium ${statusClass(booth)}`}
             >
               {STATUS_LABELS[booth.status]}
             </span>
             {stale && (
-              <span className="rounded bg-amber-400 px-2 py-1 text-[11px] font-bold text-slate-950">
+              <span className="rounded bg-amber-400 px-2 py-1 text-[12px] font-bold text-neutral-950">
                 待ち未更新
               </span>
             )}
           </div>
         </div>
 
-        <p className="mt-0.5 truncate text-[12px] text-slate-400">
+        <p className="mt-0.5 truncate text-[12px] text-neutral-400">
           {BOOTH_TYPE_LABELS[booth.type] ?? booth.type}
           {booth.genre && ` ・ ${GENRE_LABELS[booth.genre]}`}
           {" ・ "}
@@ -117,17 +117,17 @@ function BoothCard({
             : "場所未設定"}
         </p>
 
-        <p className="mt-0.5 truncate text-[12px] leading-snug text-slate-400">
+        <p className="mt-0.5 truncate text-[12px] leading-snug text-neutral-400">
           {booth.description || "（説明未入力）"}
         </p>
 
         <div className="mt-auto flex items-center gap-2 pt-1">
           {minutes !== null ? (
-            <span className="rounded bg-white/10 px-1.5 py-0.5 text-[12px] text-slate-200">
+            <span className="rounded bg-white/10 px-1.5 py-0.5 text-[12px] text-neutral-200">
               待ち {minutes}分
             </span>
           ) : (
-            <span className="rounded bg-white/5 px-1.5 py-0.5 text-[12px] text-slate-400">
+            <span className="rounded bg-white/5 px-1.5 py-0.5 text-[12px] text-neutral-400">
               待ち時間なし
             </span>
           )}
@@ -136,7 +136,7 @@ function BoothCard({
               e.stopPropagation();
               onOpenDetail();
             }}
-            className="ml-auto rounded-lg bg-white/10 px-2.5 py-1 text-[12px] font-semibold active:scale-95"
+            className="ml-auto rounded-lg bg-white/10 px-2.5 py-1 text-[12px] font-medium active:scale-95"
           >
             詳細・編集
           </button>
@@ -212,8 +212,8 @@ function BoothDetailForm({
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* 左：現在の状態と看板 */}
         <section>
-          <h3 className="mb-2 text-sm font-semibold text-slate-300">今の状態</h3>
-          <div className="mb-3 overflow-hidden rounded-xl border border-white/10 bg-slate-950">
+          <h3 className="mb-2 text-sm font-medium text-neutral-300">今の状態</h3>
+          <div className="mb-3 overflow-hidden rounded-xl border border-white/10 bg-neutral-950">
             {booth.signboardUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -222,7 +222,7 @@ function BoothDetailForm({
                 className="aspect-[16/9] w-full object-cover"
               />
             ) : (
-              <div className="flex aspect-[16/9] w-full items-center justify-center text-xs text-slate-400">
+              <div className="flex aspect-[16/9] w-full items-center justify-center text-xs text-neutral-400">
                 看板画像は未登録です
               </div>
             )}
@@ -230,32 +230,32 @@ function BoothDetailForm({
 
           <div className="space-y-1.5 text-sm">
             <div className="flex justify-between">
-              <span className="text-slate-400">状態</span>
+              <span className="text-neutral-400">状態</span>
               <span
-                className={`rounded-full px-2 py-0.5 text-xs font-semibold ${statusClass(booth)}`}
+                className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusClass(booth)}`}
               >
                 {STATUS_LABELS[booth.status]}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-400">待ち時間</span>
+              <span className="text-neutral-400">待ち時間</span>
               <span>
                 {minutes !== null ? `約${minutes}分` : "待ち時間なし"}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-400">待ちグループ数</span>
+              <span className="text-neutral-400">待ちグループ数</span>
               <span>
                 {booth.hasWaiting ? `${booth.waitingGroups ?? 0}組` : "―"}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-400">情報の入力</span>
+              <span className="text-neutral-400">情報の入力</span>
               <span>{booth.isSetupDone ? "済み" : "未完了"}</span>
             </div>
           </div>
 
-          <h3 className="mb-2 mt-4 text-sm font-semibold text-slate-300">
+          <h3 className="mb-2 mt-4 text-sm font-medium text-neutral-300">
             企画担当者用のQRコード
           </h3>
           <QrCode value={manageUrl} label={booth.name} />
@@ -263,7 +263,7 @@ function BoothDetailForm({
             <input
               readOnly
               value={manageUrl}
-              className="flex-1 truncate rounded-lg border border-white/10 bg-slate-950 p-2 text-[13px] text-slate-400"
+              className="flex-1 truncate rounded-lg border border-white/10 bg-neutral-950 p-2 text-[13px] text-neutral-400"
             />
             <button
               onClick={() => navigator.clipboard.writeText(manageUrl)}
@@ -276,22 +276,22 @@ function BoothDetailForm({
 
         {/* 中央：編集 */}
         <section className="lg:col-span-2">
-          <h3 className="mb-2 text-sm font-semibold text-slate-300">企画の設定</h3>
+          <h3 className="mb-2 text-sm font-medium text-neutral-300">企画の設定</h3>
 
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
-              <span className="mb-1 block text-xs text-slate-400">クラス・団体名</span>
+              <span className="mb-1 block text-xs text-neutral-400">クラス・団体名</span>
               <input
                 value={name}
                 onChange={(e) => {
                   setName(e.target.value);
                   setSaved(false);
                 }}
-                className="w-full rounded-lg border border-white/10 bg-slate-950 p-2 text-sm"
+                className="w-full rounded-lg border border-white/10 bg-neutral-950 p-2 text-sm"
               />
             </label>
             <label className="block">
-              <span className="mb-1 block text-xs text-slate-400">企画名</span>
+              <span className="mb-1 block text-xs text-neutral-400">企画名</span>
               <input
                 value={projectName}
                 onChange={(e) => {
@@ -299,18 +299,18 @@ function BoothDetailForm({
                   setSaved(false);
                 }}
                 placeholder="例）壊れるローラーコースター"
-                className="w-full rounded-lg border border-white/10 bg-slate-950 p-2 text-sm"
+                className="w-full rounded-lg border border-white/10 bg-neutral-950 p-2 text-sm"
               />
             </label>
             <label className="block">
-              <span className="mb-1 block text-xs text-slate-400">種別</span>
+              <span className="mb-1 block text-xs text-neutral-400">種別</span>
               <select
                 value={type}
                 onChange={(e) => {
                   setType(e.target.value as BoothType);
                   setSaved(false);
                 }}
-                className="w-full rounded-lg border border-white/10 bg-slate-950 p-2 text-sm"
+                className="w-full rounded-lg border border-white/10 bg-neutral-950 p-2 text-sm"
               >
                 {Object.entries(BOOTH_TYPE_LABELS).map(([k, v]) => (
                   <option key={k} value={k}>
@@ -320,14 +320,14 @@ function BoothDetailForm({
               </select>
             </label>
             <label className="block">
-              <span className="mb-1 block text-xs text-slate-400">カテゴリー</span>
+              <span className="mb-1 block text-xs text-neutral-400">カテゴリー</span>
               <select
                 value={genre}
                 onChange={(e) => {
                   setGenre(e.target.value as BoothGenre | "");
                   setSaved(false);
                 }}
-                className="w-full rounded-lg border border-white/10 bg-slate-950 p-2 text-sm"
+                className="w-full rounded-lg border border-white/10 bg-neutral-950 p-2 text-sm"
               >
                 <option value="">未設定</option>
                 {Object.entries(GENRE_LABELS).map(([k, v]) => (
@@ -340,7 +340,7 @@ function BoothDetailForm({
           </div>
 
           <label className="mt-3 block">
-            <span className="mb-1 block text-xs text-slate-400">説明</span>
+            <span className="mb-1 block text-xs text-neutral-400">説明</span>
             <textarea
               value={description}
               onChange={(e) => {
@@ -349,7 +349,7 @@ function BoothDetailForm({
               }}
               rows={4}
               placeholder="来場者向けの説明。企画担当者が自分で入力することもできます"
-              className="w-full rounded-lg border border-white/10 bg-slate-950 p-2 text-sm"
+              className="w-full rounded-lg border border-white/10 bg-neutral-950 p-2 text-sm"
             />
           </label>
 
@@ -366,12 +366,12 @@ function BoothDetailForm({
               />
               待ち時間の仕組みを使う
             </label>
-            <p className="mt-1 text-[13px] text-slate-400">
+            <p className="mt-1 text-[13px] text-neutral-400">
               入れると、企画担当者が待ちグループ数を入力でき、来場者のマップに待ち時間が出ます。
             </p>
             {hasWaiting && (
               <label className="mt-2 block">
-                <span className="mb-1 block text-xs text-slate-400">
+                <span className="mb-1 block text-xs text-neutral-400">
                   1グループあたりの所要時間（分）
                 </span>
                 <input
@@ -383,13 +383,13 @@ function BoothDetailForm({
                     );
                     setSaved(false);
                   }}
-                  className="w-32 rounded-lg border border-white/10 bg-slate-950 p-2 text-sm"
+                  className="w-32 rounded-lg border border-white/10 bg-neutral-950 p-2 text-sm"
                 />
               </label>
             )}
           </div>
 
-          <p className="mt-3 text-[13px] text-slate-400">
+          <p className="mt-3 text-[13px] text-neutral-400">
             ※ 場所（部屋）は、この画面を閉じたあと右側の地図から設定できます。
           </p>
 
@@ -397,7 +397,7 @@ function BoothDetailForm({
             <button
               onClick={save}
               disabled={saving}
-              className="flex-1 rounded-lg bg-emerald-500 p-2.5 text-sm font-semibold text-white active:scale-95 disabled:opacity-50"
+              className="flex-1 rounded-lg bg-emerald-500 p-2.5 text-sm font-medium text-white active:scale-95 disabled:opacity-50"
             >
               {saving ? "保存中..." : "保存する"}
             </button>
@@ -408,7 +408,7 @@ function BoothDetailForm({
                     await deleteBooth(booth.id);
                     onClose();
                   }}
-                  className="rounded-lg bg-red-500 px-4 py-2.5 text-sm font-semibold text-white active:scale-95"
+                  className="rounded-lg bg-red-500 px-4 py-2.5 text-sm font-medium text-white active:scale-95"
                 >
                   本当に削除する
                 </button>
@@ -519,13 +519,13 @@ export default function BoothsTab({ onDataUpdate }: { onDataUpdate: () => void }
           <>
             <button
               onClick={() => setShowMap((v) => !v)}
-              className="rounded-lg bg-white/10 px-3.5 py-2 text-sm text-slate-200 active:scale-95"
+              className="rounded-lg bg-white/10 px-3.5 py-2 text-sm text-neutral-200 active:scale-95"
             >
               {showMap ? "地図を隠す" : "地図を表示"}
             </button>
             <button
               onClick={() => setAdding(true)}
-              className="rounded-lg bg-white/10 px-3.5 py-2 text-sm text-slate-200 active:scale-95"
+              className="rounded-lg bg-white/10 px-3.5 py-2 text-sm text-neutral-200 active:scale-95"
             >
               ＋ 1件追加
             </button>
@@ -547,7 +547,7 @@ export default function BoothsTab({ onDataUpdate }: { onDataUpdate: () => void }
           {groups.map((group) => (
             <div key={group.label || "all"} className="mb-4">
               {group.label && (
-                <p className="sticky top-0 z-10 mb-2 bg-slate-950/90 py-1 text-xs font-bold text-slate-400 backdrop-blur">
+                <p className="sticky top-0 z-10 mb-2 bg-neutral-950/90 py-1 text-xs font-bold text-neutral-400 backdrop-blur">
                   {group.label}（{group.booths.length}）
                 </p>
               )}
@@ -574,7 +574,7 @@ export default function BoothsTab({ onDataUpdate }: { onDataUpdate: () => void }
             </div>
           ))}
           {filtered.length === 0 && (
-            <p className="text-sm text-slate-400">該当する企画がありません</p>
+            <p className="text-sm text-neutral-400">該当する企画がありません</p>
           )}
         </div>
 
@@ -583,13 +583,13 @@ export default function BoothsTab({ onDataUpdate }: { onDataUpdate: () => void }
           <div className="min-h-[24rem] lg:min-h-0 lg:col-span-2">
             <div className="flex h-full flex-col rounded-xl border border-white/10 bg-white/5 p-3">
               <div className="mb-2 flex shrink-0 items-center justify-between">
-                <h2 className="text-sm font-semibold text-slate-300">地図</h2>
+                <h2 className="text-sm font-medium text-neutral-300">地図</h2>
                 {selected ? (
                   <p className="truncate text-[13px] text-emerald-300">
                     選択中：{selected.name}
                   </p>
                 ) : (
-                  <p className="text-[13px] text-slate-400">
+                  <p className="text-[13px] text-neutral-400">
                     企画を選ぶと場所を設定できます
                   </p>
                 )}
@@ -620,23 +620,23 @@ export default function BoothsTab({ onDataUpdate }: { onDataUpdate: () => void }
         width="narrow"
       >
         <label className="block">
-          <span className="mb-1 block text-xs text-slate-400">
+          <span className="mb-1 block text-xs text-neutral-400">
             クラス名・団体名
           </span>
           <input
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             placeholder="例）3年A組"
-            className="w-full rounded-lg border border-white/10 bg-slate-950 p-2.5 text-sm"
+            className="w-full rounded-lg border border-white/10 bg-neutral-950 p-2.5 text-sm"
           />
         </label>
-        <p className="mt-2 text-[13px] text-slate-400">
+        <p className="mt-2 text-[13px] text-neutral-400">
           管理用URLは自動で発行されます。種別・場所・説明は追加したあとで設定できます。
         </p>
         <button
           onClick={addBooth}
           disabled={!newName.trim()}
-          className="mt-4 w-full rounded-lg bg-emerald-500 p-2.5 text-sm font-semibold text-white active:scale-95 disabled:opacity-40"
+          className="mt-4 w-full rounded-lg bg-emerald-500 p-2.5 text-sm font-medium text-white active:scale-95 disabled:opacity-40"
         >
           追加する
         </button>

@@ -15,7 +15,7 @@ import {
 function statusClass(booth: Booth): string {
   if (booth.status === "open") return "bg-emerald-500/20 text-emerald-200";
   if (booth.status === "break") return "bg-amber-500/20 text-amber-200";
-  return "bg-white/10 text-slate-400";
+  return "bg-white/10 text-neutral-400";
 }
 
 // 全体運営タブに置く「企画の状況」。
@@ -59,16 +59,16 @@ export default function BoothStatusList({
   return (
     <section className="flex h-full flex-col rounded-xl border border-white/10 bg-white/5 p-4">
       <div className="mb-2 flex shrink-0 items-center justify-between gap-3">
-        <h2 className="text-sm font-semibold text-slate-300">
+        <h2 className="text-sm font-medium text-neutral-300">
           企画の状況（{filtered.length}
           {filtered.length !== booths.length && ` / ${booths.length}`}件）
         </h2>
         {staleCount > 0 && (
           <button
             onClick={() => setOnlyStale((v) => !v)}
-            className={`rounded-lg px-3 py-1.5 text-[13px] font-semibold active:scale-95 ${
+            className={`rounded-lg px-3 py-1.5 text-[13px] font-medium active:scale-95 ${
               onlyStale
-                ? "bg-amber-400 text-slate-950"
+                ? "bg-amber-400 text-neutral-950"
                 : "bg-amber-400/20 text-amber-200"
             }`}
           >
@@ -90,7 +90,7 @@ export default function BoothStatusList({
         {groups.map((group) => (
           <div key={group.label || "all"}>
             {group.label && (
-              <p className="sticky top-0 z-10 mb-1 bg-slate-900/80 py-1 text-[13px] font-bold text-slate-400 backdrop-blur">
+              <p className="sticky top-0 z-10 mb-1 bg-neutral-900/80 py-1 text-[13px] font-bold text-neutral-400 backdrop-blur">
                 {group.label}（{group.booths.length}）
               </p>
             )}
@@ -108,7 +108,7 @@ export default function BoothStatusList({
                         {b.name}
                         {b.projectName ? `（${b.projectName}）` : ""}
                       </p>
-                      <p className="truncate text-[13px] text-slate-400">
+                      <p className="truncate text-[13px] text-neutral-400">
                         {BOOTH_TYPE_LABELS[b.type] ?? b.type}
                         {b.location && ` ・ ${b.location}`}
                         {b.floor != null &&
@@ -126,12 +126,12 @@ export default function BoothStatusList({
                         </span>
                       )}
                       {minutes !== null && (
-                        <span className="text-xs text-slate-400">
+                        <span className="text-xs text-neutral-400">
                           待ち{minutes}分
                         </span>
                       )}
                       <span
-                        className={`rounded-full px-3 py-1.5 text-[13px] font-semibold ${statusClass(b)}`}
+                        className={`rounded-full px-3 py-1.5 text-[13px] font-medium ${statusClass(b)}`}
                       >
                         {STATUS_LABELS[b.status]}
                       </span>
@@ -143,7 +143,7 @@ export default function BoothStatusList({
           </div>
         ))}
         {filtered.length === 0 && (
-          <p className="text-xs text-slate-400">該当する企画がありません</p>
+          <p className="text-xs text-neutral-400">該当する企画がありません</p>
         )}
       </div>
     </section>

@@ -32,18 +32,24 @@ function LoginForm() {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-4 text-white">
-      <h1 className="mb-1 text-sm font-bold text-slate-300">渦潮祭</h1>
-      <p className="mb-6 text-xs text-slate-500">運営用</p>
+      <h1 className="text-[15px] font-medium tracking-[0.08em] text-neutral-100">
+        渦潮祭
+      </h1>
+      <p className="mb-7 text-[12px] tracking-[0.14em] text-neutral-500">
+        ORGANIZER
+      </p>
 
       <form onSubmit={handleSubmit}>
         <label className="mb-3 block">
-          <span className="mb-1 block text-xs text-slate-400">パスワード</span>
+          <span className="mb-1.5 block text-xs tracking-[0.04em] text-neutral-400">
+            パスワード
+          </span>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoFocus
-            className="w-full rounded-lg border border-white/10 bg-slate-900 p-3 text-sm"
+            className="w-full rounded-md border border-white/15 bg-transparent p-3 text-sm text-neutral-100 placeholder:text-neutral-600"
           />
         </label>
         {error && (
@@ -52,7 +58,7 @@ function LoginForm() {
         <button
           type="submit"
           disabled={submitting}
-          className="w-full rounded-lg bg-white/10 p-3 text-sm font-semibold active:scale-95 disabled:opacity-50"
+          className="w-full rounded-md bg-white p-3 text-sm font-medium text-neutral-950 transition-opacity hover:opacity-90 active:scale-[0.99] disabled:opacity-50"
         >
           {submitting ? "確認中..." : "ログイン"}
         </button>

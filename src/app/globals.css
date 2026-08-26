@@ -18,6 +18,8 @@
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-zen-maru-gothic);
   --font-body: var(--font-noto-sans-jp);
+  /* 運営ダッシュボード用（モノクロ・線細めのUI） */
+  --font-admin: var(--font-zen-kaku-antique);
 
   /* 湖青（メインカラー） */
   --color-kosei-50: #EAF6FA;
@@ -241,4 +243,46 @@ body {
   .animate-stamp-shock {
     animation: none;
   }
+}
+
+/* ==========================================================================
+   運営ダッシュボード（/organizer）専用の見た目
+   来場者アプリ（湖青＋丸ゴシック＋ハードシャドウ）とは方向性を分け、
+   「道具」として長時間見ても疲れない、モノクロ・1pxの細い罫線・角ゴシックにする。
+   色は「意味があるところ」だけに残す（緊急＝赤／開催中＝緑／注意＝黄）。
+   ========================================================================== */
+.organizer-ui {
+  font-family: var(--font-zen-kaku-antique), "Hiragino Sans", "Noto Sans JP",
+    sans-serif;
+  /* 日本語の約物（句読点・かっこ）の余白を詰めて、詰まった情報でも読みやすくする */
+  font-feature-settings: "palt" 1;
+  letter-spacing: 0.01em;
+}
+
+/* input や select はフォントを自動で引き継がないので、個別に指定する */
+.organizer-ui input,
+.organizer-ui select,
+.organizer-ui textarea,
+.organizer-ui button {
+  font-family: inherit;
+  letter-spacing: inherit;
+}
+
+/* キーボード操作でどこを触っているかを分かるようにする（マウス操作では出ない） */
+.organizer-ui :is(button, a, input, select, textarea):focus-visible {
+  outline: 1px solid rgba(255, 255, 255, 0.65);
+  outline-offset: 2px;
+}
+
+/* スクロールバーも細いモノクロにそろえる */
+.organizer-ui ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.organizer-ui ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+}
+.organizer-ui ::-webkit-scrollbar-track {
+  background: transparent;
 }

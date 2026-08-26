@@ -68,7 +68,7 @@ export default function QrCode({
       <div className="flex gap-1">
         <button
           onClick={copyImage}
-          className="rounded-md bg-white/10 px-3 py-1.5 text-[13px] text-slate-200 active:scale-95"
+          className="rounded-md bg-white/10 px-3 py-1.5 text-[13px] text-neutral-200 active:scale-95"
         >
           {copied === "done"
             ? "コピーしました"
@@ -78,7 +78,7 @@ export default function QrCode({
         </button>
         <button
           onClick={download}
-          className="rounded-md bg-white/10 px-3 py-1.5 text-[13px] text-slate-200 active:scale-95"
+          className="rounded-md bg-white/10 px-3 py-1.5 text-[13px] text-neutral-200 active:scale-95"
         >
           保存
         </button>

@@ -49,7 +49,7 @@ function HighlightCard({
       <div className="min-w-0 flex-1">
         <p
           className={`text-[13px] font-bold ${
-            tone === "now" ? "text-emerald-300" : "text-slate-400"
+            tone === "now" ? "text-emerald-300" : "text-neutral-400"
           }`}
         >
           {label}
@@ -64,18 +64,18 @@ function HighlightCard({
                 </span>
               )}
             </p>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-neutral-400">
               {event.startAt ?? "--:--"}
               {event.endAt && `〜${event.endAt}`}
               {event.originalStartAt && (
-                <span className="ml-2 text-slate-400 line-through">
+                <span className="ml-2 text-neutral-400 line-through">
                   {event.originalStartAt}
                 </span>
               )}
             </p>
           </>
         ) : (
-          <p className="mt-1 text-sm text-slate-400">予定はありません</p>
+          <p className="mt-1 text-sm text-neutral-400">予定はありません</p>
         )}
       </div>
       {children}
@@ -159,27 +159,27 @@ function DelayForm({
 
       <div className="grid grid-cols-2 gap-3">
         <label className="block">
-          <span className="mb-1 block text-xs text-slate-400">新しい開始時刻</span>
+          <span className="mb-1 block text-xs text-neutral-400">新しい開始時刻</span>
           <input
             value={newStart}
             onChange={(e) => setNewStart(e.target.value)}
             placeholder="10:15"
-            className="w-full rounded-lg border border-white/10 bg-slate-950 p-2.5 text-sm"
+            className="w-full rounded-lg border border-white/10 bg-neutral-950 p-2.5 text-sm"
           />
         </label>
         <label className="block">
-          <span className="mb-1 block text-xs text-slate-400">新しい終了時刻</span>
+          <span className="mb-1 block text-xs text-neutral-400">新しい終了時刻</span>
           <input
             value={newEnd}
             onChange={(e) => setNewEnd(e.target.value)}
             placeholder="11:05"
-            className="w-full rounded-lg border border-white/10 bg-slate-950 p-2.5 text-sm"
+            className="w-full rounded-lg border border-white/10 bg-neutral-950 p-2.5 text-sm"
           />
         </label>
       </div>
 
-      <div className="mt-3 rounded-lg bg-white/5 p-3 text-sm text-slate-300">
-        <p className="mb-1 text-xs font-semibold text-slate-400">
+      <div className="mt-3 rounded-lg bg-white/5 p-3 text-sm text-neutral-300">
+        <p className="mb-1 text-xs font-medium text-neutral-400">
           来場者に流れるお知らせ（自動）
         </p>
         <p>{newStart ? preview : "（新しい開始時刻を入れてください）"}</p>
@@ -188,7 +188,7 @@ function DelayForm({
       <button
         onClick={submit}
         disabled={saving || !newStart}
-        className="mt-4 w-full rounded-lg bg-amber-500 p-3.5 text-sm font-semibold text-white active:scale-95 disabled:opacity-40"
+        className="mt-4 w-full rounded-lg bg-amber-500 p-3.5 text-sm font-medium text-white active:scale-95 disabled:opacity-40"
       >
         {saving
           ? "送信中..."
@@ -200,14 +200,14 @@ function DelayForm({
       {/* すでに遅延を知らせている場合は、取り消しもできるようにする */}
       {event.delayed && (
         <div className="mt-3 rounded-lg border border-white/10 bg-white/5 p-3">
-          <p className="mb-2 text-xs text-slate-400">
+          <p className="mb-2 text-xs text-neutral-400">
             遅延を取り消すと、来場者に送ったお知らせを削除し、
             開始時刻をもとの{event.originalStartAt ?? "予定"}に戻します。
           </p>
           <button
             onClick={cancel}
             disabled={cancelling}
-            className="w-full rounded-lg bg-white/10 p-3 text-sm font-semibold active:scale-95 disabled:opacity-40"
+            className="w-full rounded-lg bg-white/10 p-3 text-sm font-medium active:scale-95 disabled:opacity-40"
           >
             {cancelling ? "取り消し中..." : "遅延を取り消して、お知らせを削除する"}
           </button>
@@ -297,43 +297,43 @@ function EventEditForm({
       width="narrow"
     >
       <label className="mb-3 block">
-        <span className="mb-1 block text-xs text-slate-400">企画・催し名</span>
+        <span className="mb-1 block text-xs text-neutral-400">企画・催し名</span>
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="例）吹奏楽部 演奏会"
-          className="w-full rounded-lg border border-white/10 bg-slate-950 p-2.5 text-sm"
+          className="w-full rounded-lg border border-white/10 bg-neutral-950 p-2.5 text-sm"
         />
       </label>
 
       <div className="grid grid-cols-2 gap-3">
         <label className="block">
-          <span className="mb-1 block text-xs text-slate-400">開始</span>
+          <span className="mb-1 block text-xs text-neutral-400">開始</span>
           <input
             value={startAt}
             onChange={(e) => setStartAt(e.target.value)}
             placeholder="9:00"
-            className="w-full rounded-lg border border-white/10 bg-slate-950 p-2.5 text-sm"
+            className="w-full rounded-lg border border-white/10 bg-neutral-950 p-2.5 text-sm"
           />
         </label>
         <label className="block">
-          <span className="mb-1 block text-xs text-slate-400">終了</span>
+          <span className="mb-1 block text-xs text-neutral-400">終了</span>
           <input
             value={endAt}
             onChange={(e) => setEndAt(e.target.value)}
             placeholder="9:50"
-            className="w-full rounded-lg border border-white/10 bg-slate-950 p-2.5 text-sm"
+            className="w-full rounded-lg border border-white/10 bg-neutral-950 p-2.5 text-sm"
           />
         </label>
       </div>
 
       {!creating && (
         <label className="mt-3 block">
-          <span className="mb-1 block text-xs text-slate-400">状態</span>
+          <span className="mb-1 block text-xs text-neutral-400">状態</span>
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className="w-full rounded-lg border border-white/10 bg-slate-950 p-2.5 text-sm"
+            className="w-full rounded-lg border border-white/10 bg-neutral-950 p-2.5 text-sm"
           >
             <option value="scheduled">予定通り</option>
             <option value="cancelled">中止</option>
@@ -345,7 +345,7 @@ function EventEditForm({
       {!creating && event && (
         <button
           onClick={() => onDelay(event)}
-          className={`mt-4 w-full rounded-lg p-3 text-sm font-semibold active:scale-95 ${
+          className={`mt-4 w-full rounded-lg p-3 text-sm font-medium active:scale-95 ${
             event.delayed
               ? "bg-amber-400/20 text-amber-200"
               : "bg-amber-500 text-white"
@@ -361,7 +361,7 @@ function EventEditForm({
         <button
           onClick={submit}
           disabled={saving || !name || !startAt}
-          className="flex-1 rounded-lg bg-emerald-500 p-3 text-sm font-semibold text-white active:scale-95 disabled:opacity-40"
+          className="flex-1 rounded-lg bg-emerald-500 p-3 text-sm font-medium text-white active:scale-95 disabled:opacity-40"
         >
           {saving ? "保存中..." : creating ? "追加する" : "保存する"}
         </button>
@@ -372,7 +372,7 @@ function EventEditForm({
                 await deleteEvent(event.id);
                 onClose();
               }}
-              className="rounded-lg bg-red-500 px-4 py-2.5 text-sm font-semibold text-white active:scale-95"
+              className="rounded-lg bg-red-500 px-4 py-2.5 text-sm font-medium text-white active:scale-95"
             >
               本当に削除
             </button>
@@ -453,8 +453,8 @@ export default function EventsTab({ onDataUpdate }: { onDataUpdate: () => void }
               onClick={() => setDayIndex(i)}
               className={
                 dayIndex === i
-                  ? "rounded-lg bg-white px-4 py-2 text-sm font-bold text-slate-950"
-                  : "rounded-lg bg-white/10 px-4 py-2 text-sm text-slate-300"
+                  ? "rounded-lg bg-white px-4 py-2 text-sm font-bold text-neutral-950"
+                  : "rounded-lg bg-white/10 px-4 py-2 text-sm text-neutral-300"
               }
             >
               {dayLabel(d, i)}
@@ -469,8 +469,8 @@ export default function EventsTab({ onDataUpdate }: { onDataUpdate: () => void }
               onClick={() => setVenue(v)}
               className={
                 venue === v
-                  ? "rounded-lg bg-sky-400 px-4 py-2 text-sm font-bold text-slate-950"
-                  : "rounded-lg bg-white/10 px-4 py-2 text-sm text-slate-300"
+                  ? "rounded-lg bg-white px-4 py-2 text-sm font-bold text-neutral-950"
+                  : "rounded-lg bg-white/10 px-4 py-2 text-sm text-neutral-300"
               }
             >
               {v}

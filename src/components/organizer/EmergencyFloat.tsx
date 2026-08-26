@@ -45,8 +45,8 @@ export default function EmergencyFloat({
           onClick={() => setTab("open")}
           className={
             tab === "open"
-              ? "rounded-lg bg-white px-4 py-2 text-sm font-bold text-slate-950"
-              : "rounded-lg bg-white/10 px-4 py-2 text-sm text-slate-300"
+              ? "rounded-lg bg-white px-4 py-2 text-sm font-bold text-neutral-950"
+              : "rounded-lg bg-white/10 px-4 py-2 text-sm text-neutral-300"
           }
         >
           未対応（{openList.length}）
@@ -55,8 +55,8 @@ export default function EmergencyFloat({
           onClick={() => setTab("resolved")}
           className={
             tab === "resolved"
-              ? "rounded-lg bg-white px-4 py-2 text-sm font-bold text-slate-950"
-              : "rounded-lg bg-white/10 px-4 py-2 text-sm text-slate-300"
+              ? "rounded-lg bg-white px-4 py-2 text-sm font-bold text-neutral-950"
+              : "rounded-lg bg-white/10 px-4 py-2 text-sm text-neutral-300"
           }
         >
           対応済み（{resolvedList.length}）
@@ -64,7 +64,7 @@ export default function EmergencyFloat({
       </div>
 
       {shown.length === 0 ? (
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-neutral-400">
           {tab === "open"
             ? "未対応の緊急連絡はありません"
             : "対応済みの記録はありません"}
@@ -82,22 +82,22 @@ export default function EmergencyFloat({
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="font-semibold">{a.boothName || "（企画名なし）"}</p>
+                  <p className="font-medium">{a.boothName || "（企画名なし）"}</p>
                   {a.message ? (
-                    <p className="mt-1 text-sm text-slate-300">{a.message}</p>
+                    <p className="mt-1 text-sm text-neutral-300">{a.message}</p>
                   ) : (
-                    <p className="mt-1 text-sm text-slate-400">
+                    <p className="mt-1 text-sm text-neutral-400">
                       （内容なし・至急の呼び出し）
                     </p>
                   )}
-                  <p className="mt-1 text-[13px] text-slate-400">
+                  <p className="mt-1 text-[13px] text-neutral-400">
                     {formatTime(a.createdAt)}
                   </p>
                 </div>
                 {a.status === "open" && (
                   <button
                     onClick={() => resolveEmergencyAlert(a.id)}
-                    className="shrink-0 rounded-lg bg-white/15 px-3.5 py-2 text-sm font-semibold active:scale-95"
+                    className="shrink-0 rounded-lg bg-white/15 px-3.5 py-2 text-sm font-medium active:scale-95"
                   >
                     対応済みにする
                   </button>

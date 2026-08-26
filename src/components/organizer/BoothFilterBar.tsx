@@ -33,16 +33,16 @@ export default function BoothFilterBar({
           value={search ?? ""}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="クラス名・企画名で検索"
-          className="w-56 rounded-lg border border-white/10 bg-slate-900 px-3.5 py-2 text-sm"
+          className="w-56 rounded-md border border-white/15 bg-transparent px-3.5 py-2 text-sm"
         />
       )}
 
-      <label className="flex items-center gap-1 text-[13px] text-slate-400">
+      <label className="flex items-center gap-1 text-[13px] text-neutral-400">
         まとめ方
         <select
           value={groupKey}
           onChange={(e) => onGroupChange(e.target.value as GroupKey)}
-          className="rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-slate-200"
+          className="rounded-lg border border-white/15 bg-transparent px-3 py-2 text-sm text-neutral-200"
         >
           {GROUP_OPTIONS.map((o) => (
             <option key={o.key} value={o.key}>
@@ -52,12 +52,12 @@ export default function BoothFilterBar({
         </select>
       </label>
 
-      <label className="flex items-center gap-1 text-[13px] text-slate-400">
+      <label className="flex items-center gap-1 text-[13px] text-neutral-400">
         並び順
         <select
           value={sortKey}
           onChange={(e) => onSortChange(e.target.value as SortKey)}
-          className="rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-slate-200"
+          className="rounded-lg border border-white/15 bg-transparent px-3 py-2 text-sm text-neutral-200"
         >
           {SORT_OPTIONS.map((o) => (
             <option key={o.key} value={o.key}>

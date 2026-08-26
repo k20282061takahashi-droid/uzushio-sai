@@ -48,18 +48,18 @@ function SpotCard({
 
         <div className="min-w-0 flex-1">
           <label className="mb-2 block">
-            <span className="mb-1 block text-xs text-slate-400">場所の名前</span>
+            <span className="mb-1 block text-xs text-neutral-400">場所の名前</span>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="例）中庭ステージ"
-              className="w-full rounded-lg border border-white/15 bg-slate-950 p-2.5 text-base"
+              className="w-full rounded-lg border border-white/15 bg-neutral-950 p-2.5 text-base"
             />
           </label>
 
           <label className="mb-3 block">
-            <span className="mb-1 block text-xs text-slate-400">
+            <span className="mb-1 block text-xs text-neutral-400">
               場所のヒント（まだ取っていない人に表示）
             </span>
             <input
@@ -67,7 +67,7 @@ function SpotCard({
               value={hint}
               onChange={(e) => setHint(e.target.value)}
               placeholder="例）高校棟 4F"
-              className="w-full rounded-lg border border-white/15 bg-slate-950 p-2.5 text-base"
+              className="w-full rounded-lg border border-white/15 bg-neutral-950 p-2.5 text-base"
             />
           </label>
 
@@ -91,13 +91,13 @@ function SpotCard({
             </button>
             <button
               onClick={() => setConfirmDelete(true)}
-              className="ml-auto rounded-lg bg-red-500/20 px-4 py-2 text-sm font-semibold text-red-200 active:scale-95"
+              className="ml-auto rounded-lg bg-red-500/20 px-4 py-2 text-sm font-medium text-red-200 active:scale-95"
             >
               削除
             </button>
           </div>
 
-          <p className="mt-2 break-all text-[12px] text-slate-500">{url}</p>
+          <p className="mt-2 break-all text-[12px] text-neutral-500">{url}</p>
         </div>
       </div>
 
@@ -107,13 +107,13 @@ function SpotCard({
           onClick={() => setConfirmDelete(false)}
         >
           <div
-            className="w-full max-w-sm rounded-xl bg-slate-900 p-5"
+            className="w-full max-w-sm rounded-xl border border-white/12 bg-neutral-900 p-5"
             onClick={(e) => e.stopPropagation()}
           >
-            <p className="mb-4 text-base font-semibold">
+            <p className="mb-4 text-base font-medium">
               「{spot.name || "（名前なし）"}」を削除しますか
             </p>
-            <p className="mb-4 text-xs text-slate-400">
+            <p className="mb-4 text-xs text-neutral-400">
               印刷済みのQRコードは使えなくなります。
             </p>
             <div className="flex gap-2">
@@ -185,7 +185,7 @@ export default function StampsTab({
     <div className="h-full overflow-y-auto pb-6">
       <section className="mb-5 rounded-xl border border-white/10 bg-white/5 p-4">
         <h2 className="mb-1 text-base font-bold">スタンプの設置場所を追加</h2>
-        <p className="mb-3 text-xs text-slate-400">
+        <p className="mb-3 text-xs text-neutral-400">
           追加するとQRコードが自動で発行されます。印刷して設置してください。
           来場者はアプリのスキャン、またはスマホの普通のカメラどちらでも読めます。
         </p>
@@ -195,14 +195,14 @@ export default function StampsTab({
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="場所の名前（例）中庭ステージ"
-            className="flex-1 rounded-lg border border-white/15 bg-slate-950 p-3 text-base"
+            className="flex-1 rounded-lg border border-white/15 bg-neutral-950 p-3 text-base"
           />
           <input
             type="text"
             value={hint}
             onChange={(e) => setHint(e.target.value)}
             placeholder="場所のヒント（例）高校棟 4F"
-            className="flex-1 rounded-lg border border-white/15 bg-slate-950 p-3 text-base"
+            className="flex-1 rounded-lg border border-white/15 bg-neutral-950 p-3 text-base"
           />
           <button
             onClick={add}
@@ -214,11 +214,11 @@ export default function StampsTab({
         </div>
       </section>
 
-      <h2 className="mb-2 text-sm font-semibold text-slate-300">
+      <h2 className="mb-2 text-sm font-medium text-neutral-300">
         設置場所（{spots.length}件）
       </h2>
       {spots.length === 0 ? (
-        <p className="text-sm text-slate-400">まだ登録されていません</p>
+        <p className="text-sm text-neutral-400">まだ登録されていません</p>
       ) : (
         <ul className="grid gap-3 lg:grid-cols-2">
           {spots.map((spot) => (

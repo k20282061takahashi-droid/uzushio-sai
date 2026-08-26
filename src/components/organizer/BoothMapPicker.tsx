@@ -129,8 +129,8 @@ export default function BoothMapPicker({
               onClick={() => setArea(a.id)}
               className={
                 area === a.id
-                  ? "rounded-lg bg-white px-3.5 py-2 text-sm font-bold text-slate-950"
-                  : "rounded-lg bg-white/10 px-3.5 py-2 text-sm text-slate-300"
+                  ? "rounded-lg bg-white px-3.5 py-2 text-sm font-bold text-neutral-950"
+                  : "rounded-lg bg-white/10 px-3.5 py-2 text-sm text-neutral-300"
               }
             >
               {a.name}
@@ -145,8 +145,8 @@ export default function BoothMapPicker({
                 onClick={() => setFloor(f)}
                 className={
                   floor === f
-                    ? "rounded-lg bg-sky-400 px-3 py-2 text-sm font-bold text-slate-950"
-                    : "rounded-lg bg-white/10 px-3 py-2 text-sm text-slate-300"
+                    ? "rounded-lg bg-white px-3 py-2 text-sm font-bold text-neutral-950"
+                    : "rounded-lg bg-white/10 px-3 py-2 text-sm text-neutral-300"
                 }
               >
                 {floorLabel(f)}
@@ -159,14 +159,14 @@ export default function BoothMapPicker({
             図面の部屋を押すと「{selectedBooth.name}」の場所になります
           </p>
         ) : (
-          <p className="ml-auto text-[13px] text-slate-400">
+          <p className="ml-auto text-[13px] text-neutral-400">
             企画のピンはドラッグで動かせます（右クリックで位置をもとに戻す）
           </p>
         )}
       </div>
 
       {/* 図面 */}
-      <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto rounded-xl border border-white/10 bg-slate-950/40 p-2">
+      <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto rounded-xl border border-white/10 bg-neutral-950/40 p-2">
         <div
           ref={planRef}
           className="relative w-full touch-none"
@@ -216,7 +216,7 @@ export default function BoothMapPicker({
                 >
                   {minutes !== null ? `${minutes}分` : booth ? "―" : ""}
                 </span>
-                <span className="mt-0.5 max-w-[86px] truncate rounded bg-black/70 px-1 text-[11px] text-white">
+                <span className="mt-0.5 max-w-[86px] truncate rounded bg-black/70 px-1 text-[12px] text-white">
                   {booth ? booth.name : room.label}
                 </span>
               </button>
@@ -259,7 +259,7 @@ export default function BoothMapPicker({
                 >
                   {minutes !== null ? `${minutes}分` : "―"}
                 </span>
-                <span className="mt-0.5 max-w-[96px] truncate rounded bg-black/80 px-1 text-[11px] text-white">
+                <span className="mt-0.5 max-w-[96px] truncate rounded bg-black/80 px-1 text-[12px] text-white">
                   {booth.projectName || booth.name}
                 </span>
               </div>

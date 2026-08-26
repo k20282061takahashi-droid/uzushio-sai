@@ -1,5 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Zen_Maru_Gothic, Noto_Sans_JP } from "next/font/google";
+import {
+  Geist,
+  Geist_Mono,
+  Zen_Maru_Gothic,
+  Noto_Sans_JP,
+  Zen_Kaku_Gothic_Antique,
+} from "next/font/google";
 import "./globals.css";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
 
@@ -27,6 +33,13 @@ const notoSansJP = Noto_Sans_JP({
   subsets: ["latin"],
 });
 
+// 運営ダッシュボード用（モノクロ・線細めのUIに合わせた角ゴシック）
+const zenKakuGothicAntique = Zen_Kaku_Gothic_Antique({
+  variable: "--font-zen-kaku-antique",
+  weight: ["400", "500", "700"],
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
   title: "渦潮祭",
   description: "渦潮祭 来場者用アプリ",
@@ -47,7 +60,7 @@ export default function RootLayout({
   return (
     <html
       lang="ja"
-      className={`${geistSans.variable} ${geistMono.variable} ${zenMaruGothic.variable} ${notoSansJP.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${zenMaruGothic.variable} ${notoSansJP.variable} ${zenKakuGothicAntique.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-kosei-50 font-body">
         <AnalyticsTracker />

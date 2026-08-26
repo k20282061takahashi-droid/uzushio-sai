@@ -85,17 +85,17 @@ export function BoothPicker({
       <div className="mb-2 flex items-center gap-2">
         <button
           onClick={() => onChange(new Set(booths.map((b) => b.id)))}
-          className="rounded-lg bg-white/10 px-3.5 py-2 text-sm font-semibold active:scale-95"
+          className="rounded-lg bg-white/10 px-3.5 py-2 text-sm font-medium active:scale-95"
         >
           すべて選択
         </button>
         <button
           onClick={() => onChange(new Set())}
-          className="rounded-lg bg-white/5 px-3.5 py-2 text-sm text-slate-300 active:scale-95"
+          className="rounded-lg bg-white/5 px-3.5 py-2 text-sm text-neutral-300 active:scale-95"
         >
           選択を解除
         </button>
-        <p className="ml-auto text-xs text-slate-400">
+        <p className="ml-auto text-xs text-neutral-400">
           {selected.size === 0
             ? "未選択"
             : selected.size === booths.length
@@ -104,14 +104,14 @@ export function BoothPicker({
         </p>
       </div>
 
-      <div className="max-h-64 overflow-y-auto rounded-lg border border-white/10 bg-slate-950/50 p-2">
+      <div className="max-h-64 overflow-y-auto rounded-lg border border-white/10 bg-neutral-950/50 p-2">
         {groups.map(([location, list]) => {
           const allOn = list.every((b) => selected.has(b.id));
           return (
             <div key={location} className="mb-3 last:mb-0">
               <button
                 onClick={() => toggleGroup(list)}
-                className="mb-1 flex w-full items-center gap-2 text-left text-xs font-bold text-slate-300"
+                className="mb-1 flex w-full items-center gap-2 text-left text-xs font-bold text-neutral-300"
               >
                 <span
                   className={`inline-block h-3 w-3 rounded-sm border ${
@@ -119,7 +119,7 @@ export function BoothPicker({
                   }`}
                 />
                 {location}
-                <span className="font-normal text-slate-400">
+                <span className="font-normal text-neutral-400">
                   ({list.length}件)
                 </span>
               </button>
@@ -127,7 +127,7 @@ export function BoothPicker({
                 {list.map((b) => (
                   <label
                     key={b.id}
-                    className="flex cursor-pointer items-center gap-1.5 rounded px-1 py-0.5 text-xs text-slate-300 hover:bg-white/5"
+                    className="flex cursor-pointer items-center gap-1.5 rounded px-1 py-0.5 text-xs text-neutral-300 hover:bg-white/5"
                   >
                     <input
                       type="checkbox"
@@ -216,10 +216,10 @@ function VisitorRulesEditor() {
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
       {/* 左：作成・編集 */}
       <section>
-        <h3 className="mb-2 text-sm font-semibold text-slate-300">
+        <h3 className="mb-2 text-sm font-medium text-neutral-300">
           {editingId ? "案内を編集する" : "新しい案内を作る"}
         </h3>
-        <p className="mb-3 text-[13px] text-slate-400">
+        <p className="mb-3 text-[13px] text-neutral-400">
           来場者アプリの「来場者の皆さんへ」に表示されます。
           タイトルは全文表示され、本文は長い場合に途中まで表示されます。
         </p>
@@ -232,21 +232,21 @@ function VisitorRulesEditor() {
             setDone(false);
           }}
           placeholder="タイトル（例：校内は全面禁煙です）"
-          className="mb-2 w-full rounded-lg border border-white/10 bg-slate-950 p-3 text-sm"
+          className="mb-2 w-full rounded-lg border border-white/10 bg-neutral-950 p-3 text-sm"
         />
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
           rows={8}
           placeholder="本文。改行するとそのまま反映されます。"
-          className="mb-3 w-full rounded-lg border border-white/10 bg-slate-950 p-3 text-sm"
+          className="mb-3 w-full rounded-lg border border-white/10 bg-neutral-950 p-3 text-sm"
         />
 
         <div className="flex gap-2">
           <button
             onClick={submit}
             disabled={saving || !heading.trim()}
-            className="flex-1 rounded-lg bg-emerald-500 p-3 text-sm font-semibold text-white active:scale-95 disabled:opacity-40"
+            className="flex-1 rounded-lg bg-emerald-500 p-3 text-sm font-medium text-white active:scale-95 disabled:opacity-40"
           >
             {saving ? "保存中..." : editingId ? "保存する" : "追加する"}
           </button>
@@ -264,11 +264,11 @@ function VisitorRulesEditor() {
 
       {/* 右：一覧 */}
       <section>
-        <h3 className="mb-2 text-sm font-semibold text-slate-300">
+        <h3 className="mb-2 text-sm font-medium text-neutral-300">
           いまの案内（{rules.length}件）
         </h3>
         {rules.length === 0 ? (
-          <p className="text-sm text-slate-400">まだ登録されていません</p>
+          <p className="text-sm text-neutral-400">まだ登録されていません</p>
         ) : (
           <ul className="max-h-[26rem] space-y-2 overflow-y-auto pr-1">
             {rules.map((rule, i) => (
@@ -277,7 +277,7 @@ function VisitorRulesEditor() {
                 className="rounded-lg border border-white/10 bg-white/5 p-3"
               >
                 <p className="text-sm font-bold">{rule.heading}</p>
-                <p className="mt-1 line-clamp-2 whitespace-pre-line text-[13px] text-slate-400">
+                <p className="mt-1 line-clamp-2 whitespace-pre-line text-[13px] text-neutral-400">
                   {rule.text}
                 </p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
@@ -443,8 +443,8 @@ export default function AnnouncementFloat({
             }}
             className={
               target === t.key
-                ? "rounded-lg bg-white px-4 py-2 text-sm font-bold text-slate-950"
-                : "rounded-lg bg-white/10 px-4 py-2 text-sm text-slate-300"
+                ? "rounded-lg bg-white px-4 py-2 text-sm font-bold text-neutral-950"
+                : "rounded-lg bg-white/10 px-4 py-2 text-sm text-neutral-300"
             }
           >
             {t.label}
@@ -458,7 +458,7 @@ export default function AnnouncementFloat({
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* 左：作成・編集 */}
         <section>
-          <h3 className="mb-2 text-sm font-semibold text-slate-300">
+          <h3 className="mb-2 text-sm font-medium text-neutral-300">
             {editingId ? "連絡を編集する" : "新しい連絡を作る"}
           </h3>
 
@@ -470,17 +470,17 @@ export default function AnnouncementFloat({
               setDone(false);
             }}
             placeholder="タイトル"
-            className="mb-2 w-full rounded-lg border border-white/10 bg-slate-950 p-2.5 text-sm"
+            className="mb-2 w-full rounded-lg border border-white/10 bg-neutral-950 p-2.5 text-sm"
           />
           <textarea
             value={body}
             onChange={(e) => setBody(e.target.value)}
             rows={4}
             placeholder="本文（任意）"
-            className="mb-2 w-full rounded-lg border border-white/10 bg-slate-950 p-2.5 text-sm"
+            className="mb-2 w-full rounded-lg border border-white/10 bg-neutral-950 p-2.5 text-sm"
           />
 
-          <label className="mb-3 flex items-center gap-2 text-xs text-slate-300">
+          <label className="mb-3 flex items-center gap-2 text-xs text-neutral-300">
             <input
               type="checkbox"
               checked={pinned}
@@ -493,14 +493,14 @@ export default function AnnouncementFloat({
           {/* 企画担当者向けのときだけ、宛先を選べるようにする */}
           {target === "staff" && !editingId && (
             <div className="mb-3 rounded-lg border border-white/10 bg-white/5 p-3">
-              <p className="mb-2 text-xs font-semibold text-slate-300">送り先</p>
+              <p className="mb-2 text-xs font-medium text-neutral-300">送り先</p>
               <div className="mb-3 flex gap-2">
                 <button
                   onClick={() => setSendToAll(true)}
                   className={
                     sendToAll
-                      ? "flex-1 rounded-lg bg-white px-3.5 py-2 text-sm font-bold text-slate-950"
-                      : "flex-1 rounded-lg bg-white/10 px-3.5 py-2 text-sm text-slate-300"
+                      ? "flex-1 rounded-lg bg-white px-3.5 py-2 text-sm font-bold text-neutral-950"
+                      : "flex-1 rounded-lg bg-white/10 px-3.5 py-2 text-sm text-neutral-300"
                   }
                 >
                   すべての企画へ
@@ -509,8 +509,8 @@ export default function AnnouncementFloat({
                   onClick={() => setSendToAll(false)}
                   className={
                     !sendToAll
-                      ? "flex-1 rounded-lg bg-white px-3.5 py-2 text-sm font-bold text-slate-950"
-                      : "flex-1 rounded-lg bg-white/10 px-3.5 py-2 text-sm text-slate-300"
+                      ? "flex-1 rounded-lg bg-white px-3.5 py-2 text-sm font-bold text-neutral-950"
+                      : "flex-1 rounded-lg bg-white/10 px-3.5 py-2 text-sm text-neutral-300"
                   }
                 >
                   企画を選んで送る
@@ -527,7 +527,7 @@ export default function AnnouncementFloat({
           )}
 
           {target === "staff" && editingId && (
-            <p className="mb-3 text-xs text-slate-400">
+            <p className="mb-3 text-xs text-neutral-400">
               ※ 送り先は作成時に決まります。変更したい場合は削除して作り直してください。
             </p>
           )}
@@ -536,7 +536,7 @@ export default function AnnouncementFloat({
             <button
               onClick={submit}
               disabled={saving || !canSubmit}
-              className="flex-1 rounded-lg bg-emerald-500 p-2.5 text-sm font-semibold text-white active:scale-95 disabled:opacity-40"
+              className="flex-1 rounded-lg bg-emerald-500 p-2.5 text-sm font-medium text-white active:scale-95 disabled:opacity-40"
             >
               {saving ? "保存中..." : editingId ? "保存する" : "送信する"}
             </button>
@@ -556,11 +556,11 @@ export default function AnnouncementFloat({
 
         {/* 右：送信済み一覧 */}
         <section>
-          <h3 className="mb-2 text-sm font-semibold text-slate-300">
+          <h3 className="mb-2 text-sm font-medium text-neutral-300">
             送信済みの連絡（{list.length}件）
           </h3>
           {list.length === 0 ? (
-            <p className="text-xs text-slate-400">まだ送信していません</p>
+            <p className="text-xs text-neutral-400">まだ送信していません</p>
           ) : (
             <ul className="max-h-[26rem] space-y-2 overflow-y-auto pr-1">
               {[...list]
@@ -583,9 +583,9 @@ export default function AnnouncementFloat({
                           {a.title}
                         </p>
                         {a.body && (
-                          <p className="mt-1 text-xs text-slate-400">{a.body}</p>
+                          <p className="mt-1 text-xs text-neutral-400">{a.body}</p>
                         )}
-                        <p className="mt-1 text-[13px] text-slate-400">
+                        <p className="mt-1 text-[13px] text-neutral-400">
                           {formatTime(a.createdAt)} ・ {targetSummary(a)}
                         </p>
                       </div>

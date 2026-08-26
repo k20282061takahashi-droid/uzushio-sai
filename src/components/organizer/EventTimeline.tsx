@@ -103,7 +103,7 @@ export default function EventTimeline({
     <div className="flex h-full flex-col">
       {/* 拡大縮小 */}
       <div className="mb-2 flex shrink-0 items-center gap-2">
-        <span className="text-[13px] text-slate-400">表示の細かさ</span>
+        <span className="text-[13px] text-neutral-400">表示の細かさ</span>
         <button
           onClick={() => setZoom((z) => Math.max(MIN_ZOOM, z / 1.3))}
           className="rounded-md bg-white/10 px-2.5 py-1 text-xs active:scale-95"
@@ -118,7 +118,7 @@ export default function EventTimeline({
         </button>
         <button
           onClick={() => setZoom(1.6)}
-          className="rounded-md bg-white/5 px-3 py-1.5 text-[13px] text-slate-400 active:scale-95"
+          className="rounded-md bg-white/5 px-3 py-1.5 text-[13px] text-neutral-400 active:scale-95"
         >
           標準に戻す
         </button>
@@ -126,14 +126,14 @@ export default function EventTimeline({
 
       <div
         ref={scrollRef}
-        className="min-h-0 flex-1 overflow-y-auto rounded-xl border border-white/10 bg-slate-950/40"
+        className="min-h-0 flex-1 overflow-y-auto rounded-xl border border-white/10 bg-neutral-950/40"
       >
         <div className="flex px-2 py-2">
           {/* 時刻の目盛り */}
           <div className="w-12 shrink-0">
             {hourMarks.map((m) => (
               <div key={m} style={{ height: 60 * zoom }} className="relative">
-                <span className="absolute -top-2 right-2 text-[13px] text-slate-400">
+                <span className="absolute -top-2 right-2 text-[13px] text-neutral-400">
                   {formatMinutes(m)}
                 </span>
               </div>
@@ -182,14 +182,14 @@ export default function EventTimeline({
                       ? "border-white/10 bg-white/5 opacity-50"
                       : e.delayed
                         ? "border-amber-400/50 bg-amber-400/15"
-                        : "border-sky-400/40 bg-sky-400/15"
+                        : "border-white/20 bg-white/[0.07]"
                   } ${isSelected ? "ring-2 ring-white/60" : ""}`}
                   style={{ top: (start - rangeStart) * zoom + 1, height }}
                 >
                   {/* 高さが足りないときは、時刻と名前を1行にまとめて表示する */}
                   {height < 44 ? (
                     <p className="flex items-center gap-2 truncate text-xs">
-                      <span className="shrink-0 text-[13px] text-slate-300">
+                      <span className="shrink-0 text-[13px] text-neutral-300">
                         {formatMinutes(start)}
                         {end !== null && `〜${formatMinutes(end)}`}
                       </span>
@@ -209,7 +209,7 @@ export default function EventTimeline({
                     </p>
                   ) : (
                     <>
-                      <p className="truncate text-[13px] text-slate-300">
+                      <p className="truncate text-[13px] text-neutral-300">
                         {formatMinutes(start)}
                         {end !== null && `〜${formatMinutes(end)}`}
                         {e.delayed && (

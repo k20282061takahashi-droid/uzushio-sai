@@ -111,10 +111,10 @@ export default function BulkImportFloat({
     >
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <section>
-          <div className="mb-2 rounded-lg border border-white/10 bg-white/5 p-3 text-xs text-slate-400">
-            <p className="mb-1 font-semibold text-slate-300">貼り付け方</p>
+          <div className="mb-2 rounded-lg border border-white/10 bg-white/5 p-3 text-xs text-neutral-400">
+            <p className="mb-1 font-medium text-neutral-300">貼り付け方</p>
             <p>1行につき1つの企画。列は左から順に次のとおりです。</p>
-            <p className="mt-1 font-mono text-[13px] text-slate-300">
+            <p className="mt-1 font-mono text-[13px] text-neutral-300">
               クラス名（必須） / 種別 / 場所
             </p>
             <p className="mt-1">
@@ -122,12 +122,12 @@ export default function BulkImportFloat({
             </p>
           </div>
 
-          <label className="mb-2 flex items-center gap-2 text-xs text-slate-400">
+          <label className="mb-2 flex items-center gap-2 text-xs text-neutral-400">
             種別が空欄のときは
             <select
               value={defaultType}
               onChange={(e) => setDefaultType(e.target.value as BoothType)}
-              className="rounded-lg border border-white/10 bg-slate-950 px-2 py-1 text-xs text-slate-200"
+              className="rounded-lg border border-white/10 bg-neutral-950 px-2 py-1 text-xs text-neutral-200"
             >
               {Object.entries(BOOTH_TYPE_LABELS).map(([key, label]) => (
                 <option key={key} value={key}>
@@ -146,12 +146,12 @@ export default function BulkImportFloat({
             }}
             rows={14}
             placeholder={"3年A組\t クラス企画\t 高校棟\n3年B組\t クラス企画\t 高校棟\n吹奏楽部\t 部活動\t 体育館"}
-            className="w-full rounded-lg border border-white/10 bg-slate-950 p-3 font-mono text-xs"
+            className="w-full rounded-lg border border-white/10 bg-neutral-950 p-3 font-mono text-xs"
           />
         </section>
 
         <section>
-          <h3 className="mb-2 text-sm font-semibold text-slate-300">
+          <h3 className="mb-2 text-sm font-medium text-neutral-300">
             登録される内容（{rows.length}件）
           </h3>
 
@@ -163,28 +163,28 @@ export default function BulkImportFloat({
           )}
 
           {rows.length === 0 ? (
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-neutral-400">
               左に貼り付けると、ここに確認用の一覧が出ます
             </p>
           ) : (
-            <ul className="max-h-80 space-y-1 overflow-y-auto rounded-lg border border-white/10 bg-slate-950/50 p-2">
+            <ul className="max-h-80 space-y-1 overflow-y-auto rounded-lg border border-white/10 bg-neutral-950/50 p-2">
               {rows.map((r, i) => {
                 const dup = existingNames.includes(r.name);
                 return (
                   <li
                     key={i}
                     className={`rounded px-2 py-1 text-xs ${
-                      dup ? "bg-amber-400/10 text-amber-200" : "text-slate-300"
+                      dup ? "bg-amber-400/10 text-amber-200" : "text-neutral-300"
                     }`}
                   >
                     <span className="font-medium">{r.name || "（名前なし）"}</span>
-                    <span className="ml-2 text-slate-400">
+                    <span className="ml-2 text-neutral-400">
                       {BOOTH_TYPE_LABELS[r.type]}
                       {r.location && ` ・ ${r.location}`}
                     </span>
                     {dup && <span className="ml-2">（登録済みのため飛ばします）</span>}
                     {r.warning && (
-                      <span className="ml-2 text-slate-400">{r.warning}</span>
+                      <span className="ml-2 text-neutral-400">{r.warning}</span>
                     )}
                   </li>
                 );
@@ -203,7 +203,7 @@ export default function BulkImportFloat({
           <button
             onClick={submit}
             disabled={saving || rows.length === 0}
-            className="mt-3 w-full rounded-lg bg-emerald-500 p-3 text-sm font-semibold text-white active:scale-95 disabled:opacity-40"
+            className="mt-3 w-full rounded-lg bg-emerald-500 p-3 text-sm font-medium text-white active:scale-95 disabled:opacity-40"
           >
             {saving
               ? "登録中..."
