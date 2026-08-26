@@ -15,13 +15,18 @@ export default function SwirlBackground() {
           "linear-gradient(180deg, #eaf8fb 0%, #d3eef6 55%, #bfe6f0 100%)",
       }}
     >
-      {/* 大きい渦：右上寄り、ゆっくり右下へ漂ってから戻る */}
-      <div className="absolute -right-24 -top-20 opacity-45 animate-swirl-drift-a">
+      {/* 大きい渦：右上寄り、画面の中をゆっくり大きく動き続ける。
+          線がくっきりしすぎないよう、ぼかしをかけて柔らかい印象にする。 */}
+      <div
+        className="absolute -right-24 -top-20 opacity-45 blur-[6px] animate-swirl-drift-a"
+      >
         <WhirlpoolAnimation size={480} />
       </div>
 
-      {/* 小さい渦：左下寄り、逆向きにゆっくり漂う */}
-      <div className="absolute -bottom-16 -left-16 opacity-35 animate-swirl-drift-b">
+      {/* 小さい渦：左下寄り、大きい渦とは逆向き・別の速さでゆっくり動く */}
+      <div
+        className="absolute -bottom-16 -left-16 opacity-35 blur-[4px] animate-swirl-drift-b"
+      >
         <WhirlpoolAnimation size={260} />
       </div>
     </div>
