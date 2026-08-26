@@ -130,7 +130,7 @@ export default function BoothMapPicker({
               className={
                 area === a.id
                   ? "rounded-lg bg-white px-3.5 py-2 text-sm font-bold text-neutral-950"
-                  : "rounded-lg bg-white/10 px-3.5 py-2 text-sm text-neutral-300"
+                  : "rounded-lg bg-neutral-900/75 px-3.5 py-2 text-sm text-neutral-300"
               }
             >
               {a.name}
@@ -146,7 +146,7 @@ export default function BoothMapPicker({
                 className={
                   floor === f
                     ? "rounded-lg bg-white px-3 py-2 text-sm font-bold text-neutral-950"
-                    : "rounded-lg bg-white/10 px-3 py-2 text-sm text-neutral-300"
+                    : "rounded-lg bg-neutral-900/75 px-3 py-2 text-sm text-neutral-300"
                 }
               >
                 {floorLabel(f)}

@@ -111,7 +111,7 @@ export default function BulkImportFloat({
     >
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <section>
-          <div className="mb-2 rounded-lg border border-white/10 bg-white/5 p-3 text-xs text-neutral-400">
+          <div className="mb-2 rounded-lg border border-white/10 bg-neutral-950/55 p-3 text-xs text-neutral-400">
             <p className="mb-1 font-medium text-neutral-300">貼り付け方</p>
             <p>1行につき1つの企画。列は左から順に次のとおりです。</p>
             <p className="mt-1 font-mono text-[13px] text-neutral-300">

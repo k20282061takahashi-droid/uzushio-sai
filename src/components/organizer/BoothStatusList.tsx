@@ -12,10 +12,12 @@ import {
   type SortKey,
 } from "@/lib/boothGrouping";
 
-function statusClass(booth: Booth): string {
-  if (booth.status === "open") return "bg-emerald-500/20 text-emerald-200";
-  if (booth.status === "break") return "bg-amber-500/20 text-amber-200";
-  return "bg-white/10 text-neutral-400";
+// ステータスは「塗りつぶしのタグ」ではなく小さな点で示す。
+// 58件ぶんの色付きタグが並ぶと画面がうるさくなるため、色は点だけに残す。
+function statusDotClass(booth: Booth): string {
+  if (booth.status === "open") return "bg-emerald-400";
+  if (booth.status === "break") return "bg-amber-400";
+  return "bg-neutral-600";
 }
 
 // 全体運営タブに置く「企画の状況」。
@@ -57,9 +59,9 @@ export default function BoothStatusList({
   );
 
   return (
-    <section className="flex h-full flex-col rounded-xl border border-white/10 bg-white/5 p-4">
+    <section className="flex h-full flex-col rounded-xl border border-white/10 bg-neutral-950/55 p-4">
       <div className="mb-2 flex shrink-0 items-center justify-between gap-3">
-        <h2 className="text-sm font-medium text-neutral-300">
+        <h2 className="text-sm font-medium tracking-[0.04em] text-neutral-200">
           企画の状況（{filtered.length}
           {filtered.length !== booths.length && ` / ${booths.length}`}件）
         </h2>
@@ -90,49 +92,51 @@ export default function BoothStatusList({
         {groups.map((group) => (
           <div key={group.label || "all"}>
             {group.label && (
-              <p className="sticky top-0 z-10 mb-1 bg-neutral-900/80 py-1 text-[13px] font-bold text-neutral-400 backdrop-blur">
+              <p className="sticky top-0 z-10 mb-1 bg-neutral-950/90 py-1 text-[13px] font-bold text-neutral-400 backdrop-blur">
                 {group.label}（{group.booths.length}）
               </p>
             )}
-            <div className="grid grid-cols-1 gap-1 xl:grid-cols-2">
+            <div className="grid grid-cols-1 gap-x-6 xl:grid-cols-2">
               {group.booths.map((b) => {
                 const minutes = waitMinutesOf(b);
                 const stale = now ? isWaitingStale(b, now) : false;
                 return (
                   <div
                     key={b.id}
-                    className="flex items-center justify-between gap-2 rounded-lg bg-white/5 px-3 py-2 text-sm"
+                    className="flex items-center justify-between gap-3 border-b border-white/[0.06] px-1 py-2 text-sm"
                   >
-                    <div className="min-w-0">
-                      <p className="truncate font-medium">
+                    <div className="flex min-w-0 items-center gap-2.5">
+                      <span
+                        title={STATUS_LABELS[b.status]}
+                        className={`h-1.5 w-1.5 shrink-0 rounded-full ${statusDotClass(b)}`}
+                      />
+                      <div className="min-w-0">
+                      <p className="truncate text-neutral-100">
                         {b.name}
                         {b.projectName ? `（${b.projectName}）` : ""}
                       </p>
-                      <p className="truncate text-[13px] text-neutral-400">
+                      <p className="truncate text-[12px] text-neutral-500">
                         {BOOTH_TYPE_LABELS[b.type] ?? b.type}
                         {b.location && ` ・ ${b.location}`}
                         {b.floor != null &&
                           ` ${b.floor === -1 ? "B1" : `${b.floor}F`}`}
                         {!b.isSetupDone && " ・ 未設定"}
                       </p>
+                      </div>
                     </div>
-                    <div className="flex shrink-0 items-center gap-1.5">
+                    <div className="flex shrink-0 items-center gap-3 text-[12px]">
                       {stale && (
                         <span
                           title="待ちグループ数がしばらく更新されていません"
-                          className="rounded bg-amber-400/20 px-1.5 py-0.5 text-[12px] text-amber-200"
+                          className="text-amber-300"
                         >
                           未更新
                         </span>
                       )}
-                      {minutes !== null && (
-                        <span className="text-xs text-neutral-400">
-                          待ち{minutes}分
-                        </span>
-                      )}
-                      <span
-                        className={`rounded-full px-3 py-1.5 text-[13px] font-medium ${statusClass(b)}`}
-                      >
+                      <span className="w-12 text-right tabular-nums text-neutral-300">
+                        {minutes !== null ? `${minutes}分` : ""}
+                      </span>
+                      <span className="w-11 text-right text-neutral-500">
                         {STATUS_LABELS[b.status]}
                       </span>
                     </div>

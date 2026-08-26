@@ -27,10 +27,11 @@ import {
 } from "@/lib/boothGrouping";
 import { type AreaId } from "@/lib/floorplan";
 
-function statusClass(booth: Booth): string {
-  if (booth.status === "open") return "bg-emerald-500/20 text-emerald-200";
-  if (booth.status === "break") return "bg-amber-500/20 text-amber-200";
-  return "bg-white/10 text-neutral-400";
+// ステータスは小さな点＋文字で示す（塗りつぶしのタグは数が並ぶとうるさいため）
+function statusDotClass(booth: Booth): string {
+  if (booth.status === "open") return "bg-emerald-400";
+  if (booth.status === "break") return "bg-amber-400";
+  return "bg-neutral-600";
 }
 
 const AREA_NAMES: Record<AreaId, string> = {
@@ -59,7 +60,7 @@ function BoothCard({
   return (
     <div
       onClick={onSelect}
-      className={`flex cursor-pointer gap-3 overflow-hidden rounded-xl border bg-white/5 p-2.5 transition-colors hover:bg-white/[0.08] ${
+      className={`flex cursor-pointer gap-3 overflow-hidden rounded-xl border bg-neutral-950/55 p-2.5 transition-colors hover:bg-white/[0.08] ${
         selected ? "border-emerald-400 ring-1 ring-emerald-400" : "border-white/10"
       }`}
     >
@@ -85,21 +86,20 @@ function BoothCard({
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex items-start gap-2">
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-bold leading-tight">
+            <p className="truncate text-sm font-medium leading-tight text-neutral-100">
               {booth.projectName || "（企画名未設定）"}
             </p>
-            <p className="truncate text-[13px] text-neutral-400">{booth.name}</p>
+            <p className="truncate text-[12px] text-neutral-500">{booth.name}</p>
           </div>
           <div className="flex shrink-0 flex-col items-end gap-1">
-            <span
-              className={`rounded-full px-2.5 py-1 text-[12px] font-medium ${statusClass(booth)}`}
-            >
+            <span className="flex items-center gap-1.5 text-[12px] text-neutral-400">
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${statusDotClass(booth)}`}
+              />
               {STATUS_LABELS[booth.status]}
             </span>
             {stale && (
-              <span className="rounded bg-amber-400 px-2 py-1 text-[12px] font-bold text-neutral-950">
-                待ち未更新
-              </span>
+              <span className="text-[12px] text-amber-300">待ち未更新</span>
             )}
           </div>
         </div>
@@ -123,11 +123,11 @@ function BoothCard({
 
         <div className="mt-auto flex items-center gap-2 pt-1">
           {minutes !== null ? (
-            <span className="rounded bg-white/10 px-1.5 py-0.5 text-[12px] text-neutral-200">
+            <span className="rounded bg-neutral-900/75 px-1.5 py-0.5 text-[12px] text-neutral-200">
               待ち {minutes}分
             </span>
           ) : (
-            <span className="rounded bg-white/5 px-1.5 py-0.5 text-[12px] text-neutral-400">
+            <span className="rounded bg-neutral-950/55 px-1.5 py-0.5 text-[12px] text-neutral-400">
               待ち時間なし
             </span>
           )}
@@ -136,7 +136,7 @@ function BoothCard({
               e.stopPropagation();
               onOpenDetail();
             }}
-            className="ml-auto rounded-lg bg-white/10 px-2.5 py-1 text-[12px] font-medium active:scale-95"
+            className="ml-auto rounded-lg bg-neutral-900/75 px-2.5 py-1 text-[12px] font-medium active:scale-95"
           >
             詳細・編集
           </button>
@@ -231,9 +231,10 @@ function BoothDetailForm({
           <div className="space-y-1.5 text-sm">
             <div className="flex justify-between">
               <span className="text-neutral-400">状態</span>
-              <span
-                className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusClass(booth)}`}
-              >
+              <span className="flex items-center gap-1.5 text-neutral-100">
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${statusDotClass(booth)}`}
+                />
                 {STATUS_LABELS[booth.status]}
               </span>
             </div>
@@ -267,7 +268,7 @@ function BoothDetailForm({
             />
             <button
               onClick={() => navigator.clipboard.writeText(manageUrl)}
-              className="shrink-0 rounded-lg bg-white/10 px-2 py-2 text-[13px] active:scale-95"
+              className="shrink-0 rounded-lg bg-neutral-900/75 px-2 py-2 text-[13px] active:scale-95"
             >
               URLをコピー
             </button>
@@ -353,7 +354,7 @@ function BoothDetailForm({
             />
           </label>
 
-          <div className="mt-3 rounded-lg border border-white/10 bg-white/5 p-3">
+          <div className="mt-3 rounded-lg border border-white/10 bg-neutral-950/55 p-3">
             <label className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
@@ -414,7 +415,7 @@ function BoothDetailForm({
                 </button>
                 <button
                   onClick={() => setConfirmDelete(false)}
-                  className="rounded-lg bg-white/10 px-4 py-2.5 text-sm active:scale-95"
+                  className="rounded-lg bg-neutral-900/75 px-4 py-2.5 text-sm active:scale-95"
                 >
                   やめる
                 </button>
@@ -519,13 +520,13 @@ export default function BoothsTab({ onDataUpdate }: { onDataUpdate: () => void }
           <>
             <button
               onClick={() => setShowMap((v) => !v)}
-              className="rounded-lg bg-white/10 px-3.5 py-2 text-sm text-neutral-200 active:scale-95"
+              className="rounded-lg bg-neutral-900/75 px-3.5 py-2 text-sm text-neutral-200 active:scale-95"
             >
               {showMap ? "地図を隠す" : "地図を表示"}
             </button>
             <button
               onClick={() => setAdding(true)}
-              className="rounded-lg bg-white/10 px-3.5 py-2 text-sm text-neutral-200 active:scale-95"
+              className="rounded-lg bg-neutral-900/75 px-3.5 py-2 text-sm text-neutral-200 active:scale-95"
             >
               ＋ 1件追加
             </button>
@@ -581,7 +582,7 @@ export default function BoothsTab({ onDataUpdate }: { onDataUpdate: () => void }
         {/* 地図 */}
         {showMap && (
           <div className="min-h-[24rem] lg:min-h-0 lg:col-span-2">
-            <div className="flex h-full flex-col rounded-xl border border-white/10 bg-white/5 p-3">
+            <div className="flex h-full flex-col rounded-xl border border-white/10 bg-neutral-950/55 p-3">
               <div className="mb-2 flex shrink-0 items-center justify-between">
                 <h2 className="text-sm font-medium text-neutral-300">地図</h2>
                 {selected ? (

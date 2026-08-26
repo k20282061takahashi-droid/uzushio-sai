@@ -46,7 +46,7 @@ export default function EmergencyFloat({
           className={
             tab === "open"
               ? "rounded-lg bg-white px-4 py-2 text-sm font-bold text-neutral-950"
-              : "rounded-lg bg-white/10 px-4 py-2 text-sm text-neutral-300"
+              : "rounded-lg bg-neutral-900/75 px-4 py-2 text-sm text-neutral-300"
           }
         >
           未対応（{openList.length}）
@@ -56,7 +56,7 @@ export default function EmergencyFloat({
           className={
             tab === "resolved"
               ? "rounded-lg bg-white px-4 py-2 text-sm font-bold text-neutral-950"
-              : "rounded-lg bg-white/10 px-4 py-2 text-sm text-neutral-300"
+              : "rounded-lg bg-neutral-900/75 px-4 py-2 text-sm text-neutral-300"
           }
         >
           対応済み（{resolvedList.length}）
@@ -77,7 +77,7 @@ export default function EmergencyFloat({
               className={`rounded-lg border p-3 ${
                 tab === "open"
                   ? "border-red-500/40 bg-red-500/10"
-                  : "border-white/10 bg-white/5 opacity-60"
+                  : "border-white/10 bg-neutral-950/55 opacity-60"
               }`}
             >
               <div className="flex items-start justify-between gap-3">
@@ -97,7 +97,7 @@ export default function EmergencyFloat({
                 {a.status === "open" && (
                   <button
                     onClick={() => resolveEmergencyAlert(a.id)}
-                    className="shrink-0 rounded-lg bg-white/15 px-3.5 py-2 text-sm font-medium active:scale-95"
+                    className="shrink-0 rounded-lg bg-neutral-900/90 px-3.5 py-2 text-sm font-medium active:scale-95"
                   >
                     対応済みにする
                   </button>

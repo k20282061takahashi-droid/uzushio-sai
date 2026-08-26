@@ -40,7 +40,7 @@ function SpotCard({
   }
 
   return (
-    <li className="rounded-xl border border-white/10 bg-white/5 p-4">
+    <li className="rounded-xl border border-white/10 bg-neutral-950/55 p-4">
       <div className="flex flex-col gap-4 sm:flex-row">
         <div className="shrink-0 self-center rounded-lg bg-white p-2">
           <QrCode value={url} size={140} />
@@ -85,7 +85,7 @@ function SpotCard({
                 setCopied(true);
                 setTimeout(() => setCopied(false), 2000);
               }}
-              className="rounded-lg bg-white/10 px-4 py-2 text-sm active:scale-95"
+              className="rounded-lg bg-neutral-900/75 px-4 py-2 text-sm active:scale-95"
             >
               {copied ? "コピーしました" : "URLをコピー"}
             </button>
@@ -107,7 +107,7 @@ function SpotCard({
           onClick={() => setConfirmDelete(false)}
         >
           <div
-            className="w-full max-w-sm rounded-xl border border-white/12 bg-neutral-900 p-5"
+            className="w-full max-w-sm rounded-xl border border-white/12 bg-neutral-900/95 p-5 backdrop-blur-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <p className="mb-4 text-base font-medium">
@@ -129,7 +129,7 @@ function SpotCard({
               </button>
               <button
                 onClick={() => setConfirmDelete(false)}
-                className="flex-1 rounded-lg bg-white/10 p-3 text-sm active:scale-95"
+                className="flex-1 rounded-lg bg-neutral-900/75 p-3 text-sm active:scale-95"
               >
                 キャンセル
               </button>
@@ -183,7 +183,7 @@ export default function StampsTab({
 
   return (
     <div className="h-full overflow-y-auto pb-6">
-      <section className="mb-5 rounded-xl border border-white/10 bg-white/5 p-4">
+      <section className="mb-5 rounded-xl border border-white/10 bg-neutral-950/55 p-4">
         <h2 className="mb-1 text-base font-bold">スタンプの設置場所を追加</h2>
         <p className="mb-3 text-xs text-neutral-400">
           追加するとQRコードが自動で発行されます。印刷して設置してください。

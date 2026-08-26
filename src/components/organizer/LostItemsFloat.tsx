@@ -33,7 +33,7 @@ export default function LostItemsFloat({
           className={
             tab === "unclaimed"
               ? "rounded-lg bg-white px-4 py-2 text-sm font-bold text-neutral-950"
-              : "rounded-lg bg-white/10 px-4 py-2 text-sm text-neutral-300"
+              : "rounded-lg bg-neutral-900/75 px-4 py-2 text-sm text-neutral-300"
           }
         >
           お預かり中（{unclaimed.length}）
@@ -43,7 +43,7 @@ export default function LostItemsFloat({
           className={
             tab === "claimed"
               ? "rounded-lg bg-white px-4 py-2 text-sm font-bold text-neutral-950"
-              : "rounded-lg bg-white/10 px-4 py-2 text-sm text-neutral-300"
+              : "rounded-lg bg-neutral-900/75 px-4 py-2 text-sm text-neutral-300"
           }
         >
           返却済み（{claimed.length}）
@@ -61,7 +61,7 @@ export default function LostItemsFloat({
           {shown.map((item) => (
             <div
               key={item.id}
-              className={`overflow-hidden rounded-xl border border-white/10 bg-white/5 ${
+              className={`overflow-hidden rounded-xl border border-white/10 bg-neutral-950/55 ${
                 // 返却済みは薄く表示して、未対応と見分けやすくする
                 item.status === "claimed" ? "opacity-40" : ""
               }`}
@@ -94,7 +94,7 @@ export default function LostItemsFloat({
                 {item.status === "unclaimed" ? (
                   <button
                     onClick={() => markLostItemClaimed(item.id)}
-                    className="mt-3 w-full rounded-lg bg-white/15 py-3 text-sm font-medium active:scale-95"
+                    className="mt-3 w-full rounded-lg bg-neutral-900/90 py-3 text-sm font-medium active:scale-95"
                   >
                     返却済みにする
                   </button>

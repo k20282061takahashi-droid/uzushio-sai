@@ -48,7 +48,7 @@ export default function FloatPanel({
       onClick={onClose}
     >
       <div
-        className={`flex max-h-[94vh] w-full ${widthClass} flex-col overflow-hidden rounded-xl border border-white/12 bg-neutral-900 shadow-[0_24px_70px_rgba(0,0,0,0.65)] sm:max-h-[88vh]`}
+        className={`flex max-h-[94vh] w-full ${widthClass} flex-col overflow-hidden rounded-xl border border-white/12 bg-neutral-900/95 backdrop-blur-xl shadow-[0_24px_70px_rgba(0,0,0,0.65)] sm:max-h-[88vh]`}
         onClick={(e) => e.stopPropagation()}
       >
         <header className="flex shrink-0 items-start justify-between gap-4 border-b border-white/10 px-4 py-3.5 sm:px-6 sm:py-4">

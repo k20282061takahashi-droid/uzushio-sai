@@ -286,3 +286,52 @@ body {
 .organizer-ui ::-webkit-scrollbar-track {
   background: transparent;
 }
+
+/* ---- 運営画面の背景（渦の写真） ----
+   写真そのものは事前に暗く・ぼかしてノイズを落としてある（public/organizer-bg.webp）。
+   さらに画面全体へ暗いグラデーションを重ねて、文字の下では必ず静かになるようにする。
+   ::before / ::after は position: fixed なので、スクロールしても背景は動かない。 */
+.organizer-ui {
+  position: relative;
+  background-color: #08080a;
+}
+
+.organizer-ui::before,
+.organizer-ui::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.organizer-ui::before {
+  background: url("/organizer-bg.webp") center / cover no-repeat;
+  opacity: 0.5;
+}
+
+/* 上に重ねる暗幕。中央〜下ほど濃くして、情報が詰まる場所を静かにする */
+.organizer-ui::after {
+  background:
+    radial-gradient(
+      130% 90% at 50% 0%,
+      rgba(8, 8, 10, 0.5) 0%,
+      rgba(8, 8, 10, 0.82) 55%,
+      rgba(8, 8, 10, 0.94) 100%
+    );
+}
+
+/* 中身は背景より前に出す */
+.organizer-ui > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* 「動きを減らす」設定の人や、背景が邪魔な場合に備えて、
+   印刷時は背景を消す */
+@media print {
+  .organizer-ui::before,
+  .organizer-ui::after {
+    display: none;
+  }
+}

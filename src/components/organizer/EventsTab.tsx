@@ -43,7 +43,7 @@ function HighlightCard({
       className={`flex min-h-[92px] flex-1 items-center gap-4 rounded-xl border p-4 ${
         tone === "now"
           ? "border-emerald-400/40 bg-emerald-400/10"
-          : "border-white/10 bg-white/5"
+          : "border-white/10 bg-neutral-950/55"
       }`}
     >
       <div className="min-w-0 flex-1">
@@ -150,7 +150,7 @@ function DelayForm({
           <button
             key={m}
             onClick={() => shiftBy(m)}
-            className="flex-1 rounded-lg bg-white/10 py-2 text-sm active:scale-95"
+            className="flex-1 rounded-lg bg-neutral-900/75 py-2 text-sm active:scale-95"
           >
             +{m}分
           </button>
@@ -178,7 +178,7 @@ function DelayForm({
         </label>
       </div>
 
-      <div className="mt-3 rounded-lg bg-white/5 p-3 text-sm text-neutral-300">
+      <div className="mt-3 rounded-lg bg-neutral-950/55 p-3 text-sm text-neutral-300">
         <p className="mb-1 text-xs font-medium text-neutral-400">
           来場者に流れるお知らせ（自動）
         </p>
@@ -199,7 +199,7 @@ function DelayForm({
 
       {/* すでに遅延を知らせている場合は、取り消しもできるようにする */}
       {event.delayed && (
-        <div className="mt-3 rounded-lg border border-white/10 bg-white/5 p-3">
+        <div className="mt-3 rounded-lg border border-white/10 bg-neutral-950/55 p-3">
           <p className="mb-2 text-xs text-neutral-400">
             遅延を取り消すと、来場者に送ったお知らせを削除し、
             開始時刻をもとの{event.originalStartAt ?? "予定"}に戻します。
@@ -207,7 +207,7 @@ function DelayForm({
           <button
             onClick={cancel}
             disabled={cancelling}
-            className="w-full rounded-lg bg-white/10 p-3 text-sm font-medium active:scale-95 disabled:opacity-40"
+            className="w-full rounded-lg bg-neutral-900/75 p-3 text-sm font-medium active:scale-95 disabled:opacity-40"
           >
             {cancelling ? "取り消し中..." : "遅延を取り消して、お知らせを削除する"}
           </button>
@@ -454,7 +454,7 @@ export default function EventsTab({ onDataUpdate }: { onDataUpdate: () => void }
               className={
                 dayIndex === i
                   ? "rounded-lg bg-white px-4 py-2 text-sm font-bold text-neutral-950"
-                  : "rounded-lg bg-white/10 px-4 py-2 text-sm text-neutral-300"
+                  : "rounded-lg bg-neutral-900/75 px-4 py-2 text-sm text-neutral-300"
               }
             >
               {dayLabel(d, i)}
@@ -470,7 +470,7 @@ export default function EventsTab({ onDataUpdate }: { onDataUpdate: () => void }
               className={
                 venue === v
                   ? "rounded-lg bg-white px-4 py-2 text-sm font-bold text-neutral-950"
-                  : "rounded-lg bg-white/10 px-4 py-2 text-sm text-neutral-300"
+                  : "rounded-lg bg-neutral-900/75 px-4 py-2 text-sm text-neutral-300"
               }
             >
               {v}

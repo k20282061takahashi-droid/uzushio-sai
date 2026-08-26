@@ -106,19 +106,19 @@ export default function EventTimeline({
         <span className="text-[13px] text-neutral-400">表示の細かさ</span>
         <button
           onClick={() => setZoom((z) => Math.max(MIN_ZOOM, z / 1.3))}
-          className="rounded-md bg-white/10 px-2.5 py-1 text-xs active:scale-95"
+          className="rounded-md bg-neutral-900/75 px-2.5 py-1 text-xs active:scale-95"
         >
           −
         </button>
         <button
           onClick={() => setZoom((z) => Math.min(MAX_ZOOM, z * 1.3))}
-          className="rounded-md bg-white/10 px-2.5 py-1 text-xs active:scale-95"
+          className="rounded-md bg-neutral-900/75 px-2.5 py-1 text-xs active:scale-95"
         >
           ＋
         </button>
         <button
           onClick={() => setZoom(1.6)}
-          className="rounded-md bg-white/5 px-3 py-1.5 text-[13px] text-neutral-400 active:scale-95"
+          className="rounded-md bg-neutral-950/55 px-3 py-1.5 text-[13px] text-neutral-400 active:scale-95"
         >
           標準に戻す
         </button>
@@ -179,7 +179,7 @@ export default function EventTimeline({
                   onClick={() => onSelect?.(e)}
                   className={`absolute left-1 right-1 overflow-hidden rounded-lg border px-2 py-1 text-left transition-colors ${
                     cancelled
-                      ? "border-white/10 bg-white/5 opacity-50"
+                      ? "border-white/10 bg-neutral-950/55 opacity-50"
                       : e.delayed
                         ? "border-amber-400/50 bg-amber-400/15"
                         : "border-white/20 bg-white/[0.07]"

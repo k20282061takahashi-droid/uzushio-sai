@@ -87,7 +87,7 @@ export default function StaffAlertFloat({
             className={
               sendToAll
                 ? "rounded-lg bg-white px-4 py-2 text-sm font-bold text-neutral-950"
-                : "rounded-lg bg-white/10 px-4 py-2 text-sm text-neutral-300"
+                : "rounded-lg bg-neutral-900/75 px-4 py-2 text-sm text-neutral-300"
             }
           >
             全企画へ（{booths.length}件）
@@ -97,7 +97,7 @@ export default function StaffAlertFloat({
             className={
               !sendToAll
                 ? "rounded-lg bg-white px-4 py-2 text-sm font-bold text-neutral-950"
-                : "rounded-lg bg-white/10 px-4 py-2 text-sm text-neutral-300"
+                : "rounded-lg bg-neutral-900/75 px-4 py-2 text-sm text-neutral-300"
             }
           >
             企画を選ぶ
@@ -148,7 +148,7 @@ export default function StaffAlertFloat({
                   </span>
                   <button
                     onClick={() => closeStaffAlert(a.id)}
-                    className="ml-auto rounded-lg bg-white/15 px-3.5 py-2 text-sm font-medium active:scale-95"
+                    className="ml-auto rounded-lg bg-neutral-900/90 px-3.5 py-2 text-sm font-medium active:scale-95"
                   >
                     取り下げる
                   </button>
@@ -168,7 +168,7 @@ export default function StaffAlertFloat({
             {closedList.slice(0, 10).map((a) => (
               <li
                 key={a.id}
-                className="rounded-lg border border-white/10 bg-white/5 p-3 opacity-60"
+                className="rounded-lg border border-white/10 bg-neutral-950/55 p-3 opacity-60"
               >
                 <p className="text-sm">{a.message}</p>
                 <p className="mt-1 text-[13px] text-neutral-400">
@@ -188,7 +188,7 @@ export default function StaffAlertFloat({
           onClick={() => setConfirming(false)}
         >
           <div
-            className="w-full max-w-md rounded-xl border border-white/12 bg-neutral-900 p-5"
+            className="w-full max-w-md rounded-xl border border-white/12 bg-neutral-900/95 p-5 backdrop-blur-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <p className="mb-2 text-base font-bold text-red-300">
@@ -207,7 +207,7 @@ export default function StaffAlertFloat({
               </button>
               <button
                 onClick={() => setConfirming(false)}
-                className="flex-1 rounded-lg bg-white/10 p-3 text-sm active:scale-95"
+                className="flex-1 rounded-lg bg-neutral-900/75 p-3 text-sm active:scale-95"
               >
                 キャンセル
               </button>

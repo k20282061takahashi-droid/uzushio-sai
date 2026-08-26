@@ -85,13 +85,13 @@ export function BoothPicker({
       <div className="mb-2 flex items-center gap-2">
         <button
           onClick={() => onChange(new Set(booths.map((b) => b.id)))}
-          className="rounded-lg bg-white/10 px-3.5 py-2 text-sm font-medium active:scale-95"
+          className="rounded-lg bg-neutral-900/75 px-3.5 py-2 text-sm font-medium active:scale-95"
         >
           すべて選択
         </button>
         <button
           onClick={() => onChange(new Set())}
-          className="rounded-lg bg-white/5 px-3.5 py-2 text-sm text-neutral-300 active:scale-95"
+          className="rounded-lg bg-neutral-950/55 px-3.5 py-2 text-sm text-neutral-300 active:scale-95"
         >
           選択を解除
         </button>
@@ -127,7 +127,7 @@ export function BoothPicker({
                 {list.map((b) => (
                   <label
                     key={b.id}
-                    className="flex cursor-pointer items-center gap-1.5 rounded px-1 py-0.5 text-xs text-neutral-300 hover:bg-white/5"
+                    className="flex cursor-pointer items-center gap-1.5 rounded px-1 py-0.5 text-xs text-neutral-300 hover:bg-neutral-950/55"
                   >
                     <input
                       type="checkbox"
@@ -253,7 +253,7 @@ function VisitorRulesEditor() {
           {editingId && (
             <button
               onClick={reset}
-              className="rounded-lg bg-white/10 px-5 text-sm active:scale-95"
+              className="rounded-lg bg-neutral-900/75 px-5 text-sm active:scale-95"
             >
               やめる
             </button>
@@ -274,7 +274,7 @@ function VisitorRulesEditor() {
             {rules.map((rule, i) => (
               <li
                 key={rule.id}
-                className="rounded-lg border border-white/10 bg-white/5 p-3"
+                className="rounded-lg border border-white/10 bg-neutral-950/55 p-3"
               >
                 <p className="text-sm font-bold">{rule.heading}</p>
                 <p className="mt-1 line-clamp-2 whitespace-pre-line text-[13px] text-neutral-400">
@@ -283,21 +283,21 @@ function VisitorRulesEditor() {
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   <button
                     onClick={() => startEdit(rule)}
-                    className="rounded-md bg-white/10 px-3 py-1.5 text-[13px] active:scale-95"
+                    className="rounded-md bg-neutral-900/75 px-3 py-1.5 text-[13px] active:scale-95"
                   >
                     編集
                   </button>
                   <button
                     onClick={() => move(rule, -1)}
                     disabled={i === 0}
-                    className="rounded-md bg-white/10 px-3 py-1.5 text-[13px] active:scale-95 disabled:opacity-30"
+                    className="rounded-md bg-neutral-900/75 px-3 py-1.5 text-[13px] active:scale-95 disabled:opacity-30"
                   >
                     ↑ 上へ
                   </button>
                   <button
                     onClick={() => move(rule, 1)}
                     disabled={i === rules.length - 1}
-                    className="rounded-md bg-white/10 px-3 py-1.5 text-[13px] active:scale-95 disabled:opacity-30"
+                    className="rounded-md bg-neutral-900/75 px-3 py-1.5 text-[13px] active:scale-95 disabled:opacity-30"
                   >
                     ↓ 下へ
                   </button>
@@ -444,7 +444,7 @@ export default function AnnouncementFloat({
             className={
               target === t.key
                 ? "rounded-lg bg-white px-4 py-2 text-sm font-bold text-neutral-950"
-                : "rounded-lg bg-white/10 px-4 py-2 text-sm text-neutral-300"
+                : "rounded-lg bg-neutral-900/75 px-4 py-2 text-sm text-neutral-300"
             }
           >
             {t.label}
@@ -492,7 +492,7 @@ export default function AnnouncementFloat({
 
           {/* 企画担当者向けのときだけ、宛先を選べるようにする */}
           {target === "staff" && !editingId && (
-            <div className="mb-3 rounded-lg border border-white/10 bg-white/5 p-3">
+            <div className="mb-3 rounded-lg border border-white/10 bg-neutral-950/55 p-3">
               <p className="mb-2 text-xs font-medium text-neutral-300">送り先</p>
               <div className="mb-3 flex gap-2">
                 <button
@@ -500,7 +500,7 @@ export default function AnnouncementFloat({
                   className={
                     sendToAll
                       ? "flex-1 rounded-lg bg-white px-3.5 py-2 text-sm font-bold text-neutral-950"
-                      : "flex-1 rounded-lg bg-white/10 px-3.5 py-2 text-sm text-neutral-300"
+                      : "flex-1 rounded-lg bg-neutral-900/75 px-3.5 py-2 text-sm text-neutral-300"
                   }
                 >
                   すべての企画へ
@@ -510,7 +510,7 @@ export default function AnnouncementFloat({
                   className={
                     !sendToAll
                       ? "flex-1 rounded-lg bg-white px-3.5 py-2 text-sm font-bold text-neutral-950"
-                      : "flex-1 rounded-lg bg-white/10 px-3.5 py-2 text-sm text-neutral-300"
+                      : "flex-1 rounded-lg bg-neutral-900/75 px-3.5 py-2 text-sm text-neutral-300"
                   }
                 >
                   企画を選んで送る
@@ -543,7 +543,7 @@ export default function AnnouncementFloat({
             {editingId && (
               <button
                 onClick={resetForm}
-                className="rounded-lg bg-white/10 px-4 text-sm active:scale-95"
+                className="rounded-lg bg-neutral-900/75 px-4 text-sm active:scale-95"
               >
                 やめる
               </button>
@@ -571,7 +571,7 @@ export default function AnnouncementFloat({
                     className={`rounded-lg border p-3 text-sm ${
                       a.pinned
                         ? "border-amber-400/30 bg-amber-400/10"
-                        : "border-white/10 bg-white/5"
+                        : "border-white/10 bg-neutral-950/55"
                     }`}
                   >
                     <div className="flex items-start gap-2">
@@ -593,13 +593,13 @@ export default function AnnouncementFloat({
                     <div className="mt-2 flex gap-1">
                       <button
                         onClick={() => startEdit(a)}
-                        className="rounded-md bg-white/10 px-3 py-1.5 text-[13px] active:scale-95"
+                        className="rounded-md bg-neutral-900/75 px-3 py-1.5 text-[13px] active:scale-95"
                       >
                         編集
                       </button>
                       <button
                         onClick={() => togglePin(a)}
-                        className="rounded-md bg-white/10 px-3 py-1.5 text-[13px] active:scale-95"
+                        className="rounded-md bg-neutral-900/75 px-3 py-1.5 text-[13px] active:scale-95"
                       >
                         {a.pinned ? "ピン留めを外す" : "ピン留め"}
                       </button>

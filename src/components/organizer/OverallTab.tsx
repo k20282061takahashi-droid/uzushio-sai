@@ -65,7 +65,7 @@ function ClickableCard({
       className={`flex h-full cursor-pointer flex-col rounded-xl border p-4 transition-colors ${
         badgeTone === "alert"
           ? "border-red-500/45 bg-red-500/10 hover:bg-red-500/15"
-          : "border-white/12 bg-white/[0.02] hover:border-white/25 hover:bg-white/[0.05]"
+          : "border-white/12 bg-neutral-950/55 hover:border-white/25 hover:bg-white/[0.05]"
       }`}
     >
       <div className="mb-2 flex shrink-0 items-center justify-between gap-2">
@@ -177,9 +177,9 @@ export default function OverallTab({
   }
 
   return (
-    <div className="flex h-full flex-col gap-3">
+    <div className="flex h-full flex-col gap-4">
       {/* 上部バー */}
-      <section className="flex shrink-0 flex-col items-center gap-4 rounded-xl border border-white/10 bg-white/5 p-4 sm:flex-row sm:flex-wrap sm:justify-between">
+      <section className="flex shrink-0 flex-col items-center gap-4 rounded-xl border border-white/10 bg-neutral-950/55 p-4 sm:flex-row sm:flex-wrap sm:justify-between">
         <div className="w-full sm:w-auto">
           <p className="text-xs text-neutral-400">
             {phase === "before" ? "文化祭前" : "文化祭中"}
@@ -190,7 +190,7 @@ export default function OverallTab({
             className={
               phase === "before"
                 ? "mt-1 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-bold text-white active:scale-95 disabled:opacity-50"
-                : "mt-1 rounded-lg bg-white/10 px-4 py-2 text-sm font-bold active:scale-95 disabled:opacity-50"
+                : "mt-1 rounded-lg bg-neutral-900/75 px-4 py-2 text-sm font-bold active:scale-95 disabled:opacity-50"
             }
           >
             {phase === "before" ? "文化祭を開始する" : "文化祭前の状態に戻す"}
@@ -199,26 +199,31 @@ export default function OverallTab({
 
         <VisitorCountPanel />
 
-        <div className="flex w-full justify-center gap-6 text-center sm:w-auto">
-          <div>
-            <p className="text-2xl font-bold text-emerald-200">{counts.open}</p>
-            <p className="text-xs text-neutral-400">開催中</p>
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-amber-200">{counts.break}</p>
-            <p className="text-xs text-neutral-400">休憩中</p>
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-neutral-300">{counts.closed}</p>
-            <p className="text-xs text-neutral-400">終了</p>
-          </div>
+        {/* 数字は白で統一し、色は見出しの小さな点だけに持たせる。
+            大きい数字が3色並ぶと、どれが重要なのか分からなくなるため。 */}
+        <div className="flex w-full justify-center gap-7 text-center sm:w-auto">
+          {[
+            { n: counts.open, label: "開催中", dot: "bg-emerald-400" },
+            { n: counts.break, label: "休憩中", dot: "bg-amber-400" },
+            { n: counts.closed, label: "終了", dot: "bg-neutral-600" },
+          ].map((c) => (
+            <div key={c.label}>
+              <p className="text-2xl font-medium tabular-nums text-neutral-100">
+                {c.n}
+              </p>
+              <p className="flex items-center justify-center gap-1.5 text-xs text-neutral-400">
+                <span className={`h-1.5 w-1.5 rounded-full ${c.dot}`} />
+                {c.label}
+              </p>
+            </div>
+          ))}
         </div>
       </section>
 
       {/* 本体：左（緊急・連絡）／中央（企画の状況）／右（イベント・落とし物） */}
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 lg:grid-cols-10">
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-10">
         {/* 左 */}
-        <div className="flex min-h-0 flex-col gap-3 lg:col-span-3">
+        <div className="flex min-h-0 flex-col gap-4 lg:col-span-3">
           <div className="min-h-[13rem] flex-1 lg:min-h-0">
             <ClickableCard
               title="緊急連絡"
@@ -291,7 +296,7 @@ export default function OverallTab({
                   {allAnnouncements.slice(0, 5).map((a) => (
                     <li
                       key={a.id}
-                      className="rounded-lg bg-white/5 px-3 py-2 text-sm"
+                      className="rounded-lg bg-neutral-950/55 px-3 py-2 text-sm"
                     >
                       <p className="truncate font-medium">
                         {a.pinned && (
@@ -316,7 +321,7 @@ export default function OverallTab({
         </div>
 
         {/* 右 */}
-        <div className="flex min-h-0 flex-col gap-3 lg:col-span-3">
+        <div className="flex min-h-0 flex-col gap-4 lg:col-span-3">
           <div className="min-h-[13rem] flex-1 lg:min-h-0">
             <ClickableCard
               title="イベントのタイムテーブル"
@@ -339,7 +344,7 @@ export default function OverallTab({
                     .map((e) => (
                       <li
                         key={e.id}
-                        className="flex items-center gap-2 rounded-lg bg-white/5 px-2 py-1 text-xs"
+                        className="flex items-center gap-2 rounded-lg bg-neutral-950/55 px-2 py-1 text-xs"
                       >
                         <span className="shrink-0 font-mono text-[13px] text-neutral-400">
                           {e.startAt ?? "--:--"}
@@ -374,7 +379,7 @@ export default function OverallTab({
                   {unclaimed.slice(0, 4).map((item) => (
                     <li
                       key={item.id}
-                      className="flex items-center gap-3 rounded-lg bg-white/5 p-2"
+                      className="flex items-center gap-3 rounded-lg bg-neutral-950/55 p-2"
                     >
                       {item.photoUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -404,7 +409,7 @@ export default function OverallTab({
                           e.stopPropagation();
                           markLostItemClaimed(item.id);
                         }}
-                        className="shrink-0 self-center rounded-lg bg-white/15 px-4 py-2.5 text-sm font-medium active:scale-95"
+                        className="shrink-0 self-center rounded-lg bg-neutral-900/90 px-4 py-2.5 text-sm font-medium active:scale-95"
                       >
                         返却済み
                       </button>
@@ -463,7 +468,7 @@ export default function OverallTab({
           onClick={() => setConfirmOpen(false)}
         >
           <div
-            className="w-full max-w-sm rounded-xl border border-white/12 bg-neutral-900 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.65)]"
+            className="w-full max-w-sm rounded-xl border border-white/12 bg-neutral-900/95 p-4 backdrop-blur-xl shadow-[0_24px_70px_rgba(0,0,0,0.65)]"
             onClick={(e) => e.stopPropagation()}
           >
             <p className="mb-4 text-center text-base font-medium">
@@ -481,7 +486,7 @@ export default function OverallTab({
               </button>
               <button
                 onClick={() => setConfirmOpen(false)}
-                className="flex-1 rounded-lg bg-white/10 p-3 text-sm active:scale-95"
+                className="flex-1 rounded-lg bg-neutral-900/75 p-3 text-sm active:scale-95"
               >
                 キャンセル
               </button>
