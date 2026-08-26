@@ -152,22 +152,32 @@ body {
   }
 }
 
-/* ---- 背景の渦潮モチーフ（SwirlBackground）用 ---- */
-@keyframes swirl-rotate {
-  from {
-    transform: translate(-50%, -50%) rotate(0deg);
-  }
-  to {
-    transform: translate(-50%, -50%) rotate(360deg);
-  }
+/* ---- 背景の渦潮モチーフ（SwirlBackground / WhirlpoolAnimation）用 ----
+   渦そのものの回転はCanvas側で描いているので、ここでは渦の「置き場所」を
+   ゆっくり漂わせるだけ。大小で経路と周期を変えて、動きがそろって見えないようにする。 */
+@keyframes swirl-drift-a {
+  0% { transform: translate(0, 0); }
+  50% { transform: translate(-6%, 5%); }
+  100% { transform: translate(0, 0); }
 }
 
-.animate-swirl-rotate {
-  animation: swirl-rotate 46s linear infinite;
+@keyframes swirl-drift-b {
+  0% { transform: translate(0, 0); }
+  50% { transform: translate(5%, -7%); }
+  100% { transform: translate(0, 0); }
+}
+
+.animate-swirl-drift-a {
+  animation: swirl-drift-a 38s ease-in-out infinite;
+}
+
+.animate-swirl-drift-b {
+  animation: swirl-drift-b 52s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-swirl-rotate {
+  .animate-swirl-drift-a,
+  .animate-swirl-drift-b {
     animation: none;
   }
 }
