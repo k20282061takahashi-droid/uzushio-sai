@@ -21,7 +21,7 @@ const CANVAS_SIZE = { w: 240, h: 480 };
 const SWIRL_END = 2600;
 const FADE_START = 2300;
 const FADE_END = 2900;
-const DURATION_TOTAL = 3000;
+const DURATION_TOTAL = 3200;
 
 function rand(a: number, b: number) {
   return a + Math.random() * (b - a);
