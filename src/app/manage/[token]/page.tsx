@@ -560,10 +560,10 @@ export default function BoothManagePage() {
           </section>
         </div>
       ) : (
-        <div className="grid gap-3 lg:grid-cols-[19rem_minmax(0,1fr)] lg:gap-4">
+        <div className="grid gap-3 lg:grid-cols-[19rem_minmax(0,1fr)] lg:items-stretch lg:gap-4">
           {/* 左：運営からのれんらく（枠の中だけスクロール）と、緊急連絡 */}
-          <div className="order-2 flex flex-col gap-3 lg:order-none lg:h-[calc(100vh-8.5rem)]">
-            <section className="flex min-h-0 flex-1 flex-col rounded-2xl border-2 border-white/15 bg-bbb-panel/88 p-3">
+          <div className="order-2 flex flex-col gap-3 lg:order-none">
+            <section className="flex min-h-[16rem] flex-1 flex-col rounded-2xl border-2 border-white/15 bg-bbb-panel/88 p-3 lg:min-h-0">
               <h2 className="font-logo mb-2 shrink-0 text-[13px] text-bbb-cyan">
                 運営からのれんらく
               </h2>
@@ -592,14 +592,12 @@ export default function BoothManagePage() {
           {/* 右：ふだんの操作 */}
           <div className="order-1 flex flex-col gap-3 lg:order-none">
             {/* 来場者からの見え方 */}
-            <div className="flex items-center justify-between gap-3 rounded-2xl border-2 border-white/15 bg-bbb-panel/88 px-4 py-3">
-              <p className="font-read text-[13px] leading-snug text-white/60">
-                いま来場者に
-                <br className="sm:hidden" />
-                表示されている状態
+            <div className="rounded-2xl border-2 border-white/15 bg-bbb-panel/88 px-4 py-3 text-center">
+              <p className="font-read text-[13px] text-white/60">
+                いま来場者に表示されている状態
               </p>
               <span
-                className={`font-pop shrink-0 rounded-xl px-5 py-2 text-2xl sm:text-3xl ${statusBadgeClass(booth)}`}
+                className={`font-pop mt-1.5 inline-block rounded-xl px-6 py-2 text-2xl sm:text-3xl ${statusBadgeClass(booth)}`}
               >
                 {visitorStatusLabel(booth)}
               </span>
