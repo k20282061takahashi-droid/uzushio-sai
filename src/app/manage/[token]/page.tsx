@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
-import StaffAlertOverlay from "@/components/StaffAlertOverlay";
+import StaffAlertOverlay, {
+  StaffAlertBanner,
+} from "@/components/StaffAlertOverlay";
 import { PinIcon } from "@/components/Icon";
 import {
   Announcement,
@@ -396,9 +398,18 @@ export default function BoothManagePage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-md px-4 pb-10 pt-4 text-white sm:max-w-2xl sm:px-6 lg:max-w-6xl lg:px-8">
+    <div
+      className={`mx-auto flex w-full max-w-md flex-col px-4 pb-6 pt-4 text-white sm:max-w-2xl sm:px-6 lg:max-w-6xl lg:px-8 ${
+        view === "before" ? "" : "lg:h-screen lg:overflow-hidden"
+      }`}
+    >
+      {/* 本部からの一斉連絡。確認したあとも内容がここに残る */}
+      <div className="shrink-0">
+        <StaffAlertBanner boothId={booth.id} />
+      </div>
+
       {/* 上のバー：だれの画面かと、最終更新・更新ボタン */}
-      <header className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b-2 border-white/15 pb-3">
+      <header className="mb-3 flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b-2 border-white/15 pb-3">
         <div className="flex items-baseline gap-3">
           <div className="leading-none">
             <p className="font-pop text-lg">渦潮祭</p>
@@ -560,10 +571,10 @@ export default function BoothManagePage() {
           </section>
         </div>
       ) : (
-        <div className="grid gap-3 lg:grid-cols-[19rem_minmax(0,1fr)] lg:items-stretch lg:gap-4">
+        <div className="grid gap-3 lg:min-h-0 lg:flex-1 lg:grid-cols-[19rem_minmax(0,1fr)] lg:items-stretch lg:gap-4">
           {/* 左：運営からのれんらく（枠の中だけスクロール）と、緊急連絡 */}
           <div className="order-2 flex flex-col gap-3 lg:order-none lg:h-full">
-            <section className="flex max-h-[55vh] min-h-[14rem] flex-1 flex-col rounded-2xl border-2 border-white/15 bg-bbb-panel/88 p-3 lg:max-h-none lg:min-h-0">
+            <section className="flex max-h-[45vh] min-h-[12rem] flex-1 flex-col rounded-2xl border-2 border-white/15 bg-bbb-panel/88 p-3 lg:max-h-none lg:min-h-0">
               <h2 className="font-logo mb-2 shrink-0 text-[13px] text-bbb-cyan">
                 運営からのれんらく
               </h2>
@@ -604,13 +615,7 @@ export default function BoothManagePage() {
             </div>
 
             {booth.hasWaiting && (
-              <section className="rounded-2xl border-2 border-white/15 bg-bbb-panel/88 p-4">
-                <p className="font-logo text-[13px] text-bbb-cyan">
-                  WAITING GROUPS
-                </p>
-                <p className="font-read -mt-0.5 mb-2 text-[13px] text-white/55">
-                  待っているグループ数
-                </p>
+              <section className="flex flex-col justify-center rounded-2xl border-2 border-white/15 bg-bbb-panel/88 p-4 lg:min-h-0 lg:flex-1">
                 <div className="flex items-center justify-between gap-2 sm:justify-center sm:gap-10">
                   <button
                     onClick={() => adjustWaiting(-1)}
@@ -620,12 +625,20 @@ export default function BoothManagePage() {
                   >
                     <MinusMark />
                   </button>
-                  <p
-                    key={waitingGroups}
-                    className="animate-bump font-num min-w-[2.5ch] text-center text-8xl leading-none tabular-nums text-bbb-yellow sm:text-9xl"
-                  >
-                    {waitingGroups}
-                  </p>
+                  <div className="text-center">
+                    <p className="font-logo text-[12px] text-bbb-cyan">
+                      WAITING GROUPS
+                    </p>
+                    <p className="font-read mb-1 text-[12px] text-white/55">
+                      待っているグループ数
+                    </p>
+                    <p
+                      key={waitingGroups}
+                      className="animate-bump font-num min-w-[2.5ch] text-center text-7xl leading-none tabular-nums text-bbb-yellow sm:text-8xl"
+                    >
+                      {waitingGroups}
+                    </p>
+                  </div>
                   <button
                     onClick={() => adjustWaiting(1)}
                     disabled={savingWait || booth.status !== "open"}

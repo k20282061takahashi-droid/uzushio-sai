@@ -97,3 +97,51 @@ export default function StaffAlertOverlay({ boothId }: { boothId: string }) {
     </div>
   );
 }
+
+// 確認したあとも「どんな緊急連絡が来ていたか」を画面の一番上に残しておくための帯。
+// 割り込みの全画面表示は消えても、内容はここで読み返せる。
+export function StaffAlertBanner({ boothId }: { boothId: string }) {
+  const [alerts, setAlerts] = useState<StaffAlertRecord[]>([]);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!boothId) return;
+    return subscribeStaffAlertsForBooth(boothId, setAlerts);
+  }, [boothId]);
+
+  // いちばん新しい緊急連絡（確認済みかどうかは問わない）
+  const latest = alerts[0];
+  if (!latest) return null;
+
+  const time = latest.createdAt
+    ? new Date(latest.createdAt).toLocaleTimeString("ja-JP", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "";
+
+  return (
+    <button
+      onClick={() => setOpen((v) => !v)}
+      className="mb-3 flex w-full items-center gap-2 rounded-xl border-2 border-red-400/70 bg-red-600/90 px-3 py-2 text-left text-white"
+    >
+      <AlertIcon className="h-5 w-5 shrink-0" />
+      <span className="shrink-0 text-[12px] font-bold tracking-widest">
+        本部からの一斉連絡
+      </span>
+      {time && (
+        <span className="shrink-0 text-[12px] text-red-100">{time}</span>
+      )}
+      <span
+        className={`min-w-0 flex-1 whitespace-pre-wrap text-sm ${
+          open ? "" : "truncate"
+        }`}
+      >
+        {latest.message}
+      </span>
+      <span className="shrink-0 text-[12px] text-red-100">
+        {open ? "閉じる" : "全文"}
+      </span>
+    </button>
+  );
+}
