@@ -45,86 +45,90 @@ function visitorStatusLabel(booth: Booth): string {
   return "開催中";
 }
 
+// 送信時刻を「9/19 14:05」の形にする
+function formatSentAt(ms: number | null): string {
+  if (!ms) return "";
+  const d = new Date(ms);
+  return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(
+    d.getMinutes(),
+  ).padStart(2, "0")}`;
+}
+
+// 運営からの連絡。ピン留めを一番上に、そのあとは新しい順。
+// 件数が増えても全部たどれるよう、この枠の中だけをスクロールさせる。
+// ＋ と − は、フォントの文字だと細くて小さいので、太い角丸の棒で描く。
+// bg-current にしてあるので、ボタンの文字色（有効/無効）にそのまま追従する。
+function PlusMark() {
+  return (
+    <span
+      aria-hidden
+      className="relative block h-11 w-11 sm:h-14 sm:w-14"
+    >
+      <span className="absolute left-0 top-1/2 h-[14%] min-h-[6px] w-full -translate-y-1/2 rounded-full bg-current" />
+      <span className="absolute left-1/2 top-0 h-full w-[14%] min-w-[6px] -translate-x-1/2 rounded-full bg-current" />
+    </span>
+  );
+}
+
+function MinusMark() {
+  return (
+    <span
+      aria-hidden
+      className="relative block h-11 w-11 sm:h-14 sm:w-14"
+    >
+      <span className="absolute left-0 top-1/2 h-[14%] min-h-[6px] w-full -translate-y-1/2 rounded-full bg-current" />
+    </span>
+  );
+}
+
 function AnnouncementBoard({
   announcements,
-  onOpenList,
 }: {
   announcements: Announcement[];
-  onOpenList: () => void;
 }) {
-  const pinned = announcements.filter((a) => a.pinned);
-  const latest = announcements.slice(0, 3);
-  const [tickerIndex, setTickerIndex] = useState(0);
-
-  useEffect(() => {
-    if (latest.length <= 1) return;
-    const timer = setInterval(() => {
-      setTickerIndex((i) => (i + 1) % latest.length);
-    }, 3200);
-    return () => clearInterval(timer);
-  }, [latest.length]);
-
   if (announcements.length === 0) {
-    return <p className="text-xs text-white/55">現在お知らせはありません</p>;
+    return (
+      <p className="font-read text-sm text-white/55">
+        まだ連絡は届いていません
+      </p>
+    );
   }
 
-  // 並べ替え：ピン留めを先に、そのあと新しい順
+  const byNewest = (a: Announcement, b: Announcement) =>
+    (b.createdAt ?? 0) - (a.createdAt ?? 0);
   const ordered = [
-    ...announcements.filter((a) => a.pinned),
-    ...announcements.filter((a) => !a.pinned),
+    ...announcements.filter((a) => a.pinned).sort(byNewest),
+    ...announcements.filter((a) => !a.pinned).sort(byNewest),
   ];
 
   return (
-    <>
-      {/* スマホ・タブレット：場所が狭いので、順番に流して見せる */}
-      <button onClick={onOpenList} className="w-full text-left lg:hidden">
-        {pinned.length > 0 && (
-          <ul className="mb-2 space-y-1">
-            {pinned.map((a) => (
-              <li key={a.id} className="flex items-center gap-1 text-sm">
-                <PinIcon className="h-4 w-4 shrink-0 text-bbb-yellow" />
-                <span className="truncate">{a.title}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-        {latest.length > 0 && (
-          <div className="relative h-6 overflow-hidden text-sm text-white/70">
-            {latest.map((a, i) => (
-              <span
-                key={a.id}
-                className="absolute inset-0 flex items-center transition-transform duration-500 ease-in-out"
-                style={{ transform: `translateY(${(i - tickerIndex) * 100}%)` }}
-              >
-                <span className="truncate">{a.title}</span>
-              </span>
-            ))}
-          </div>
-        )}
-      </button>
-
-      {/* パソコンなど広い画面：縦に並べて全部そのまま読めるようにする */}
-      <ul className="hidden max-h-[calc(100vh-16rem)] space-y-2 overflow-y-auto lg:block">
-        {ordered.map((a) => (
-          <li
-            key={a.id}
-            className="rounded-xl border-2 border-white/12 bg-black/25 p-3"
-          >
-            <p className="flex items-start gap-1.5 text-[15px] font-semibold">
-              {a.pinned && (
-                <PinIcon className="mt-0.5 h-4 w-4 shrink-0 text-bbb-yellow" />
-              )}
-              <span>{a.title}</span>
-            </p>
-            {a.body && (
-              <p className="mt-1 whitespace-pre-wrap text-[13px] text-white/70">
-                {a.body}
-              </p>
+    <ul className="max-h-[22rem] space-y-2 overflow-y-auto pr-1 lg:max-h-[calc(100vh-15rem)]">
+      {ordered.map((a) => (
+        <li
+          key={a.id}
+          className={`rounded-xl border-2 p-3 ${
+            a.pinned
+              ? "border-bbb-yellow/70 bg-bbb-yellow/10"
+              : "border-white/12 bg-black/25"
+          }`}
+        >
+          <div className="mb-1 flex items-center gap-1.5">
+            {a.pinned && (
+              <PinIcon className="h-4 w-4 shrink-0 text-bbb-yellow" />
             )}
-          </li>
-        ))}
-      </ul>
-    </>
+            <span className="text-[12px] tabular-nums text-white/45">
+              {formatSentAt(a.createdAt)}
+            </span>
+          </div>
+          <p className="font-pop text-[15px] leading-snug">{a.title}</p>
+          {a.body && (
+            <p className="font-read mt-1 whitespace-pre-wrap text-[14px] text-white/75">
+              {a.body}
+            </p>
+          )}
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -156,7 +160,6 @@ export default function BoothManagePage() {
 
   const [booth, setBooth] = useState<Booth | null | undefined>(undefined);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [announcementListOpen, setAnnouncementListOpen] = useState(false);
   const [festivalPhase, setFestivalPhase] = useState<FestivalPhase>("before");
 
   // セットアップ用フォーム
@@ -362,7 +365,7 @@ export default function BoothManagePage() {
   if (booth === null) {
     return (
       <div className="mx-auto w-full max-w-md px-4 pt-8 text-white sm:max-w-2xl sm:px-6">
-        <p className="text-sm text-bbb-red">
+        <p className="font-read text-sm text-bbb-red">
           このURLは無効です。企画担当のQRコード／URLを再度ご確認ください。
         </p>
       </div>
@@ -371,32 +374,39 @@ export default function BoothManagePage() {
 
   return (
     <div className="mx-auto w-full max-w-md px-4 pb-16 pt-8 text-white sm:max-w-2xl sm:px-6 lg:max-w-5xl lg:px-8">
-      <div className="mb-4 rounded-2xl border-2 border-white/15 bg-bbb-panel px-5 py-4">
-        <p className="font-logo text-sm text-bbb-yellow">UZUSHIO-SAI STAFF</p>
-        <p className="font-pop mt-1 text-3xl leading-tight sm:text-4xl">
+      {/* だれの画面かが分かればよいので、名前は控えめにする */}
+      <div className="mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-1 px-1">
+        <p className="font-logo text-[13px] text-bbb-yellow">
+          UZUSHIO-SAI STAFF
+        </p>
+        <p className="font-pop text-xl leading-tight sm:text-2xl">
           {booth.name}
         </p>
         {booth.projectName && (
-          <p className="mt-1 text-base text-white/70">{booth.projectName}</p>
-        )}
-        {view !== "before" && (
-          <div className="mt-4 flex items-end justify-between gap-3 border-t border-white/15 pt-3">
-            <p className="text-[13px] text-white/60">
-              いま来場者に見えている表示
-            </p>
-            <span
-              className={`font-pop rounded-xl px-4 py-1.5 text-xl sm:text-2xl ${statusBadgeClass(booth)}`}
-            >
-              {visitorStatusLabel(booth)}
-            </span>
-          </div>
-        )}
-        {lastFetchedAt && (
-          <p className="mt-2 text-[12px] text-white/45">
-            最終更新 {lastFetchedAt}（30秒ごとに自動で更新されます）
-          </p>
+          <p className="text-sm text-white/60">{booth.projectName}</p>
         )}
       </div>
+
+      {/* 来場者からの見え方は、名前とは別のカードにして目立たせる */}
+      {view !== "before" && (
+        <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl border-2 border-white/15 bg-bbb-panel px-5 py-4">
+          <p className="font-read text-[13px] leading-snug text-white/60">
+            いま来場者には
+            <br className="sm:hidden" />
+            こう表示されています
+          </p>
+          <span
+            className={`font-pop shrink-0 rounded-xl px-5 py-2 text-2xl sm:text-3xl ${statusBadgeClass(booth)}`}
+          >
+            {visitorStatusLabel(booth)}
+          </span>
+        </div>
+      )}
+      {lastFetchedAt && (
+        <p className="mb-3 px-1 text-[12px] text-white/40">
+          最終更新 {lastFetchedAt}（30秒ごとに自動で更新されます）
+        </p>
+      )}
 
       {/* パソコン・iPadでは左に操作パネル、右に運営からの連絡を並べる。
           スマホでは今までどおり縦に並ぶ。 */}
@@ -405,10 +415,7 @@ export default function BoothManagePage() {
           <h2 className="font-logo mb-2 text-sm text-bbb-cyan">
             運営からの連絡
           </h2>
-          <AnnouncementBoard
-            announcements={announcements}
-            onOpenList={() => setAnnouncementListOpen(true)}
-          />
+          <AnnouncementBoard announcements={announcements} />
         </section>
 
         <div className="order-1 lg:order-none lg:col-start-1 lg:row-start-1">
@@ -419,7 +426,7 @@ export default function BoothManagePage() {
               </h2>
 
               <label className="mb-3 block">
-                <span className="mb-1.5 block text-[13px] font-medium text-white/70">
+                <span className="font-read mb-1.5 block text-sm text-white/70">
                   企画名
                 </span>
                 <input
@@ -433,7 +440,7 @@ export default function BoothManagePage() {
 
               {booth.hasWaiting && (
                 <label className="mb-3 block">
-                  <span className="mb-1.5 block text-[13px] font-medium text-white/70">
+                  <span className="font-read mb-1.5 block text-sm text-white/70">
                     1グループあたりの対応時間（分）
                   </span>
                   <input
@@ -451,7 +458,7 @@ export default function BoothManagePage() {
               )}
 
               <div className="mb-3">
-                <span className="mb-1.5 block text-[13px] font-medium text-white/70">
+                <span className="font-read mb-1.5 block text-sm text-white/70">
                   看板画像
                 </span>
                 <div className="mb-1 flex items-center gap-2">
@@ -494,7 +501,7 @@ export default function BoothManagePage() {
               </div>
 
               <label className="mb-3 block">
-                <span className="mb-1.5 block text-[13px] font-medium text-white/70">
+                <span className="font-read mb-1.5 block text-sm text-white/70">
                   カテゴリー
                 </span>
                 <select
@@ -512,7 +519,7 @@ export default function BoothManagePage() {
               </label>
 
               <label className="mb-3 block sm:col-span-2">
-                <span className="mb-1.5 block text-[13px] font-medium text-white/70">詳細</span>
+                <span className="font-read mb-1.5 block text-sm text-white/70">詳細</span>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -535,19 +542,19 @@ export default function BoothManagePage() {
               <section className="mb-4 rounded-2xl border-2 border-white/15 bg-bbb-panel p-4 sm:p-6">
 
               {booth.hasWaiting && (
-                <div className="mb-5 flex items-center justify-between gap-3 lg:justify-center lg:gap-14">
+                <div className="mb-5 flex items-center justify-between gap-2 sm:justify-center sm:gap-8 lg:gap-12">
                   {/* iPadを作業しながら片手で触る前提。指で確実に押せるよう、
                       ボタンは大きく、左右の端に置いている。 */}
                   <button
                     onClick={() => adjustWaiting(-1)}
                     disabled={savingWait || booth.status !== "open"}
                     aria-label="待っているグループを1つ減らす"
-                    className="chunk font-pop h-28 w-28 shrink-0 rounded-2xl bg-bbb-yellow text-5xl text-black shadow-[0_7px_0_#A98F00] disabled:bg-white/10 disabled:text-white/25 disabled:shadow-none sm:h-36 sm:w-36 lg:h-40 lg:w-40 lg:text-6xl"
+                    className="chunk flex h-24 w-24 shrink-0 items-center justify-center rounded-[1.75rem] bg-bbb-yellow text-black shadow-[0_7px_0_#A98F00] disabled:bg-white/10 disabled:text-white/25 disabled:shadow-none sm:h-32 sm:w-32 lg:h-36 lg:w-36"
                   >
-                    −
+                    <MinusMark />
                   </button>
                   <div className="flex-1 text-center lg:w-56 lg:flex-none">
-                    <p className="font-logo text-sm text-bbb-cyan">
+                    <p className="font-logo text-[13px] text-bbb-cyan">
                       WAITING GROUPS
                     </p>
                     {/* key を付けると数字が変わるたびに作り直され、跳ねる動きが毎回出る */}
@@ -558,14 +565,14 @@ export default function BoothManagePage() {
                       {waitingGroups}
                     </p>
                     {booth.status !== "open" ? (
-                      <p className="mt-2 text-[13px] text-white/55">
+                      <p className="font-read mt-2 text-sm text-white/60">
                         {booth.status === "break"
                           ? "休憩中は変更できません"
                           : "終了しているため変更できません"}
                       </p>
                     ) : (
                       booth.timePerGroup != null && (
-                        <p className="mt-2 text-[13px] text-white/55">
+                        <p className="font-read mt-2 text-sm text-white/60">
                           待ち時間の目安 {waitingGroups * booth.timePerGroup}分
                         </p>
                       )
@@ -575,9 +582,9 @@ export default function BoothManagePage() {
                     onClick={() => adjustWaiting(1)}
                     disabled={savingWait || booth.status !== "open"}
                     aria-label="待っているグループを1つ増やす"
-                    className="chunk font-pop h-28 w-28 shrink-0 rounded-2xl bg-bbb-yellow text-5xl text-black shadow-[0_7px_0_#A98F00] disabled:bg-white/10 disabled:text-white/25 disabled:shadow-none sm:h-36 sm:w-36 lg:h-40 lg:w-40 lg:text-6xl"
+                    className="chunk flex h-24 w-24 shrink-0 items-center justify-center rounded-[1.75rem] bg-bbb-yellow text-black shadow-[0_7px_0_#A98F00] disabled:bg-white/10 disabled:text-white/25 disabled:shadow-none sm:h-32 sm:w-32 lg:h-36 lg:w-36"
                   >
-                    ＋
+                    <PlusMark />
                   </button>
                 </div>
               )}
@@ -616,7 +623,7 @@ export default function BoothManagePage() {
                 </button>
               </div>
               {lostItemSaved && (
-                <p className="mt-3 text-sm text-bbb-green">
+                <p className="font-read mt-3 text-sm text-bbb-green">
                   落とし物を登録しました
                 </p>
               )}
@@ -633,7 +640,7 @@ export default function BoothManagePage() {
               緊急連絡
             </button>
               {emergencySent && (
-                <p className="mb-4 text-sm text-bbb-green">
+                <p className="font-read mb-4 text-sm text-bbb-green">
                   運営へ通知を送信しました
                 </p>
               )}
@@ -665,40 +672,12 @@ export default function BoothManagePage() {
         </Modal>
       )}
 
-      {announcementListOpen && (
-        <Modal onClose={() => setAnnouncementListOpen(false)}>
-          <h2 className="font-pop mb-3 text-xl text-white">運営からの連絡一覧</h2>
-          {announcements.length === 0 ? (
-            <p className="text-xs text-white/55">現在お知らせはありません</p>
-          ) : (
-            <ul className="space-y-3">
-              {announcements.map((a) => (
-                <li
-                  key={a.id}
-                  className="border-b border-white/12 pb-2 last:border-0"
-                >
-                  <p className="flex items-start gap-1 text-sm font-medium">
-                    {a.pinned && (
-                      <PinIcon className="h-4 w-4 shrink-0 text-bbb-yellow" />
-                    )}
-                    <span>{a.title}</span>
-                  </p>
-                  {a.body && (
-                    <p className="mt-1 text-xs text-white/55">{a.body}</p>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </Modal>
-      )}
-
       {lostItemOpen && (
         <Modal onClose={() => setLostItemOpen(false)}>
           <h2 className="font-pop mb-3 text-xl text-white">落とし物登録</h2>
 
           <label className="mb-3 block">
-            <span className="mb-1.5 block text-[13px] font-medium text-white/70">画像</span>
+            <span className="font-read mb-1.5 block text-sm text-white/70">画像</span>
             <div className="flex items-center gap-2">
               {lostItemPhotoPreview ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -738,7 +717,7 @@ export default function BoothManagePage() {
           </label>
 
           <label className="mb-3 block">
-            <span className="mb-1.5 block text-[13px] font-medium text-white/70">内容</span>
+            <span className="font-read mb-1.5 block text-sm text-white/70">内容</span>
             <textarea
               value={lostItemDescription}
               onChange={(e) => setLostItemDescription(e.target.value)}
@@ -749,7 +728,7 @@ export default function BoothManagePage() {
           </label>
 
           <label className="mb-3 block">
-            <span className="mb-1.5 block text-[13px] font-medium text-white/70">
+            <span className="font-read mb-1.5 block text-sm text-white/70">
               拾った場所
             </span>
             <input
@@ -761,7 +740,7 @@ export default function BoothManagePage() {
           </label>
 
           <label className="mb-4 block">
-            <span className="mb-1.5 block text-[13px] font-medium text-white/70">保管場所</span>
+            <span className="font-read mb-1.5 block text-sm text-white/70">保管場所</span>
             <input
               type="text"
               value={lostItemStorageLocation}

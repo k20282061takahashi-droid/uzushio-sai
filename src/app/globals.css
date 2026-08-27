@@ -62,8 +62,6 @@
   --color-bbb-pink: #FF3A81;
   --color-bbb-blue: #0071BD;
 
-  --font-pop: var(--font-dela-gothic);
-  --font-logo: var(--font-luckiest-guy);
 
   /* ミスト（企画担当者画面の背景・罫線。湖青をぐっと薄めた寒色グレー） */
   --color-mist-50: #F1F4F5;
@@ -326,16 +324,26 @@ body {
   font-feature-settings: "palt" 1;
 }
 
-/* 見出し・数字・ボタンの文字は極太ゴシック */
+/* 見出し・数字・ボタンの文字。極太だが、Dela Gothic One ほど詰まらないので
+   小さい文字でも潰れない。画面内のフォントはこれと本文用の2種類だけにそろえる。 */
 .manage-ui .font-pop {
-  font-family: var(--font-dela-gothic), var(--font-noto-sans-jp), sans-serif;
-  font-weight: 400;
+  font-family: var(--font-zen-kaku-antique), var(--font-noto-sans-jp),
+    sans-serif;
+  font-weight: 900;
 }
 
-/* 英字のロゴ・ラベル */
+/* 英字の小さいラベル。同じフォントで字間を広げて見出しらしく見せる */
 .manage-ui .font-logo {
-  font-family: var(--font-luckiest-guy), var(--font-dela-gothic), sans-serif;
-  letter-spacing: 0.06em;
+  font-family: var(--font-zen-kaku-antique), var(--font-noto-sans-jp),
+    sans-serif;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+}
+
+/* 説明文など、読ませたい文章は可読性優先のフォントにする */
+.manage-ui .font-read {
+  font-family: var(--font-noto-sans-jp), "Hiragino Sans", sans-serif;
+  line-height: 1.75;
 }
 
 .manage-ui input,
