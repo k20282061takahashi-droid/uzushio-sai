@@ -23,9 +23,12 @@ const FADE_START = 2300;
 const FADE_END = 2900;
 const DURATION_TOTAL = 3500;
 
-// 粒のぼかし。始まった直後はぼんやりさせ、文字になるにつれてはっきりさせる
-const BLUR_MAX = 7; // 最初のぼかしの強さ（px。画面の大きさに合わせて拡大縮小する）
-const BLUR_END = SWIRL_END; // ここまでにぼかしが0になる
+// 粒の輪郭のぼかし具合。始まった直後は縁がぼやけ、文字になるにつれて縁がはっきりする。
+// 画面全体ではなく、粒1つ1つの縁だけをぼかす。
+const SOFT_MAX = 1.1; // 最初のぼかしの強さ（粒の半径に対する割合）
+const SOFT_END = SWIRL_END; // ここまでに縁がはっきりする
+const SOFT_STEPS = 12; // 段階の数（この数だけ絵を作り置きして使い回す）
+const SPRITE_SIZE = 64; // 作り置きする粒の絵の大きさ（px）
 
 function rand(a: number, b: number) {
   return a + Math.random() * (b - a);
@@ -87,13 +90,35 @@ export default function OpeningAnimation({
     const yearLineHeight = YEAR_LINE_HEIGHT * Math.min(scaleX, scaleY);
     const yearGap = YEAR_GAP * Math.min(scaleX, scaleY);
 
-    // 粒はいったん別のcanvasに描いてから、まとめてぼかして本番のcanvasに貼る。
-    // 1粒ずつぼかすより軽く、スマホでもなめらかに動く。
-    const layer = document.createElement("canvas");
-    layer.width = width;
-    layer.height = height;
-    const lctx = layer.getContext("2d");
-    const canBlur = !!lctx && typeof ctx!.filter === "string";
+    // 縁のぼけ具合ごとに「粒の絵」を作り置きしておき、毎回それを貼る。
+    // 毎フレーム描き直すより軽く、スマホでもなめらかに動く。
+    const spriteCache = new Map<string, HTMLCanvasElement>();
+
+    function getSprite(color: string, softStep: number): HTMLCanvasElement {
+      const key = `${color}|${softStep}`;
+      const cached = spriteCache.get(key);
+      if (cached) return cached;
+
+      const soft = (softStep / SOFT_STEPS) * SOFT_MAX;
+      const sprite = document.createElement("canvas");
+      sprite.width = SPRITE_SIZE;
+      sprite.height = SPRITE_SIZE;
+      const sctx = sprite.getContext("2d")!;
+      const c = SPRITE_SIZE / 2;
+      const [r, g, b] = hexToRgb(color);
+      // 中心から「芯の大きさ」までは色をそのまま、そこから外へ向けて薄く消していく
+      const core = 1 / (1 + soft);
+      const grad = sctx.createRadialGradient(c, c, 0, c, c, c);
+      grad.addColorStop(0, `rgba(${r},${g},${b},1)`);
+      grad.addColorStop(Math.max(0, core - 0.02), `rgba(${r},${g},${b},1)`);
+      grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
+      sctx.fillStyle = grad;
+      sctx.beginPath();
+      sctx.arc(c, c, c, 0, Math.PI * 2);
+      sctx.fill();
+      spriteCache.set(key, sprite);
+      return sprite;
+    }
 
     function mainTextStartY() {
       const totalHeight = MAIN_TEXT.length * mainLineHeight;
@@ -199,9 +224,9 @@ export default function OpeningAnimation({
       ctx!.fillStyle = BG;
       ctx!.fillRect(0, 0, width, height);
 
-      // 粒を描く先。ぼかしが使える環境では別canvasへ、使えなければ直接描く
-      const pctx = canBlur ? lctx! : ctx!;
-      if (canBlur) pctx.clearRect(0, 0, width, height);
+      // この瞬間の縁のぼけ具合（全部の粒で共通。時間が進むほど0に近づく）
+      const softT = Math.min(1, elapsed / SOFT_END);
+      const softStep = Math.round((1 - easeInOutCubic(softT)) * SOFT_STEPS);
 
       const particleFade =
         elapsed < FADE_START
@@ -224,25 +249,21 @@ export default function OpeningAnimation({
 
         const r = p.rStart + (p.rEnd - p.rStart) * eased;
 
-        const rgb = hexToRgb(p.color);
         const alpha = (0.5 + 0.5 * eased) * particleFade;
         if (alpha <= 0.01) return;
-        pctx.beginPath();
-        pctx.arc(x, y, r, 0, Math.PI * 2);
-        pctx.fillStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${alpha.toFixed(2)})`;
-        pctx.fill();
-      });
 
-      // ぼかしをかけて貼りつける。時間が進むほどぼかしが弱くなり、輪郭がはっきりする
-      if (canBlur) {
-        const blurT = Math.min(1, elapsed / BLUR_END);
-        const blur =
-          BLUR_MAX * Math.min(scaleX, scaleY) * (1 - easeInOutCubic(blurT));
-        ctx!.save();
-        ctx!.filter = blur > 0.1 ? `blur(${blur.toFixed(2)}px)` : "none";
-        ctx!.drawImage(layer, 0, 0);
-        ctx!.restore();
-      }
+        // ぼけている分だけ絵は大きくなるが、芯の大きさは r のまま保たれる
+        const draw = r * (1 + (softStep / SOFT_STEPS) * SOFT_MAX);
+        ctx!.globalAlpha = alpha;
+        ctx!.drawImage(
+          getSprite(p.color, softStep),
+          x - draw,
+          y - draw,
+          draw * 2,
+          draw * 2,
+        );
+      });
+      ctx!.globalAlpha = 1;
 
       const textAlpha =
         elapsed < FADE_START
