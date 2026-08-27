@@ -338,13 +338,14 @@ body {
 }
 .manage-ui::before {
   background: url("/manage-bg.webp") center / cover no-repeat;
-  opacity: 0.85;
+  /* 落書きが見える強さ。濃すぎ／薄すぎのときはこの数字だけ変える */
+  opacity: 1;
 }
 .manage-ui::after {
   background: linear-gradient(
     180deg,
-    rgba(10, 10, 10, 0.55) 0%,
-    rgba(10, 10, 10, 0.7) 100%
+    rgba(10, 10, 10, 0.28) 0%,
+    rgba(10, 10, 10, 0.5) 100%
   );
 }
 .manage-ui > * {

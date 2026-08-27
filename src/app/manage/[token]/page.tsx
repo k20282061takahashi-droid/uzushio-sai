@@ -424,7 +424,7 @@ export default function BoothManagePage() {
           <button
             onClick={reloadNow}
             disabled={reloading}
-            className="chunk rounded-xl border-2 border-white/25 px-3 py-2 text-sm font-bold text-white shadow-[0_4px_0_rgba(255,255,255,0.12)] disabled:opacity-50"
+            className="chunk min-h-[2.75rem] rounded-xl border-2 border-white/25 bg-white/5 px-4 text-sm font-bold text-white shadow-[0_4px_0_rgba(255,255,255,0.14)] disabled:opacity-50"
           >
             {reloading ? "更新中" : "更新"}
           </button>
@@ -552,7 +552,7 @@ export default function BoothManagePage() {
                 </button>
               </section>
           </div>
-          <section className="mb-4 rounded-2xl border-2 border-white/15 bg-bbb-panel/95 p-4 lg:col-start-2 lg:mb-0">
+          <section className="mb-4 rounded-2xl border-2 border-white/15 bg-bbb-panel/88 p-4 lg:col-start-2 lg:mb-0">
             <h2 className="font-logo mb-2 text-[13px] text-bbb-cyan">
               運営からのれんらく
             </h2>
@@ -563,7 +563,7 @@ export default function BoothManagePage() {
         <div className="grid gap-3 lg:grid-cols-[19rem_minmax(0,1fr)] lg:gap-4">
           {/* 左：運営からのれんらく（枠の中だけスクロール）と、緊急連絡 */}
           <div className="order-2 flex flex-col gap-3 lg:order-none lg:h-[calc(100vh-8.5rem)]">
-            <section className="flex min-h-0 flex-1 flex-col rounded-2xl border-2 border-white/15 bg-bbb-panel/95 p-3">
+            <section className="flex min-h-0 flex-1 flex-col rounded-2xl border-2 border-white/15 bg-bbb-panel/88 p-3">
               <h2 className="font-logo mb-2 shrink-0 text-[13px] text-bbb-cyan">
                 運営からのれんらく
               </h2>
@@ -592,7 +592,7 @@ export default function BoothManagePage() {
           {/* 右：ふだんの操作 */}
           <div className="order-1 flex flex-col gap-3 lg:order-none">
             {/* 来場者からの見え方 */}
-            <div className="flex items-center justify-between gap-3 rounded-2xl border-2 border-white/15 bg-bbb-panel/95 px-4 py-3">
+            <div className="flex items-center justify-between gap-3 rounded-2xl border-2 border-white/15 bg-bbb-panel/88 px-4 py-3">
               <p className="font-read text-[13px] leading-snug text-white/60">
                 いま来場者に
                 <br className="sm:hidden" />
@@ -606,7 +606,7 @@ export default function BoothManagePage() {
             </div>
 
             {booth.hasWaiting && (
-              <section className="rounded-2xl border-2 border-white/15 bg-bbb-panel/95 p-4">
+              <section className="rounded-2xl border-2 border-white/15 bg-bbb-panel/88 p-4">
                 <p className="font-logo text-[13px] text-bbb-cyan">
                   WAITING GROUPS
                 </p>
@@ -624,7 +624,7 @@ export default function BoothManagePage() {
                   </button>
                   <p
                     key={waitingGroups}
-                    className="animate-bump font-num min-w-[3ch] text-center text-7xl leading-none tabular-nums text-bbb-yellow sm:text-8xl"
+                    className="animate-bump font-num min-w-[2.5ch] text-center text-8xl leading-none tabular-nums text-bbb-yellow sm:text-9xl"
                   >
                     {waitingGroups}
                   </p>
@@ -675,7 +675,7 @@ export default function BoothManagePage() {
               <button
                 onClick={() => setConfirmClose(true)}
                 disabled={changingStatus || booth.status === "closed"}
-                className="chunk font-pop min-h-[4.5rem] rounded-2xl border-[3px] border-bbb-red bg-transparent text-lg text-bbb-red shadow-[0_6px_0_#5C0A10] disabled:border-white/15 disabled:text-white/25 disabled:shadow-none"
+                className="chunk font-pop min-h-[4.5rem] rounded-2xl border-[3px] border-[#FF5147] bg-[#FF5147]/10 text-lg text-[#FF7A72] shadow-[0_6px_0_#6E0D12] disabled:border-white/15 disabled:bg-transparent disabled:text-white/25 disabled:shadow-none"
               >
                 終了
               </button>
