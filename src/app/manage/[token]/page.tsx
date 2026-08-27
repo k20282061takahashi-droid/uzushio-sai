@@ -518,7 +518,7 @@ export default function BoothManagePage() {
               <button
                 onClick={saveSetup}
                 disabled={savingSetup}
-                className="lift w-full rounded-lg bg-kosei-800 p-4 text-base font-bold text-white disabled:opacity-50 sm:col-span-2"
+                className="lift w-full rounded-lg bg-kosei-800 p-4 text-base font-bold text-white disabled:bg-mist-200 disabled:text-mist-300 disabled:shadow-none sm:col-span-2"
               >
                 {savingSetup ? "保存中..." : "保存する"}
               </button>
@@ -531,7 +531,7 @@ export default function BoothManagePage() {
                   <button
                     onClick={() => adjustWaiting(-1)}
                     disabled={savingWait || booth.status !== "open"}
-                    className="lift h-24 w-24 shrink-0 rounded-2xl bg-kosei-800 text-4xl font-bold text-white disabled:opacity-40 sm:h-32 sm:w-32 sm:text-5xl"
+                    className="lift h-24 w-24 shrink-0 rounded-2xl bg-kosei-800 text-4xl font-bold text-white disabled:border disabled:border-mist-200 disabled:bg-white disabled:text-mist-300 disabled:shadow-none sm:h-32 sm:w-32 sm:text-5xl"
                   >
                     −
                   </button>
@@ -542,11 +542,18 @@ export default function BoothManagePage() {
                     <p className="text-8xl font-bold tabular-nums text-kosei-800 sm:text-9xl">
                       {waitingGroups}
                     </p>
+                    {booth.status !== "open" && (
+                      <p className="text-[13px] text-neutral-500">
+                        {booth.status === "break"
+                          ? "休憩中は変更できません"
+                          : "終了しているため変更できません"}
+                      </p>
+                    )}
                   </div>
                   <button
                     onClick={() => adjustWaiting(1)}
                     disabled={savingWait || booth.status !== "open"}
-                    className="lift h-24 w-24 shrink-0 rounded-2xl bg-kosei-800 text-4xl font-bold text-white disabled:opacity-40 sm:h-32 sm:w-32 sm:text-5xl"
+                    className="lift h-24 w-24 shrink-0 rounded-2xl bg-kosei-800 text-4xl font-bold text-white disabled:border disabled:border-mist-200 disabled:bg-white disabled:text-mist-300 disabled:shadow-none sm:h-32 sm:w-32 sm:text-5xl"
                   >
                     ＋
                   </button>
@@ -557,7 +564,7 @@ export default function BoothManagePage() {
                 <button
                   onClick={() => setConfirmClose(true)}
                   disabled={changingStatus || booth.status === "closed"}
-                  className="lift flex-1 rounded-lg border border-danger-800/35 bg-white p-4 text-base font-bold text-danger-800 disabled:opacity-40"
+                  className="lift flex-1 rounded-lg border border-danger-800/35 bg-white p-4 text-base font-bold text-danger-800 disabled:border-mist-200 disabled:bg-mist-50 disabled:text-mist-300 disabled:shadow-none"
                 >
                   終了
                 </button>
@@ -573,7 +580,7 @@ export default function BoothManagePage() {
                   <button
                     onClick={() => changeStatus("break")}
                     disabled={changingStatus || booth.status !== "open"}
-                    className="lift flex-1 rounded-lg border border-kosei-800/30 bg-white p-4 text-base font-bold text-kosei-800 disabled:opacity-40"
+                    className="lift flex-1 rounded-lg border border-kosei-800/30 bg-white p-4 text-base font-bold text-kosei-800 disabled:border-mist-200 disabled:bg-mist-50 disabled:text-mist-300 disabled:shadow-none"
                   >
                     一時休憩
                   </button>
