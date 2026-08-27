@@ -113,6 +113,55 @@ export type Booth = {
   waitingUpdatedAt: number | null;
 };
 
+// Firestoreの1件分のデータを、アプリで使う Booth の形に変換する。
+function docToBooth(d: {
+  id: string;
+  data: () => Record<string, unknown>;
+}): Booth {
+  const data = d.data() as Record<string, never>;
+  return {
+    id: d.id,
+    name: data.name ?? "",
+    projectName: data.projectName ?? null,
+    type: data.type,
+    status: (data.status as BoothStatus) ?? "open",
+    accessToken: data.accessToken,
+    description: data.description ?? "",
+    location: data.location ?? null,
+    floor: data.floor ?? null,
+    roomName: data.roomName ?? null,
+    pinX: typeof data.pinX === "number" ? data.pinX : null,
+    pinY: typeof data.pinY === "number" ? data.pinY : null,
+    hasWaiting: !!data.hasWaiting,
+    waitingGroups: data.waitingGroups ?? null,
+    timePerGroup: data.timePerGroup ?? null,
+    genre: data.genre ?? null,
+    isSetupDone: !!data.isSetupDone,
+    signboardUrl: data.signboardUrl ?? null,
+    waitingUpdatedAt:
+      (data.waitingUpdatedAt as { toMillis?: () => number } | null)
+        ?.toMillis?.() ?? null,
+  } satisfies Booth;
+}
+
+// URLのトークンから企画を1件購読する。
+// 30秒ごとに取り直す方式と違い、運営が場所や企画名を変えた瞬間に画面へ届く。
+export function subscribeBoothByToken(
+  token: string,
+  callback: (booth: Booth | null) => void,
+): () => void {
+  return onSnapshot(
+    query(collection(db, "booths"), where("accessToken", "==", token), limit(1)),
+    (snap) => {
+      if (snap.empty) {
+        callback(null);
+        return;
+      }
+      callback(docToBooth(snap.docs[0]));
+    },
+  );
+}
+
 export async function getBoothByToken(token: string): Promise<Booth | null> {
   const q = query(
     collection(db, "booths"),

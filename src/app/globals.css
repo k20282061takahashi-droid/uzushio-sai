@@ -320,8 +320,43 @@ body {
    iPadを作業しながら片手で触る前提なので、押せる場所は大きく厚くする。
    ========================================================================== */
 .manage-ui {
+  position: relative;
   font-family: var(--font-noto-sans-jp), "Hiragino Sans", sans-serif;
   font-feature-settings: "palt" 1;
+  background-color: #0A0A0A;
+}
+
+/* 背景：コンクリートの壁にスプレーで落書きされた写真（事前に暗く加工済み）。
+   その上に暗幕を重ねて、文字やボタンの下では必ず静かになるようにする。 */
+.manage-ui::before,
+.manage-ui::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.manage-ui::before {
+  background: url("/manage-bg.webp") center / cover no-repeat;
+  opacity: 0.85;
+}
+.manage-ui::after {
+  background: linear-gradient(
+    180deg,
+    rgba(10, 10, 10, 0.55) 0%,
+    rgba(10, 10, 10, 0.7) 100%
+  );
+}
+.manage-ui > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* 数字だけに使う極太フォント（文章に使うと潰れるので数字専用） */
+.manage-ui .font-num {
+  font-family: var(--font-dela-gothic), var(--font-zen-kaku-antique),
+    sans-serif;
+  font-weight: 400;
 }
 
 /* 見出し・数字・ボタンの文字。極太だが、Dela Gothic One ほど詰まらないので

@@ -5,6 +5,7 @@ import {
   Zen_Maru_Gothic,
   Noto_Sans_JP,
   Zen_Kaku_Gothic_Antique,
+  Dela_Gothic_One,
 } from "next/font/google";
 import "./globals.css";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
@@ -41,6 +42,14 @@ const zenKakuGothicAntique = Zen_Kaku_Gothic_Antique({
   subsets: ["latin"],
 });
 
+// 企画担当者画面の「数字」だけに使う極太フォント。
+// 文章に使うと潰れるので、待ちグループ数・時刻などの数字専用。
+const delaGothicOne = Dela_Gothic_One({
+  variable: "--font-dela-gothic",
+  weight: ["400"],
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
   title: "渦潮祭",
   description: "渦潮祭 来場者用アプリ",
@@ -61,7 +70,7 @@ export default function RootLayout({
   return (
     <html
       lang="ja"
-      className={`${geistSans.variable} ${geistMono.variable} ${zenMaruGothic.variable} ${notoSansJP.variable} ${zenKakuGothicAntique.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${zenMaruGothic.variable} ${notoSansJP.variable} ${zenKakuGothicAntique.variable} ${delaGothicOne.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-kosei-50 font-body">
         <AnalyticsTracker />
