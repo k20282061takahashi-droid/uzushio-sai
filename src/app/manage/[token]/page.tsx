@@ -681,7 +681,7 @@ export default function BoothManagePage() {
 
             <button
               onClick={openLostItemModal}
-              className="chunk font-pop min-h-[4.5rem] w-full rounded-2xl bg-bbb-blue text-lg text-white shadow-[0_6px_0_#004A7C] lg:mt-auto"
+              className="chunk font-pop min-h-[4.5rem] w-full rounded-2xl bg-bbb-blue text-lg text-white shadow-[0_6px_0_#004A7C]"
             >
               おとしもの登録
             </button>
