@@ -52,6 +52,12 @@
   --color-danger-600: #E2695F;
   --color-danger-800: #B33A30;
 
+  /* ミスト（企画担当者画面の背景・罫線。湖青をぐっと薄めた寒色グレー） */
+  --color-mist-50: #F1F4F5;
+  --color-mist-100: #E6EBED;
+  --color-mist-200: #D3DBDE;
+  --color-mist-300: #B7C3C7;
+
   /* グレー（本文・補助） */
   --color-inkgray-50: #F5F5F3;
   --color-inkgray-400: #9C9C97;
