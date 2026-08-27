@@ -1,10 +1,8 @@
 import Link from "next/link";
 import AnnouncementTicker from "@/components/AnnouncementTicker";
 import CampusMap from "@/components/CampusMap";
+import NowNextEvent from "@/components/NowNextEvent";
 import StampSummary from "@/components/StampSummary";
-
-const currentEvent = { time: "〜9:50", title: "吹奏楽部 演奏会", venue: "体育館" };
-const nextEvent = { time: "10:00〜10:50", title: "有志ダンス", venue: "体育館" };
 
 export default function VisitorHome() {
   return (
@@ -26,32 +24,8 @@ export default function VisitorHome() {
         <CampusMap />
       </section>
 
-      {/* 現在・次のイベント（どこを押してもタイムテーブルへ移動する） */}
-      <Link
-        href="/timeline"
-        className="pressable animate-fade-in-up mb-6 block rounded-3xl border-2 border-kosei-700 bg-kosei-50 p-4 shadow-[0_5px_0_var(--color-kosei-700)]"
-        style={{ animationDelay: "120ms" }}
-      >
-        <div className="mb-2 flex items-center gap-2">
-          <span className="shrink-0 rounded-full bg-kosei-800 px-3.5 py-0.5 font-heading text-xs font-black text-white">
-            Now
-          </span>
-          <span className="text-sm font-medium text-kosei-700">{currentEvent.time}</span>
-        </div>
-        <p className="mb-1 truncate font-heading text-2xl font-black text-kosei-800">
-          {currentEvent.title}
-        </p>
-        <p className="mb-3 text-sm text-kosei-600">@{currentEvent.venue}</p>
-
-        <div className="flex items-center gap-2 border-t border-dashed border-kosei-200 pt-2 text-sm">
-          <span className="shrink-0 rounded-full bg-kosei-500 px-2.5 py-0.5 text-xs font-bold text-white">
-            Next
-          </span>
-          <span className="text-kosei-700">{nextEvent.time}</span>
-          <span className="truncate font-bold text-kosei-800">{nextEvent.title}</span>
-          <span className="ml-auto shrink-0 text-kosei-600">@{nextEvent.venue}</span>
-        </div>
-      </Link>
+      {/* 現在・次のイベント（実際の時刻を見て切り替わる。押すとタイムテーブルへ） */}
+      <NowNextEvent />
 
       {/* クイックリンク */}
       <section

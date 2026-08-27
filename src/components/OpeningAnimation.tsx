@@ -23,6 +23,10 @@ const FADE_START = 2300;
 const FADE_END = 2900;
 const DURATION_TOTAL = 3500;
 
+// 粒のぼかし。始まった直後はぼんやりさせ、文字になるにつれてはっきりさせる
+const BLUR_MAX = 7; // 最初のぼかしの強さ（px。画面の大きさに合わせて拡大縮小する）
+const BLUR_END = SWIRL_END; // ここまでにぼかしが0になる
+
 function rand(a: number, b: number) {
   return a + Math.random() * (b - a);
 }
@@ -82,6 +86,14 @@ export default function OpeningAnimation({
     const yearFontSize = YEAR_FONT_SIZE * Math.min(scaleX, scaleY);
     const yearLineHeight = YEAR_LINE_HEIGHT * Math.min(scaleX, scaleY);
     const yearGap = YEAR_GAP * Math.min(scaleX, scaleY);
+
+    // 粒はいったん別のcanvasに描いてから、まとめてぼかして本番のcanvasに貼る。
+    // 1粒ずつぼかすより軽く、スマホでもなめらかに動く。
+    const layer = document.createElement("canvas");
+    layer.width = width;
+    layer.height = height;
+    const lctx = layer.getContext("2d");
+    const canBlur = !!lctx && typeof ctx!.filter === "string";
 
     function mainTextStartY() {
       const totalHeight = MAIN_TEXT.length * mainLineHeight;
@@ -187,6 +199,10 @@ export default function OpeningAnimation({
       ctx!.fillStyle = BG;
       ctx!.fillRect(0, 0, width, height);
 
+      // 粒を描く先。ぼかしが使える環境では別canvasへ、使えなければ直接描く
+      const pctx = canBlur ? lctx! : ctx!;
+      if (canBlur) pctx.clearRect(0, 0, width, height);
+
       const particleFade =
         elapsed < FADE_START
           ? 1
@@ -211,11 +227,22 @@ export default function OpeningAnimation({
         const rgb = hexToRgb(p.color);
         const alpha = (0.5 + 0.5 * eased) * particleFade;
         if (alpha <= 0.01) return;
-        ctx!.beginPath();
-        ctx!.arc(x, y, r, 0, Math.PI * 2);
-        ctx!.fillStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${alpha.toFixed(2)})`;
-        ctx!.fill();
+        pctx.beginPath();
+        pctx.arc(x, y, r, 0, Math.PI * 2);
+        pctx.fillStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${alpha.toFixed(2)})`;
+        pctx.fill();
       });
+
+      // ぼかしをかけて貼りつける。時間が進むほどぼかしが弱くなり、輪郭がはっきりする
+      if (canBlur) {
+        const blurT = Math.min(1, elapsed / BLUR_END);
+        const blur =
+          BLUR_MAX * Math.min(scaleX, scaleY) * (1 - easeInOutCubic(blurT));
+        ctx!.save();
+        ctx!.filter = blur > 0.1 ? `blur(${blur.toFixed(2)}px)` : "none";
+        ctx!.drawImage(layer, 0, 0);
+        ctx!.restore();
+      }
 
       const textAlpha =
         elapsed < FADE_START
