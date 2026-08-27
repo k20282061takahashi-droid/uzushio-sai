@@ -16,6 +16,7 @@ import {
   deleteBooth,
   subscribeBooths,
   updateBooth,
+  uploadSignboardImage,
 } from "@/lib/booth";
 import {
   groupAndSortBooths,
@@ -178,11 +179,48 @@ function BoothDetailForm({
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  // 看板画像を差し替えたときの、この画面だけの表示用URL
+  const [newSignboardUrl, setNewSignboardUrl] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imageError, setImageError] = useState("");
 
   const manageUrl =
     typeof window !== "undefined"
       ? `${window.location.origin}/manage/${booth.accessToken}`
       : `/manage/${booth.accessToken}`;
+
+  // 看板画像を押すとファイル選択が開き、選んだ画像にその場で差し替える
+  async function handleSignboardChange(
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) {
+    const file = e.target.files?.[0];
+    // 同じ画像をもう一度選べるように、入力欄は毎回空にしておく
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setImageError("画像ファイルを選んでください");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setImageError("画像が大きすぎます（5MBまでにしてください）");
+      return;
+    }
+    setImageError("");
+    setUploadingImage(true);
+    try {
+      const url = await uploadSignboardImage(booth.id, file);
+      await updateBooth(booth.id, { signboardUrl: url });
+      // 保存先のファイル名が同じなので、末尾に時刻を足して
+      // 古い画像が表示され続けないようにする（この画面の表示だけ）
+      setNewSignboardUrl(
+        `${url}${url.includes("?") ? "&" : "?"}t=${Date.now()}`,
+      );
+    } catch {
+      setImageError("アップロードに失敗しました。もう一度お試しください");
+    } finally {
+      setUploadingImage(false);
+    }
+  }
 
   async function save() {
     setSaving(true);
@@ -200,6 +238,8 @@ function BoothDetailForm({
   }
 
   const minutes = waitMinutesOf(booth);
+  // 差し替え直後はこの画面で選んだ画像を、それ以外は保存済みの画像を出す
+  const shownSignboardUrl = newSignboardUrl ?? booth.signboardUrl;
 
   return (
     <FloatPanel
@@ -213,11 +253,23 @@ function BoothDetailForm({
         {/* 左：現在の状態と看板 */}
         <section>
           <h3 className="mb-2 text-sm font-medium text-neutral-300">今の状態</h3>
-          <div className="mb-3 overflow-hidden rounded-xl border border-white/10 bg-neutral-950">
-            {booth.signboardUrl ? (
+          <label
+            title="押すと看板画像を変更できます"
+            className={`group relative mb-1 block overflow-hidden rounded-xl border border-white/10 bg-neutral-950 ${
+              uploadingImage ? "cursor-wait" : "cursor-pointer"
+            }`}
+          >
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              disabled={uploadingImage}
+              onChange={handleSignboardChange}
+            />
+            {shownSignboardUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={booth.signboardUrl}
+                src={shownSignboardUrl}
                 alt=""
                 className="aspect-[16/9] w-full object-cover"
               />
@@ -226,7 +278,24 @@ function BoothDetailForm({
                 看板画像は未登録です
               </div>
             )}
-          </div>
+            {/* マウスを乗せたとき（とアップロード中）だけ案内を出す */}
+            <span
+              className={`absolute inset-0 flex items-center justify-center bg-black/65 text-xs text-neutral-100 transition-opacity ${
+                uploadingImage
+                  ? "opacity-100"
+                  : "opacity-0 group-hover:opacity-100"
+              }`}
+            >
+              {uploadingImage ? "アップロード中..." : "押して画像を変更"}
+            </span>
+          </label>
+          <p className="mb-3 text-[12px] text-neutral-500">
+            {imageError ? (
+              <span className="text-red-300">{imageError}</span>
+            ) : (
+              "画像を押すと差し替えられます（5MBまで）"
+            )}
+          </p>
 
           <div className="space-y-1.5 text-sm">
             <div className="flex justify-between">
