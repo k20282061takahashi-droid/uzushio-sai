@@ -5,6 +5,8 @@ import {
   Zen_Maru_Gothic,
   Noto_Sans_JP,
   Zen_Kaku_Gothic_Antique,
+  Dela_Gothic_One,
+  Luckiest_Guy,
 } from "next/font/google";
 import "./globals.css";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
@@ -40,6 +42,20 @@ const zenKakuGothicAntique = Zen_Kaku_Gothic_Antique({
   subsets: ["latin"],
 });
 
+// 企画担当者画面の見出し・数字用（和文の極太ゴシック）
+const delaGothicOne = Dela_Gothic_One({
+  variable: "--font-dela-gothic",
+  weight: ["400"],
+  subsets: ["latin"],
+});
+
+// 企画担当者画面の英字ロゴ用（ポップな極太）
+const luckiestGuy = Luckiest_Guy({
+  variable: "--font-luckiest-guy",
+  weight: ["400"],
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
   title: "渦潮祭",
   description: "渦潮祭 来場者用アプリ",
@@ -60,7 +76,7 @@ export default function RootLayout({
   return (
     <html
       lang="ja"
-      className={`${geistSans.variable} ${geistMono.variable} ${zenMaruGothic.variable} ${notoSansJP.variable} ${zenKakuGothicAntique.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${zenMaruGothic.variable} ${notoSansJP.variable} ${zenKakuGothicAntique.variable} ${delaGothicOne.variable} ${luckiestGuy.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-kosei-50 font-body">
         <AnalyticsTracker />

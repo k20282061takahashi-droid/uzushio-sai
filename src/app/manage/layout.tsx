@@ -4,9 +4,9 @@ export default function ManageLayout({
   children: React.ReactNode;
 }) {
   // manage-ui は globals.css で定義しているクラス。
-  // 企画担当者画面だけを「白いカード＋寒色グレーの背景＋角ゴシック」にする。
+  // 企画担当者画面だけを「黒地＋ビビッドカラー＋極太フォント」にする。
   return (
-    <div className="manage-ui min-h-screen bg-mist-50 text-neutral-900">
+    <div className="manage-ui min-h-screen bg-bbb-ink text-white">
       {children}
     </div>
   );

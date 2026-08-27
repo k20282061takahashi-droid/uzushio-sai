@@ -52,6 +52,19 @@
   --color-danger-600: #E2695F;
   --color-danger-800: #B33A30;
 
+  /* 企画担当者画面のビビッドカラー（黒地に映える色） */
+  --color-bbb-ink: #0A0A0A;
+  --color-bbb-panel: #17171A;
+  --color-bbb-yellow: #FDE021;
+  --color-bbb-cyan: #01C7DA;
+  --color-bbb-red: #E1131E;
+  --color-bbb-green: #00E02D;
+  --color-bbb-pink: #FF3A81;
+  --color-bbb-blue: #0071BD;
+
+  --font-pop: var(--font-dela-gothic);
+  --font-logo: var(--font-luckiest-guy);
+
   /* ミスト（企画担当者画面の背景・罫線。湖青をぐっと薄めた寒色グレー） */
   --color-mist-50: #F1F4F5;
   --color-mist-100: #E6EBED;
@@ -304,17 +317,25 @@ body {
 
 /* ==========================================================================
    企画担当者画面（/manage）専用の見た目
-   来場者アプリ（湖青＋丸ゴシック＋楽しげ）と運営画面（黒のモノクロ）の中間。
-   ・白いカード＋淡い湖青の背景で「明るい」
-   ・角ゴシック（Zen Kaku Gothic Antique）と1pxの罫線で「しっかり」
-   9月の屋外・昼間にスマホで見る前提なので、白基調＋高コントラストにしている。
+   黒地＋ビビッドカラー＋極太フォントのストリート寄り。
+   来場者アプリ（湖青の水彩っぽい世界）とはあえて別物にしている。
+   iPadを作業しながら片手で触る前提なので、押せる場所は大きく厚くする。
    ========================================================================== */
 .manage-ui {
-  font-family: var(--font-zen-kaku-antique), "Hiragino Sans", "Noto Sans JP",
-    sans-serif;
-  /* 日本語の約物（句読点・かっこ）を詰めて読みやすくする */
+  font-family: var(--font-noto-sans-jp), "Hiragino Sans", sans-serif;
   font-feature-settings: "palt" 1;
-  letter-spacing: 0.01em;
+}
+
+/* 見出し・数字・ボタンの文字は極太ゴシック */
+.manage-ui .font-pop {
+  font-family: var(--font-dela-gothic), var(--font-noto-sans-jp), sans-serif;
+  font-weight: 400;
+}
+
+/* 英字のロゴ・ラベル */
+.manage-ui .font-logo {
+  font-family: var(--font-luckiest-guy), var(--font-dela-gothic), sans-serif;
+  letter-spacing: 0.06em;
 }
 
 .manage-ui input,
@@ -322,33 +343,30 @@ body {
 .manage-ui textarea,
 .manage-ui button {
   font-family: inherit;
-  letter-spacing: inherit;
 }
 
-/* 入力中の場所がはっきり分かるようにする */
 .manage-ui :is(input, select, textarea):focus {
-  outline: 2px solid var(--color-kosei-500);
+  outline: 3px solid var(--color-bbb-yellow);
   outline-offset: 1px;
   border-color: transparent;
 }
 
-.manage-ui :is(button, a):focus-visible {
-  outline: 2px solid var(--color-kosei-600);
-  outline-offset: 2px;
+.manage-ui :is(button, a, label):focus-visible {
+  outline: 3px solid var(--color-bbb-yellow);
+  outline-offset: 3px;
 }
 
-/* 押せるものは、下に少しずれた薄い影で浮かせる（来場者アプリの質感を弱めた版）。
-   押すと影が消えて沈む。 */
-.manage-ui .lift {
-  box-shadow: 0 2px 0 rgba(18, 73, 90, 0.16);
-  transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
+/* 厚みのあるボタン。下に濃い影を敷いて、押すとその分だけ沈む。
+   指で押したときに「押せた」と目で分かるようにするための仕掛け。 */
+.manage-ui .chunk {
+  transition: transform 0.08s ease-out, box-shadow 0.08s ease-out;
 }
-.manage-ui .lift:active {
-  transform: translateY(2px);
-  box-shadow: none;
+.manage-ui .chunk:active:not(:disabled) {
+  transform: translateY(6px);
+  box-shadow: none !important;
 }
 @media (prefers-reduced-motion: reduce) {
-  .manage-ui .lift {
+  .manage-ui .chunk {
     transition: none;
   }
 }
