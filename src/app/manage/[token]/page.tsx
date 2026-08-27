@@ -28,6 +28,13 @@ const REFRESH_INTERVAL_MS = 30_000;
 // 自分で操作した直後は、取り直した古い値で上書きしないための猶予時間。
 const LOCAL_EDIT_GRACE_MS = 30_000;
 
+// 状態ごとの色。作業しながらでも、ちらっと見ただけで分かるようにする。
+function statusBadgeClass(booth: Booth): string {
+  if (booth.status === "open") return "bg-success-600 text-white";
+  if (booth.status === "break") return "bg-warn-600 text-neutral-900";
+  return "bg-danger-600 text-white";
+}
+
 function visitorStatusLabel(booth: Booth): string {
   if (booth.status === "closed") return "終了";
   if (booth.status === "break") return "休憩中";
@@ -379,9 +386,11 @@ export default function BoothManagePage() {
             <p className="text-[12px] tracking-[0.06em] text-kosei-200">
               いま来場者に見えている表示
             </p>
-            <p className="text-xl font-bold sm:text-2xl">
+            <span
+              className={`rounded-lg px-4 py-1.5 text-xl font-bold sm:text-2xl ${statusBadgeClass(booth)}`}
+            >
               {visitorStatusLabel(booth)}
-            </p>
+            </span>
           </div>
         )}
         {lastFetchedAt && (
@@ -393,8 +402,8 @@ export default function BoothManagePage() {
 
       {/* パソコン・iPadでは左に操作パネル、右に運営からの連絡を並べる。
           スマホでは今までどおり縦に並ぶ。 */}
-      <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-6">
-        <section className="mb-4 rounded-xl border border-mist-200 bg-white p-4 shadow-[0_1px_3px_rgba(18,73,90,0.07)] lg:col-start-2 lg:row-start-1 lg:mb-0">
+      <div className="flex flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-6">
+        <section className="order-2 mb-4 rounded-xl border border-mist-200 bg-white p-4 shadow-[0_1px_3px_rgba(18,73,90,0.07)] lg:order-none lg:col-start-2 lg:row-start-1 lg:mb-0">
           <h2 className="mb-2 text-sm font-bold tracking-[0.04em] text-kosei-800">
             運営からの連絡
           </h2>
@@ -404,7 +413,7 @@ export default function BoothManagePage() {
           />
         </section>
 
-        <div className="lg:col-start-1 lg:row-start-1">
+        <div className="order-1 lg:order-none lg:col-start-1 lg:row-start-1">
           {view === "before" ? (
             <section className="mb-4 rounded-xl border border-mist-200 border-l-[3px] border-l-warn-600 bg-white p-4 shadow-[0_1px_3px_rgba(18,73,90,0.07)] sm:grid sm:grid-cols-2 sm:gap-x-6">
               <h2 className="mb-3 text-sm font-bold tracking-[0.04em] text-warn-800 sm:col-span-2">
@@ -524,47 +533,63 @@ export default function BoothManagePage() {
               </button>
             </section>
           ) : (
-            <section className="mb-4 rounded-xl border border-mist-200 bg-white p-4 shadow-[0_1px_3px_rgba(18,73,90,0.07)]">
+            <>
+              <section className="mb-4 rounded-xl border border-mist-200 bg-white p-4 shadow-[0_1px_3px_rgba(18,73,90,0.07)] sm:p-6">
 
               {booth.hasWaiting && (
-                <div className="mb-4 flex items-center justify-between gap-3 sm:justify-center sm:gap-10">
+                <div className="mb-5 flex items-center justify-between gap-3 lg:justify-center lg:gap-14">
+                  {/* iPadを作業しながら片手で触る前提。指で確実に押せるよう、
+                      ボタンは大きく、左右の端に置いている。 */}
                   <button
                     onClick={() => adjustWaiting(-1)}
                     disabled={savingWait || booth.status !== "open"}
-                    className="lift h-24 w-24 shrink-0 rounded-2xl bg-kosei-800 text-4xl font-bold text-white disabled:border disabled:border-mist-200 disabled:bg-white disabled:text-mist-300 disabled:shadow-none sm:h-32 sm:w-32 sm:text-5xl"
+                    aria-label="待っているグループを1つ減らす"
+                    className="lift h-28 w-28 shrink-0 rounded-2xl bg-kosei-800 text-5xl font-bold text-white disabled:border disabled:border-mist-200 disabled:bg-white disabled:text-mist-300 disabled:shadow-none sm:h-36 sm:w-36 lg:h-40 lg:w-40 lg:text-6xl"
                   >
                     −
                   </button>
-                  <div className="flex-1 text-center sm:flex-none">
-                    <p className="text-[13px] text-neutral-500">
-                      待っているグループ数
+                  <div className="flex-1 text-center lg:w-56 lg:flex-none">
+                    <p className="text-[13px] font-medium tracking-[0.04em] text-neutral-500">
+                      待っているグループ
                     </p>
-                    <p className="text-8xl font-bold tabular-nums text-kosei-800 sm:text-9xl">
+                    {/* key を付けると数字が変わるたびに作り直され、跳ねる動きが毎回出る */}
+                    <p
+                      key={waitingGroups}
+                      className="animate-bump text-8xl font-bold leading-none tabular-nums text-kosei-800 sm:text-9xl"
+                    >
                       {waitingGroups}
                     </p>
-                    {booth.status !== "open" && (
-                      <p className="text-[13px] text-neutral-500">
+                    {booth.status !== "open" ? (
+                      <p className="mt-2 text-[13px] text-neutral-500">
                         {booth.status === "break"
                           ? "休憩中は変更できません"
                           : "終了しているため変更できません"}
                       </p>
+                    ) : (
+                      booth.timePerGroup != null && (
+                        <p className="mt-2 text-[13px] text-neutral-500">
+                          待ち時間の目安 {waitingGroups * booth.timePerGroup}分
+                        </p>
+                      )
                     )}
                   </div>
                   <button
                     onClick={() => adjustWaiting(1)}
                     disabled={savingWait || booth.status !== "open"}
-                    className="lift h-24 w-24 shrink-0 rounded-2xl bg-kosei-800 text-4xl font-bold text-white disabled:border disabled:border-mist-200 disabled:bg-white disabled:text-mist-300 disabled:shadow-none sm:h-32 sm:w-32 sm:text-5xl"
+                    aria-label="待っているグループを1つ増やす"
+                    className="lift h-28 w-28 shrink-0 rounded-2xl bg-kosei-800 text-5xl font-bold text-white disabled:border disabled:border-mist-200 disabled:bg-white disabled:text-mist-300 disabled:shadow-none sm:h-36 sm:w-36 lg:h-40 lg:w-40 lg:text-6xl"
                   >
                     ＋
                   </button>
                 </div>
               )}
 
-              <div className="mb-3 flex flex-col gap-2 sm:grid sm:grid-cols-3">
+              {/* 状態を変えるボタン。指で押す前提なので高さを72px以上にしている */}
+              <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
                 <button
                   onClick={() => setConfirmClose(true)}
                   disabled={changingStatus || booth.status === "closed"}
-                  className="lift flex-1 rounded-lg border border-danger-800/35 bg-white p-4 text-base font-bold text-danger-800 disabled:border-mist-200 disabled:bg-mist-50 disabled:text-mist-300 disabled:shadow-none"
+                  className="lift min-h-[4.5rem] rounded-xl border-2 border-danger-800/30 bg-white text-lg font-bold text-danger-800 disabled:border-mist-200 disabled:bg-mist-50 disabled:text-mist-300 disabled:shadow-none"
                 >
                   終了
                 </button>
@@ -572,45 +597,49 @@ export default function BoothManagePage() {
                   <button
                     onClick={() => changeStatus("open")}
                     disabled={changingStatus}
-                    className="lift flex-1 rounded-lg border border-success-800/40 bg-white p-4 text-base font-bold text-success-800"
+                    className="lift min-h-[4.5rem] rounded-xl border-2 border-success-800/40 bg-white text-lg font-bold text-success-800"
                   >
-                    再開
+                    再開する
                   </button>
                 ) : (
                   <button
                     onClick={() => changeStatus("break")}
                     disabled={changingStatus || booth.status !== "open"}
-                    className="lift flex-1 rounded-lg border border-kosei-800/30 bg-white p-4 text-base font-bold text-kosei-800 disabled:border-mist-200 disabled:bg-mist-50 disabled:text-mist-300 disabled:shadow-none"
+                    className="lift min-h-[4.5rem] rounded-xl border-2 border-kosei-800/25 bg-white text-lg font-bold text-kosei-800 disabled:border-mist-200 disabled:bg-mist-50 disabled:text-mist-300 disabled:shadow-none"
                   >
                     一時休憩
                   </button>
                 )}
                 <button
                   onClick={openLostItemModal}
-                  className="lift flex-1 rounded-lg border border-warn-800/40 bg-white p-4 text-base font-bold text-warn-800"
+                  className="lift min-h-[4.5rem] rounded-xl border-2 border-warn-800/35 bg-white text-lg font-bold text-warn-800"
                 >
                   落とし物登録
                 </button>
               </div>
               {lostItemSaved && (
-                <p className="mb-2 text-xs text-success-800">登録しました</p>
-              )}
-
-              <button
-                onClick={() => {
-                  setEmergencyOpen(true);
-                  setEmergencySent(false);
-                }}
-                className="lift w-full rounded-lg bg-danger-800 p-4 text-base font-bold text-white"
-              >
-                緊急連絡
-              </button>
-              {emergencySent && (
-                <p className="mt-2 text-xs text-success-800">
-                  運営へ通知を送信しました
+                <p className="mt-3 text-sm text-success-800">
+                  落とし物を登録しました
                 </p>
               )}
             </section>
+
+            {/* 緊急連絡は誤って押さないよう、他のボタンから離してカードの外に置く */}
+            <button
+              onClick={() => {
+                setEmergencyOpen(true);
+                setEmergencySent(false);
+              }}
+              className="lift mb-4 min-h-[4.5rem] w-full rounded-xl bg-danger-800 text-lg font-bold text-white"
+            >
+              緊急連絡
+            </button>
+              {emergencySent && (
+                <p className="mb-4 text-sm text-success-800">
+                  運営へ通知を送信しました
+                </p>
+              )}
+            </>
           )}
         </div>
       </div>

@@ -352,3 +352,25 @@ body {
     transition: none;
   }
 }
+
+/* 数字が増減したときに、押せたことが目で分かるように一瞬跳ねさせる。
+   （iPadを作業しながら触るので、触った手応えを見た目で補う） */
+@keyframes bump {
+  0% {
+    transform: scale(1.18);
+  }
+  60% {
+    transform: scale(0.98);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.manage-ui .animate-bump {
+  animation: bump 0.22s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .manage-ui .animate-bump {
+    animation: none;
+  }
+}
