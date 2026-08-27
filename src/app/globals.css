@@ -295,3 +295,54 @@ body {
     display: none;
   }
 }
+
+/* ==========================================================================
+   企画担当者画面（/manage）専用の見た目
+   来場者アプリ（湖青＋丸ゴシック＋楽しげ）と運営画面（黒のモノクロ）の中間。
+   ・白いカード＋淡い湖青の背景で「明るい」
+   ・角ゴシック（Zen Kaku Gothic Antique）と1pxの罫線で「しっかり」
+   9月の屋外・昼間にスマホで見る前提なので、白基調＋高コントラストにしている。
+   ========================================================================== */
+.manage-ui {
+  font-family: var(--font-zen-kaku-antique), "Hiragino Sans", "Noto Sans JP",
+    sans-serif;
+  /* 日本語の約物（句読点・かっこ）を詰めて読みやすくする */
+  font-feature-settings: "palt" 1;
+  letter-spacing: 0.01em;
+}
+
+.manage-ui input,
+.manage-ui select,
+.manage-ui textarea,
+.manage-ui button {
+  font-family: inherit;
+  letter-spacing: inherit;
+}
+
+/* 入力中の場所がはっきり分かるようにする */
+.manage-ui :is(input, select, textarea):focus {
+  outline: 2px solid var(--color-kosei-500);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+
+.manage-ui :is(button, a):focus-visible {
+  outline: 2px solid var(--color-kosei-600);
+  outline-offset: 2px;
+}
+
+/* 押せるものは、下に少しずれた薄い影で浮かせる（来場者アプリの質感を弱めた版）。
+   押すと影が消えて沈む。 */
+.manage-ui .lift {
+  box-shadow: 0 2px 0 rgba(18, 73, 90, 0.16);
+  transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
+}
+.manage-ui .lift:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .manage-ui .lift {
+    transition: none;
+  }
+}

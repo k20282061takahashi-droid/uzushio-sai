@@ -58,7 +58,7 @@ function AnnouncementBoard({
   }, [latest.length]);
 
   if (announcements.length === 0) {
-    return <p className="text-xs text-slate-500">現在お知らせはありません</p>;
+    return <p className="text-xs text-neutral-500">現在お知らせはありません</p>;
   }
 
   // 並べ替え：ピン留めを先に、そのあと新しい順
@@ -75,14 +75,14 @@ function AnnouncementBoard({
           <ul className="mb-2 space-y-1">
             {pinned.map((a) => (
               <li key={a.id} className="flex items-center gap-1 text-sm">
-                <PinIcon className="h-4 w-4 shrink-0 text-amber-400" />
+                <PinIcon className="h-4 w-4 shrink-0 text-warn-800" />
                 <span className="truncate">{a.title}</span>
               </li>
             ))}
           </ul>
         )}
         {latest.length > 0 && (
-          <div className="relative h-6 overflow-hidden text-sm text-slate-300">
+          <div className="relative h-6 overflow-hidden text-sm text-neutral-600">
             {latest.map((a, i) => (
               <span
                 key={a.id}
@@ -101,16 +101,16 @@ function AnnouncementBoard({
         {ordered.map((a) => (
           <li
             key={a.id}
-            className="rounded-lg border border-white/10 bg-white/5 p-3"
+            className="rounded-lg border border-kosei-100 bg-white p-3"
           >
             <p className="flex items-start gap-1.5 text-[15px] font-semibold">
               {a.pinned && (
-                <PinIcon className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+                <PinIcon className="mt-0.5 h-4 w-4 shrink-0 text-warn-800" />
               )}
               <span>{a.title}</span>
             </p>
             {a.body && (
-              <p className="mt-1 whitespace-pre-wrap text-[13px] text-slate-300">
+              <p className="mt-1 whitespace-pre-wrap text-[13px] text-neutral-600">
                 {a.body}
               </p>
             )}
@@ -134,7 +134,7 @@ function Modal({
       onClick={onClose}
     >
       <div
-        className="max-h-[85vh] w-full max-w-sm overflow-y-auto rounded-xl bg-slate-900 p-4 shadow-xl sm:max-w-md sm:p-5 lg:max-w-lg"
+        className="max-h-[85vh] w-full max-w-sm overflow-y-auto rounded-xl border border-kosei-100 bg-white p-5 shadow-xl sm:max-w-md lg:max-w-lg"
         onClick={(e) => e.stopPropagation()}
       >
         {children}
@@ -346,16 +346,16 @@ export default function BoothManagePage() {
 
   if (booth === undefined) {
     return (
-      <div className="mx-auto w-full max-w-md px-4 pt-8 text-white sm:max-w-2xl sm:px-6">
-        <p className="text-sm text-slate-400">読み込み中...</p>
+      <div className="mx-auto w-full max-w-md px-4 pt-8 text-neutral-900 sm:max-w-2xl sm:px-6">
+        <p className="text-sm text-neutral-500">読み込み中...</p>
       </div>
     );
   }
 
   if (booth === null) {
     return (
-      <div className="mx-auto w-full max-w-md px-4 pt-8 text-white sm:max-w-2xl sm:px-6">
-        <p className="text-sm text-red-400">
+      <div className="mx-auto w-full max-w-md px-4 pt-8 text-neutral-900 sm:max-w-2xl sm:px-6">
+        <p className="text-sm text-danger-800">
           このURLは無効です。企画担当のQRコード／URLを再度ご確認ください。
         </p>
       </div>
@@ -363,16 +363,22 @@ export default function BoothManagePage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-md px-4 pb-16 pt-8 text-white sm:max-w-2xl sm:px-6 lg:max-w-5xl lg:px-8">
-      <div className="mb-4">
-        <h1 className="text-sm font-bold text-slate-300">渦潮祭</h1>
-        <p className="text-xs text-slate-500">企画管理者用</p>
-        <p className="mt-1 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+    <div className="mx-auto w-full max-w-md px-4 pb-16 pt-8 text-neutral-900 sm:max-w-2xl sm:px-6 lg:max-w-5xl lg:px-8">
+      <div className="mb-4 rounded-xl border border-kosei-100 bg-white p-4 shadow-[0_1px_3px_rgba(18,73,90,0.07)]">
+        <p className="text-[13px] font-medium tracking-[0.08em] text-kosei-600">
+          渦潮祭 ・ 企画担当者用
+        </p>
+        <p className="mt-0.5 text-3xl font-bold tracking-tight text-kosei-800 sm:text-4xl">
           {booth.name}
         </p>
+        {booth.projectName && (
+          <p className="mt-0.5 text-base text-neutral-600">
+            {booth.projectName}
+          </p>
+        )}
         {lastFetchedAt && (
-          <p className="mt-1 text-xs text-slate-500">
-            最終更新 {lastFetchedAt}（30秒ごとに自動更新）
+          <p className="mt-2 text-[13px] text-neutral-500">
+            最終更新 {lastFetchedAt}（30秒ごとに自動で更新されます）
           </p>
         )}
       </div>
@@ -380,8 +386,8 @@ export default function BoothManagePage() {
       {/* パソコン・iPadでは左に操作パネル、右に運営からの連絡を並べる。
           スマホでは今までどおり縦に並ぶ。 */}
       <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-6">
-        <section className="mb-4 rounded-xl border border-white/10 bg-white/5 p-4 lg:col-start-2 lg:row-start-1 lg:mb-0">
-          <h2 className="mb-2 text-sm font-semibold text-slate-300">
+        <section className="mb-4 rounded-xl border border-kosei-100 bg-white p-4 shadow-[0_1px_3px_rgba(18,73,90,0.07)] lg:col-start-2 lg:row-start-1 lg:mb-0">
+          <h2 className="mb-2 text-sm font-bold tracking-[0.04em] text-kosei-800">
             運営からの連絡
           </h2>
           <AnnouncementBoard
@@ -392,13 +398,13 @@ export default function BoothManagePage() {
 
         <div className="lg:col-start-1 lg:row-start-1">
           {view === "before" ? (
-            <section className="mb-4 rounded-xl border border-amber-400/30 bg-amber-400/10 p-4 sm:grid sm:grid-cols-2 sm:gap-x-6">
-              <h2 className="mb-3 text-sm font-semibold text-amber-200 sm:col-span-2">
+            <section className="mb-4 rounded-xl border border-warn-600/50 bg-warn-50 p-4 sm:grid sm:grid-cols-2 sm:gap-x-6">
+              <h2 className="mb-3 text-sm font-bold tracking-[0.04em] text-warn-800 sm:col-span-2">
                 企画情報の設定
               </h2>
 
               <label className="mb-3 block">
-                <span className="mb-1 block text-xs text-slate-400">
+                <span className="mb-1.5 block text-[13px] font-medium text-neutral-600">
                   企画名
                 </span>
                 <input
@@ -406,13 +412,13 @@ export default function BoothManagePage() {
                   value={projectName}
                   onChange={(e) => setProjectName(e.target.value)}
                   placeholder="例）壊れるローラーコースター"
-                  className="w-full rounded-lg border border-white/10 bg-slate-900 p-2 text-sm"
+                  className="w-full rounded-lg border border-kosei-200 bg-white p-3 text-base"
                 />
               </label>
 
               {booth.hasWaiting && (
                 <label className="mb-3 block">
-                  <span className="mb-1 block text-xs text-slate-400">
+                  <span className="mb-1.5 block text-[13px] font-medium text-neutral-600">
                     1グループあたりの対応時間（分）
                   </span>
                   <input
@@ -424,13 +430,13 @@ export default function BoothManagePage() {
                         e.target.value === "" ? "" : Number(e.target.value),
                       )
                     }
-                    className="w-full rounded-lg border border-white/10 bg-slate-900 p-2 text-sm"
+                    className="w-full rounded-lg border border-kosei-200 bg-white p-3 text-base"
                   />
                 </label>
               )}
 
               <div className="mb-3">
-                <span className="mb-1 block text-xs text-slate-400">
+                <span className="mb-1.5 block text-[13px] font-medium text-neutral-600">
                   看板画像
                 </span>
                 <div className="mb-1 flex items-center gap-2">
@@ -442,12 +448,12 @@ export default function BoothManagePage() {
                       className="h-16 w-16 rounded-lg object-cover"
                     />
                   ) : (
-                    <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-slate-900 text-[10px] text-slate-500">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-lg border border-kosei-200 bg-kosei-50 text-[11px] text-neutral-500">
                       未設定
                     </div>
                   )}
                   <div className="flex flex-col gap-2">
-                    <label className="cursor-pointer rounded-lg bg-white px-4 py-2.5 text-center text-sm font-semibold text-slate-950 active:scale-95">
+                    <label className="lift cursor-pointer rounded-lg bg-kosei-600 px-4 py-3 text-center text-sm font-bold text-white">
                       {uploadingSignboard ? "アップロード中..." : "写真を撮る"}
                       <input
                         type="file"
@@ -458,7 +464,7 @@ export default function BoothManagePage() {
                         disabled={uploadingSignboard}
                       />
                     </label>
-                    <label className="cursor-pointer rounded-lg bg-white/10 px-4 py-2.5 text-center text-sm active:scale-95">
+                    <label className="lift cursor-pointer rounded-lg border border-kosei-200 bg-white px-4 py-3 text-center text-sm font-medium text-kosei-800">
                       画像を選ぶ
                       <input
                         type="file"
@@ -473,13 +479,13 @@ export default function BoothManagePage() {
               </div>
 
               <label className="mb-3 block">
-                <span className="mb-1 block text-xs text-slate-400">
+                <span className="mb-1.5 block text-[13px] font-medium text-neutral-600">
                   カテゴリー
                 </span>
                 <select
                   value={genre}
                   onChange={(e) => setGenre(e.target.value as BoothGenre)}
-                  className="w-full rounded-lg border border-white/10 bg-slate-900 p-2 text-sm"
+                  className="w-full rounded-lg border border-kosei-200 bg-white p-3 text-base"
                 >
                   <option value="">選択してください</option>
                   {GENRE_OPTIONS.map((g) => (
@@ -491,29 +497,33 @@ export default function BoothManagePage() {
               </label>
 
               <label className="mb-3 block sm:col-span-2">
-                <span className="mb-1 block text-xs text-slate-400">詳細</span>
+                <span className="mb-1.5 block text-[13px] font-medium text-neutral-600">詳細</span>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={3}
                   placeholder="来場者向けの企画説明を入力してください"
-                  className="w-full rounded-lg border border-white/10 bg-slate-900 p-2 text-sm"
+                  className="w-full rounded-lg border border-kosei-200 bg-white p-3 text-base"
                 />
               </label>
 
               <button
                 onClick={saveSetup}
                 disabled={savingSetup}
-                className="w-full rounded-lg bg-white/10 p-2 text-sm font-semibold active:scale-95 disabled:opacity-50 sm:col-span-2"
+                className="lift w-full rounded-lg bg-kosei-600 p-4 text-base font-bold text-white disabled:opacity-50 sm:col-span-2"
               >
                 {savingSetup ? "保存中..." : "保存する"}
               </button>
             </section>
           ) : (
-            <section className="mb-4 rounded-xl border border-white/10 bg-white/5 p-4">
-              <div className="mb-4 rounded-lg bg-white/5 p-2 text-center">
-                <p className="text-xs text-slate-400">来場者表示</p>
-                <p className="font-semibold">{visitorStatusLabel(booth)}</p>
+            <section className="mb-4 rounded-xl border border-kosei-100 bg-white p-4 shadow-[0_1px_3px_rgba(18,73,90,0.07)]">
+              <div className="mb-5 rounded-xl border border-kosei-200 bg-kosei-50 p-4 text-center">
+                <p className="text-[13px] font-medium tracking-[0.04em] text-kosei-600">
+                  いま来場者にはこう見えています
+                </p>
+                <p className="mt-1 text-2xl font-bold text-kosei-800 sm:text-3xl">
+                  {visitorStatusLabel(booth)}
+                </p>
               </div>
 
               {booth.hasWaiting && (
@@ -521,22 +531,22 @@ export default function BoothManagePage() {
                   <button
                     onClick={() => adjustWaiting(-1)}
                     disabled={savingWait || booth.status !== "open"}
-                    className="h-24 w-24 shrink-0 rounded-2xl bg-white/10 text-4xl font-bold active:scale-95 disabled:opacity-40 sm:h-32 sm:w-32 sm:text-5xl"
+                    className="lift h-24 w-24 shrink-0 rounded-2xl bg-kosei-600 text-4xl font-bold text-white disabled:opacity-40 sm:h-32 sm:w-32 sm:text-5xl"
                   >
                     −
                   </button>
                   <div className="flex-1 text-center sm:flex-none">
-                    <p className="text-xs text-slate-500">
+                    <p className="text-[13px] text-neutral-500">
                       待っているグループ数
                     </p>
-                    <p className="text-8xl font-bold tabular-nums sm:text-9xl">
+                    <p className="text-8xl font-bold tabular-nums text-kosei-800 sm:text-9xl">
                       {waitingGroups}
                     </p>
                   </div>
                   <button
                     onClick={() => adjustWaiting(1)}
                     disabled={savingWait || booth.status !== "open"}
-                    className="h-24 w-24 shrink-0 rounded-2xl bg-white/10 text-4xl font-bold active:scale-95 disabled:opacity-40 sm:h-32 sm:w-32 sm:text-5xl"
+                    className="lift h-24 w-24 shrink-0 rounded-2xl bg-kosei-600 text-4xl font-bold text-white disabled:opacity-40 sm:h-32 sm:w-32 sm:text-5xl"
                   >
                     ＋
                   </button>
@@ -547,7 +557,7 @@ export default function BoothManagePage() {
                 <button
                   onClick={() => setConfirmClose(true)}
                   disabled={changingStatus || booth.status === "closed"}
-                  className="flex-1 rounded-lg bg-red-500/20 p-3 text-sm font-semibold text-red-200 active:scale-95 disabled:opacity-40 sm:p-4 sm:text-base"
+                  className="lift flex-1 rounded-lg border border-danger-600/40 bg-danger-50 p-4 text-base font-bold text-danger-800 disabled:opacity-40"
                 >
                   終了
                 </button>
@@ -555,7 +565,7 @@ export default function BoothManagePage() {
                   <button
                     onClick={() => changeStatus("open")}
                     disabled={changingStatus}
-                    className="flex-1 rounded-lg bg-emerald-500/20 p-3 text-sm font-semibold text-emerald-200 active:scale-95 sm:p-4 sm:text-base"
+                    className="lift flex-1 rounded-lg border border-success-600/60 bg-success-50 p-4 text-base font-bold text-success-800"
                   >
                     再開
                   </button>
@@ -563,20 +573,20 @@ export default function BoothManagePage() {
                   <button
                     onClick={() => changeStatus("break")}
                     disabled={changingStatus || booth.status !== "open"}
-                    className="flex-1 rounded-lg bg-white/10 p-3 text-sm font-semibold active:scale-95 disabled:opacity-40 sm:p-4 sm:text-base"
+                    className="lift flex-1 rounded-lg border border-kosei-200 bg-kosei-100 p-4 text-base font-bold text-kosei-800 disabled:opacity-40"
                   >
                     一時休憩
                   </button>
                 )}
                 <button
                   onClick={openLostItemModal}
-                  className="flex-1 rounded-lg bg-amber-500/20 p-3 text-sm font-semibold text-amber-200 active:scale-95 sm:p-4 sm:text-base"
+                  className="lift flex-1 rounded-lg border border-warn-600/50 bg-warn-50 p-4 text-base font-bold text-warn-800"
                 >
                   落とし物登録
                 </button>
               </div>
               {lostItemSaved && (
-                <p className="mb-2 text-xs text-emerald-400">登録しました</p>
+                <p className="mb-2 text-xs text-success-800">登録しました</p>
               )}
 
               <button
@@ -584,12 +594,12 @@ export default function BoothManagePage() {
                   setEmergencyOpen(true);
                   setEmergencySent(false);
                 }}
-                className="w-full rounded-lg bg-red-500 p-3 text-sm font-bold text-white active:scale-95 sm:p-4 sm:text-base"
+                className="lift w-full rounded-lg bg-danger-800 p-4 text-base font-bold text-white"
               >
                 緊急連絡
               </button>
               {emergencySent && (
-                <p className="mt-2 text-xs text-emerald-400">
+                <p className="mt-2 text-xs text-success-800">
                   運営へ通知を送信しました
                 </p>
               )}
@@ -607,13 +617,13 @@ export default function BoothManagePage() {
             <button
               onClick={() => changeStatus("closed")}
               disabled={changingStatus}
-              className="flex-1 rounded-lg bg-red-500 p-3 text-sm font-semibold text-white active:scale-95"
+              className="flex-1 rounded-lg bg-danger-800 p-3 text-sm font-semibold text-white active:scale-95"
             >
               終了
             </button>
             <button
               onClick={() => setConfirmClose(false)}
-              className="flex-1 rounded-lg bg-white/10 p-3 text-sm active:scale-95"
+              className="flex-1 rounded-lg bg-kosei-100 text-kosei-800 p-3 text-sm active:scale-95"
             >
               キャンセル
             </button>
@@ -623,24 +633,24 @@ export default function BoothManagePage() {
 
       {announcementListOpen && (
         <Modal onClose={() => setAnnouncementListOpen(false)}>
-          <h2 className="mb-3 text-base font-semibold">運営からの連絡一覧</h2>
+          <h2 className="mb-3 text-lg font-bold text-kosei-800">運営からの連絡一覧</h2>
           {announcements.length === 0 ? (
-            <p className="text-xs text-slate-500">現在お知らせはありません</p>
+            <p className="text-xs text-neutral-500">現在お知らせはありません</p>
           ) : (
             <ul className="space-y-3">
               {announcements.map((a) => (
                 <li
                   key={a.id}
-                  className="border-b border-white/10 pb-2 last:border-0"
+                  className="border-b border-kosei-100 pb-2 last:border-0"
                 >
                   <p className="flex items-start gap-1 text-sm font-medium">
                     {a.pinned && (
-                      <PinIcon className="h-4 w-4 shrink-0 text-amber-400" />
+                      <PinIcon className="h-4 w-4 shrink-0 text-warn-800" />
                     )}
                     <span>{a.title}</span>
                   </p>
                   {a.body && (
-                    <p className="mt-1 text-xs text-slate-400">{a.body}</p>
+                    <p className="mt-1 text-xs text-neutral-500">{a.body}</p>
                   )}
                 </li>
               ))}
@@ -651,10 +661,10 @@ export default function BoothManagePage() {
 
       {lostItemOpen && (
         <Modal onClose={() => setLostItemOpen(false)}>
-          <h2 className="mb-3 text-base font-semibold">落とし物登録</h2>
+          <h2 className="mb-3 text-lg font-bold text-kosei-800">落とし物登録</h2>
 
           <label className="mb-3 block">
-            <span className="mb-1 block text-xs text-slate-400">画像</span>
+            <span className="mb-1.5 block text-[13px] font-medium text-neutral-600">画像</span>
             <div className="flex items-center gap-2">
               {lostItemPhotoPreview ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -664,13 +674,13 @@ export default function BoothManagePage() {
                   className="h-16 w-16 rounded-lg object-cover"
                 />
               ) : (
-                <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-slate-800 text-[10px] text-slate-500">
+                <div className="flex h-16 w-16 items-center justify-center rounded-lg border border-kosei-200 bg-kosei-50 text-[11px] text-neutral-500">
                   未設定
                 </div>
               )}
               <div className="flex flex-col gap-2">
                 {/* capture を付けると、スマホでは撮影画面が直接ひらく */}
-                <label className="cursor-pointer rounded-lg bg-white px-4 py-2.5 text-center text-sm font-semibold text-slate-950 active:scale-95">
+                <label className="lift cursor-pointer rounded-lg bg-kosei-600 px-4 py-3 text-center text-sm font-bold text-white">
                   写真を撮る
                   <input
                     type="file"
@@ -680,7 +690,7 @@ export default function BoothManagePage() {
                     className="hidden"
                   />
                 </label>
-                <label className="cursor-pointer rounded-lg bg-white/10 px-4 py-2.5 text-center text-sm active:scale-95">
+                <label className="lift cursor-pointer rounded-lg border border-kosei-200 bg-white px-4 py-3 text-center text-sm font-medium text-kosei-800">
                   画像を選ぶ
                   <input
                     type="file"
@@ -694,36 +704,36 @@ export default function BoothManagePage() {
           </label>
 
           <label className="mb-3 block">
-            <span className="mb-1 block text-xs text-slate-400">内容</span>
+            <span className="mb-1.5 block text-[13px] font-medium text-neutral-600">内容</span>
             <textarea
               value={lostItemDescription}
               onChange={(e) => setLostItemDescription(e.target.value)}
               rows={2}
               placeholder="拾得物の内容を入力してください"
-              className="w-full rounded-lg border border-white/10 bg-slate-800 p-2 text-sm"
+              className="w-full rounded-lg border border-kosei-200 bg-white p-3 text-base"
             />
           </label>
 
           <label className="mb-3 block">
-            <span className="mb-1 block text-xs text-slate-400">
+            <span className="mb-1.5 block text-[13px] font-medium text-neutral-600">
               拾った場所
             </span>
             <input
               type="text"
               value={lostItemFoundLocation}
               onChange={(e) => setLostItemFoundLocation(e.target.value)}
-              className="w-full rounded-lg border border-white/10 bg-slate-800 p-2 text-sm"
+              className="w-full rounded-lg border border-kosei-200 bg-white p-3 text-base"
             />
           </label>
 
           <label className="mb-4 block">
-            <span className="mb-1 block text-xs text-slate-400">保管場所</span>
+            <span className="mb-1.5 block text-[13px] font-medium text-neutral-600">保管場所</span>
             <input
               type="text"
               value={lostItemStorageLocation}
               onChange={(e) => setLostItemStorageLocation(e.target.value)}
               placeholder="例）本部"
-              className="w-full rounded-lg border border-white/10 bg-slate-800 p-2 text-sm"
+              className="w-full rounded-lg border border-kosei-200 bg-white p-3 text-base"
             />
           </label>
 
@@ -731,13 +741,13 @@ export default function BoothManagePage() {
             <button
               onClick={submitLostItem}
               disabled={lostItemSaving}
-              className="flex-1 rounded-lg bg-amber-500/80 p-2 text-sm font-semibold text-slate-950 active:scale-95 disabled:opacity-50"
+              className="lift flex-1 rounded-lg bg-kosei-600 p-3 text-sm font-bold text-white disabled:opacity-50"
             >
               {lostItemSaving ? "登録中..." : "登録する"}
             </button>
             <button
               onClick={() => setLostItemOpen(false)}
-              className="flex-1 rounded-lg bg-white/10 p-2 text-sm active:scale-95"
+              className="flex-1 rounded-lg bg-kosei-100 text-kosei-800 p-2 text-sm active:scale-95"
             >
               キャンセル
             </button>
@@ -750,7 +760,7 @@ export default function BoothManagePage() {
 
       {emergencyOpen && (
         <Modal onClose={() => setEmergencyOpen(false)}>
-          <h2 className="mb-3 text-base font-semibold text-red-200">
+          <h2 className="mb-3 text-base font-semibold text-danger-800">
             緊急連絡
           </h2>
           <textarea
@@ -758,19 +768,19 @@ export default function BoothManagePage() {
             onChange={(e) => setEmergencyMessage(e.target.value)}
             rows={3}
             placeholder="状況を簡潔に入力してください（空欄でも送信できます）"
-            className="mb-3 w-full rounded-lg border border-white/10 bg-slate-800 p-2 text-sm"
+            className="mb-3 w-full rounded-lg border border-kosei-200 bg-white p-3 text-base"
           />
           <div className="flex gap-2">
             <button
               onClick={submitEmergency}
               disabled={emergencySending}
-              className="flex-1 rounded-lg bg-red-500 p-3 text-sm font-semibold text-white active:scale-95 disabled:opacity-50"
+              className="flex-1 rounded-lg bg-danger-800 p-3 text-sm font-semibold text-white active:scale-95 disabled:opacity-50"
             >
               {emergencySending ? "送信中..." : "運営へ送信する"}
             </button>
             <button
               onClick={() => setEmergencyOpen(false)}
-              className="flex-1 rounded-lg bg-white/10 p-3 text-sm active:scale-95"
+              className="flex-1 rounded-lg bg-kosei-100 text-kosei-800 p-3 text-sm active:scale-95"
             >
               キャンセル
             </button>
