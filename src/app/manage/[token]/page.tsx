@@ -562,8 +562,8 @@ export default function BoothManagePage() {
       ) : (
         <div className="grid gap-3 lg:grid-cols-[19rem_minmax(0,1fr)] lg:items-stretch lg:gap-4">
           {/* 左：運営からのれんらく（枠の中だけスクロール）と、緊急連絡 */}
-          <div className="order-2 flex flex-col gap-3 lg:order-none">
-            <section className="flex min-h-[16rem] flex-1 flex-col rounded-2xl border-2 border-white/15 bg-bbb-panel/88 p-3 lg:min-h-0">
+          <div className="order-2 flex flex-col gap-3 lg:order-none lg:h-full">
+            <section className="flex max-h-[55vh] min-h-[14rem] flex-1 flex-col rounded-2xl border-2 border-white/15 bg-bbb-panel/88 p-3 lg:max-h-none lg:min-h-0">
               <h2 className="font-logo mb-2 shrink-0 text-[13px] text-bbb-cyan">
                 運営からのれんらく
               </h2>
@@ -590,7 +590,7 @@ export default function BoothManagePage() {
           </div>
 
           {/* 右：ふだんの操作 */}
-          <div className="order-1 flex flex-col gap-3 lg:order-none">
+          <div className="order-1 flex flex-col gap-3 lg:order-none lg:h-full">
             {/* 来場者からの見え方 */}
             <div className="rounded-2xl border-2 border-white/15 bg-bbb-panel/88 px-4 py-3 text-center">
               <p className="font-read text-[13px] text-white/60">
@@ -681,7 +681,7 @@ export default function BoothManagePage() {
 
             <button
               onClick={openLostItemModal}
-              className="chunk font-pop min-h-[4.5rem] w-full rounded-2xl bg-bbb-blue text-lg text-white shadow-[0_6px_0_#004A7C]"
+              className="chunk font-pop min-h-[4.5rem] w-full rounded-2xl bg-bbb-blue text-lg text-white shadow-[0_6px_0_#004A7C] lg:mt-auto"
             >
               おとしもの登録
             </button>
