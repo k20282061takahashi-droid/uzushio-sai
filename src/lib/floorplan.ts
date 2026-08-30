@@ -31,9 +31,17 @@ function keyFor(area: AreaId, floor?: number): string {
   return hasFloors(area) ? `${area}-${floor}` : area;
 }
 
-// 表示する図面ファイルのパス
-export function floorplanSrc(area: AreaId, floor?: number): string {
-  return `/floorplans/${keyFor(area, floor)}.svg`;
+// 表示する図面ファイルのパス。
+// dark を true にすると、暗い画面用に線を明るくした複製を返す。
+// （運営画面は背景が黒に近く、黒い線の図面だと同化して見えないため）
+// ダーク版は scripts/make-dark-floorplans.mjs が作っている。
+export function floorplanSrc(
+  area: AreaId,
+  floor?: number,
+  dark = false,
+): string {
+  const folder = dark ? "/floorplans/dark" : "/floorplans";
+  return `${folder}/${keyFor(area, floor)}.svg`;
 }
 
 // その階にある部屋の一覧（企画を割り当てられる部屋のみ。階段・トイレは含まない）
