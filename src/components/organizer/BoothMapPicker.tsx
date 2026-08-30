@@ -169,7 +169,9 @@ export default function BoothMapPicker({
       <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto rounded-xl border border-white/10 bg-neutral-950/40 p-2">
         <div
           ref={planRef}
-          className="relative w-full touch-none"
+          // 図面は黒い線を透明背景に描いたSVG。運営画面は暗いので、
+          // そのままだと背景と同化して見えない。白い紙を敷いて紙面にする。
+          className="relative w-full touch-none overflow-hidden rounded-lg bg-white"
           onPointerMove={onPinPointerMove}
           onPointerUp={onPinPointerUp}
           onPointerCancel={onPinPointerUp}
@@ -206,9 +208,9 @@ export default function BoothMapPicker({
                 <span
                   className={`block h-9 w-9 rounded-full border-2 border-dashed transition ${
                     isTarget
-                      ? "border-emerald-300 bg-emerald-400/25"
+                      ? "border-emerald-500 bg-emerald-400/30"
                       : selectedBooth
-                        ? "border-white/60 bg-white/5 hover:bg-white/25"
+                        ? "border-neutral-500/70 bg-neutral-900/5 hover:bg-emerald-400/25"
                         : "border-transparent"
                   }`}
                 />
@@ -216,8 +218,8 @@ export default function BoothMapPicker({
                 <span
                   className={`absolute left-1/2 top-full mt-7 -translate-x-1/2 whitespace-nowrap rounded px-1 text-[11px] ${
                     booth
-                      ? "bg-black/40 text-white/50"
-                      : "bg-black/60 text-white/85"
+                      ? "bg-white/70 text-neutral-400"
+                      : "bg-white/90 text-neutral-600 ring-1 ring-black/10"
                   }`}
                 >
                   {room.label}
