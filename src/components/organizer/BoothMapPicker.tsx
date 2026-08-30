@@ -182,9 +182,12 @@ export default function BoothMapPicker({
             draggable={false}
           />
 
+          {/* 部屋のあたり判定と部屋名。
+              待ち時間や企画名はここには出さない。出してしまうと、下の企画ピンと
+              同じ内容が二重に描かれ、ピンをドラッグしたときに「企画が2つに
+              分かれた」ように見えてしまうため。企画の情報は企画ピンだけが持つ。 */}
           {rooms.map((room) => {
             const booth = boothByRoom.get(room.label);
-            const minutes = booth ? waitMinutesOf(booth) : null;
             const isTarget = selectedBooth && booth?.id === selectedBooth.id;
             return (
               <button
@@ -196,28 +199,28 @@ export default function BoothMapPicker({
                     ? `${room.label}：${booth.name}`
                     : `${room.label}（企画なし）`
                 }
-                className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center disabled:cursor-default"
+                className="absolute z-10 -translate-x-1/2 -translate-y-1/2 disabled:cursor-default"
                 style={{ left: `${room.x}%`, top: `${room.y}%` }}
               >
+                {/* 企画を選んでいるときだけ、押せる場所として枠を出す */}
                 <span
-                  className={`flex h-9 w-9 items-center justify-center rounded-full border-2 text-[12px] font-bold text-white shadow ${
+                  className={`block h-9 w-9 rounded-full border-2 border-dashed transition ${
                     isTarget
-                      ? "border-emerald-300 ring-2 ring-emerald-300"
-                      : "border-white/70"
+                      ? "border-emerald-300 bg-emerald-400/25"
+                      : selectedBooth
+                        ? "border-white/60 bg-white/5 hover:bg-white/25"
+                        : "border-transparent"
                   }`}
-                  style={{
-                    backgroundColor:
-                      minutes !== null
-                        ? waitColor(minutes)
-                        : booth
-                          ? "rgba(100,116,139,0.85)"
-                          : "rgba(30,41,59,0.7)",
-                  }}
+                />
+                {/* 部屋名。企画ピンのラベルと重ならないよう下にずらしている */}
+                <span
+                  className={`absolute left-1/2 top-full mt-7 -translate-x-1/2 whitespace-nowrap rounded px-1 text-[11px] ${
+                    booth
+                      ? "bg-black/40 text-white/50"
+                      : "bg-black/60 text-white/85"
+                  }`}
                 >
-                  {minutes !== null ? `${minutes}分` : booth ? "―" : ""}
-                </span>
-                <span className="mt-0.5 max-w-[86px] truncate rounded bg-black/70 px-1 text-[12px] text-white">
-                  {booth ? booth.name : room.label}
+                  {room.label}
                 </span>
               </button>
             );
@@ -242,7 +245,13 @@ export default function BoothMapPicker({
                 className={`absolute flex -translate-x-1/2 -translate-y-1/2 cursor-grab flex-col items-center active:cursor-grabbing ${
                   isDragging ? "z-30 scale-110" : "z-20"
                 }`}
-                style={{ left: `${x}%`, top: `${y}%` }}
+                style={{
+                  left: `${x}%`,
+                  top: `${y}%`,
+                  // 企画を選んでいる間は「部屋を押して割り当てる」操作が主役。
+                  // ピンがクリックを奪わないように通り抜けさせる。
+                  pointerEvents: selectedBooth ? "none" : undefined,
+                }}
               >
                 <span
                   className={`flex h-9 w-9 items-center justify-center rounded-full border-2 text-[12px] font-bold text-white shadow ${

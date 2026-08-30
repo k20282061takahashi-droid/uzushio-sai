@@ -196,6 +196,9 @@ export default function PannableZoom({
           transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
           transformOrigin: "0 0",
           transition: interacting ? "none" : "transform 0.15s ease-out",
+          // 今の拡大率を子要素に伝える。ピンなど「拡大しても大きくしたくない」
+          // ものは transform: scale(calc(1 / var(--map-scale))) で打ち消せる。
+          ["--map-scale" as string]: String(transform.scale),
         }}
       >
         {children}

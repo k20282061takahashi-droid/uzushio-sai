@@ -107,8 +107,16 @@ function MapContent() {
                     key={room.id}
                     onPointerDown={handlePinPress}
                     onClick={(e) => handlePinClick(e, room)}
-                    className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
-                    style={{ left: `${room.x}%`, top: `${room.y}%` }}
+                    className="absolute flex flex-col items-center"
+                    style={{
+                      left: `${room.x}%`,
+                      top: `${room.y}%`,
+                      // 地図を拡大してもピンは画面上の大きさを保つ。
+                      // --map-scale は PannableZoom が今の拡大率を入れている。
+                      transform:
+                        "translate(-50%, -50%) scale(calc(1 / var(--map-scale, 1)))",
+                      transition: "transform 0.15s ease-out",
+                    }}
                   >
                     <span
                       className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-white text-xs font-bold text-white shadow-[0_3px_0_rgba(18,73,90,0.55)]"
