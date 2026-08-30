@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# テンプレートだけは共有する（値は入っていない）
+!.env*.example

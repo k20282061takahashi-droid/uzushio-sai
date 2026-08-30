@@ -21,7 +21,7 @@ const AREAS: { id: AreaId; name: string }[] = [
   { id: "schoolyard", name: "校庭" },
 ];
 
-const FLOORS = [4, 3, 2, 1, -1];
+const FLOORS = [4, 3, 2, 1];
 
 function floorLabel(f: number): string {
   return f === -1 ? "B1" : `${f}F`;
