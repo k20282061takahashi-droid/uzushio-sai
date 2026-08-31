@@ -29,9 +29,15 @@ function applyRubberBand(raw: number): number {
 export default function PannableZoom({
   children,
   className,
+  onInteract,
 }: {
-  children: React.ReactNode;
+  // 関数を渡すと、いまの拡大率を受け取れる。
+  // 「縮小しているあいだは名前を出さない」といった出し分けに使う。
+  children: React.ReactNode | ((scale: number) => React.ReactNode);
   className?: string;
+  // 地図に触れたとき（ドラッグ・ピンチ・ホイール）に1度だけ呼ばれる。
+  // 最初だけ開いておきたい説明を閉じる、といった用途を想定している。
+  onInteract?: () => void;
 }) {
   const [transform, setTransform] = useState({ scale: 1, x: 0, y: 0 });
   // 指を置いている間はアニメーションを切る（refはレンダー中に読めないためstateで持つ）
@@ -43,6 +49,11 @@ export default function PannableZoom({
   // 指の動きをそのまま足しこんだ値。表示倍率とは別に持っておき、
   // ここから「引っぱり」を効かせた表示倍率を計算する。
   const rawScale = useRef(1);
+  // wheel のリスナーは1度しか登録しないので、最新の関数をrefで持っておく
+  const onInteractRef = useRef(onInteract);
+  useEffect(() => {
+    onInteractRef.current = onInteract;
+  }, [onInteract]);
   // ホイール操作は「指を離す」瞬間が無いので、動きが止まったら戻す
   const wheelSettleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -57,6 +68,7 @@ export default function PannableZoom({
   });
 
   const onPointerDown = (e: React.PointerEvent) => {
+    onInteract?.();
     (e.target as Element).setPointerCapture?.(e.pointerId);
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     lastDist.current = null;
@@ -144,6 +156,7 @@ export default function PannableZoom({
     const onWheel = (e: WheelEvent) => {
       if (!e.ctrlKey && Math.abs(e.deltaY) < 1) return;
       e.preventDefault();
+      onInteractRef.current?.();
       const rect = el.getBoundingClientRect();
       const originX = e.clientX - rect.left;
       const originY = e.clientY - rect.top;
@@ -201,7 +214,7 @@ export default function PannableZoom({
           ["--map-scale" as string]: String(transform.scale),
         }}
       >
-        {children}
+        {typeof children === "function" ? children(transform.scale) : children}
       </div>
       {transform.scale > 1 && (
         <button

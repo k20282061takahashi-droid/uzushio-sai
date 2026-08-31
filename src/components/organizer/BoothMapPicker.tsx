@@ -7,7 +7,7 @@ import {
   roomsFor,
   type AreaId,
 } from "@/lib/floorplan";
-import { waitColor } from "@/lib/waitColor";
+import { pinLook } from "@/lib/waitColor";
 import { waitMinutesOf } from "@/lib/boothGrouping";
 import { placeBooths } from "@/lib/boothPlacement";
 import { updateBooth, type Booth } from "@/lib/booth";
@@ -303,6 +303,7 @@ export default function BoothMapPicker({
             const x = isDragging ? dragging.x : booth.x;
             const y = isDragging ? dragging.y : booth.y;
             const minutes = waitMinutesOf(booth);
+            const look = pinLook(booth.status, minutes);
             const isTarget = selectedBooth?.id === booth.id;
             return (
               <div
@@ -325,19 +326,14 @@ export default function BoothMapPicker({
                 }}
               >
                 <span
-                  className={`flex h-9 w-9 items-center justify-center rounded-full border-2 text-[12px] font-bold text-white shadow ${
+                  className={`flex h-9 items-center justify-center rounded-lg border-2 px-1.5 text-[12px] font-bold text-white shadow ${
                     isTarget
                       ? "border-emerald-300 ring-2 ring-emerald-300"
                       : "border-white"
                   }`}
-                  style={{
-                    backgroundColor:
-                      minutes !== null
-                        ? waitColor(minutes)
-                        : "rgba(100,116,139,0.95)",
-                  }}
+                  style={{ backgroundColor: look.bg }}
                 >
-                  {minutes !== null ? `${minutes}分` : "―"}
+                  {look.text}
                 </span>
                 <span className="mt-0.5 max-w-[96px] truncate rounded bg-black/80 px-1 text-[12px] text-white">
                   {booth.projectName || booth.name}
