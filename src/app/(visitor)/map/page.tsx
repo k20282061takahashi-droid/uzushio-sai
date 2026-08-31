@@ -29,6 +29,16 @@ const areas: { id: AreaId; name: string }[] = [
 
 const floors = [4, 3, 2, 1];
 
+// この倍率より小さいあいだは、待ち時間の数字を出さずに色の点だけにする。
+// 全体表示のままだと教室1つが画面上40px台しかなく、数字と名前の両方は入らない。
+// 少し拡大すればすぐ数字が出るよう、しきい値は低めにしてある。
+const SHOW_TIME_SCALE = 1.2;
+
+// 縮小しているときは長い企画名を切る
+function shortName(name: string): string {
+  return name.length > 8 ? `${name.slice(0, 8)}…` : name;
+}
+
 function MapContent() {
   const searchParams = useSearchParams();
   const areaParam = searchParams.get("area");
@@ -76,6 +86,26 @@ function MapContent() {
   const planSrc = floorplanSrc(activeArea, floor);
   // 図面に薄く敷く部屋名（教室名）。企画が無い部屋も出す目印になる
   const roomLabels = roomsFor(activeArea, floor);
+
+  // 企画名を上下ジグザグに振り分けるための「段」を決める。
+  // 教室は横一列に並ぶので、隣同士でラベルがぶつかる。左から順に
+  // 0段目・1段目を交互に割り当てると、実効的な間隔が2倍になって収まる。
+  const laneOf = useMemo(() => {
+    const rows = new Map<number, PlacedBooth[]>();
+    for (const b of rooms) {
+      // yが近いものは同じ行とみなす（図面の高さの6%きざみ）
+      const key = Math.round(b.y / 6);
+      const arr = rows.get(key) ?? [];
+      arr.push(b);
+      rows.set(key, arr);
+    }
+    const lane = new Map<string, number>();
+    for (const arr of rows.values()) {
+      arr.sort((a, b) => a.x - b.x);
+      arr.forEach((b, i) => lane.set(b.id, i % 2));
+    }
+    return lane;
+  }, [rooms]);
   // 選んでいる企画。一覧が更新されても最新の内容が出るようIDで引く
   const selected = booths.find((b) => b.id === selectedId) ?? null;
 
@@ -127,12 +157,17 @@ function MapContent() {
                 {rooms.map((room) => {
                   const minutes = waitMinutesOfBooth(room);
                   const look = pinLook(room.status, minutes);
+                  // 少しでも拡大したら待ち時間の数字を出す
+                  const showTime = scale >= SHOW_TIME_SCALE;
+                  // 0段目・1段目。名前を上下（または上下2段）に振り分ける
+                  const lane = laneOf.get(room.id) ?? 0;
+                  const name = room.projectName || room.name;
                   return (
                     <button
                       key={room.id}
                       onPointerDown={handlePinPress}
                       onClick={(e) => handlePinClick(e, room)}
-                      // 大きさを持たない点として置き、まわりに吹き出しを配置する。
+                      // 大きさを持たない点として置き、まわりに中身を配置する。
                       // こうすると left/top がそのまま「ピンが指す場所」になる。
                       className="absolute h-0 w-0"
                       style={{
@@ -142,33 +177,58 @@ function MapContent() {
                         transformOrigin: "center",
                         transition: "transform 0.15s ease-out",
                         opacity: look.faded ? 0.75 : 1,
+                        zIndex: lane === 0 ? 2 : 1,
                       }}
                     >
-                      {/* 吹き出しの脚。回した四角の下半分だけが見える */}
-                      <span
-                        className="absolute bottom-px left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 border-b-2 border-r-2 border-white"
-                        style={{ backgroundColor: look.bg }}
-                      />
-                      {/* 吹き出し本体 */}
-                      <span
-                        className="absolute bottom-[7px] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg border-2 border-white px-2 py-[3px] text-[13px] font-bold leading-none text-white shadow-[0_3px_0_rgba(18,73,90,0.45)]"
-                        style={{ backgroundColor: look.bg }}
-                      >
-                        {look.text}
-                      </span>
-                      {/* 企画名。縮小しているあいだは出さない（隣同士でぶつかるため）。
-                          白いフチを付けた文字にして、下の図面が透けるようにしている。 */}
-                      {scale >= 1.5 && (
+                      {/* 指で押せる範囲。見た目より広くとっておく */}
+                      <span className="absolute left-1/2 top-0 h-10 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full" />
+
+                      {showTime ? (
+                        <>
+                          {/* 吹き出しの脚。回した四角の下半分だけが見える */}
+                          <span
+                            className="absolute bottom-px left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 border-b-2 border-r-2 border-white"
+                            style={{ backgroundColor: look.bg }}
+                          />
+                          {/* 吹き出し本体（待ち時間） */}
+                          <span
+                            className="absolute bottom-[7px] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg border-2 border-white px-2 py-[3px] text-[13px] font-bold leading-none text-white shadow-[0_3px_0_rgba(18,73,90,0.45)]"
+                            style={{ backgroundColor: look.bg }}
+                          >
+                            {look.text}
+                          </span>
+                        </>
+                      ) : (
+                        // 全体表示のあいだは色の点だけ。混み具合は色で伝える
                         <span
-                          className="absolute left-1/2 top-[7px] -translate-x-1/2 whitespace-nowrap text-[12px] font-bold text-kosei-800"
-                          style={{
-                            textShadow:
-                              "0 1px 2px #fff, 1px 0 2px #fff, -1px 0 2px #fff, 0 -1px 2px #fff, 0 0 3px #fff",
-                          }}
-                        >
-                          {room.projectName || room.name}
-                        </span>
+                          className="absolute left-1/2 top-0 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-[0_2px_0_rgba(18,73,90,0.4)]"
+                          style={{ backgroundColor: look.bg }}
+                        />
                       )}
+
+                      {/* 企画名はいつでも出す。地図を開いた時点で「何があるか」が
+                          分からないと地図の意味がないため。白いフチを付けて
+                          下の図面が透けるようにしている。 */}
+                      <span
+                        className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-[12px] font-bold text-kosei-800"
+                        style={{
+                          // 数字が出ているときは吹き出しの下に2段で、
+                          // 点だけのときは点の上下に振り分ける
+                          top: showTime
+                            ? lane === 0
+                              ? "7px"
+                              : "23px"
+                            : lane === 0
+                              ? undefined
+                              : "10px",
+                          bottom:
+                            !showTime && lane === 0 ? "10px" : undefined,
+                          textShadow:
+                            "0 1px 2px #fff, 1px 0 2px #fff, -1px 0 2px #fff, 0 -1px 2px #fff, 0 0 3px #fff",
+                        }}
+                      >
+                        {showTime ? name : shortName(name)}
+                      </span>
                     </button>
                   );
                 })}
