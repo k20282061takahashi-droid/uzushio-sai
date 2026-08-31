@@ -143,7 +143,7 @@ function MapContent() {
                 {roomLabels.map((r) => (
                   <span
                     key={r.label}
-                    className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 select-none whitespace-nowrap font-bold text-kosei-800/20"
+                    className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 select-none whitespace-nowrap font-heading font-black text-kosei-800/25"
                     style={{
                       left: `${r.x}%`,
                       top: `${r.y}%`,
@@ -192,7 +192,7 @@ function MapContent() {
                           />
                           {/* 吹き出し本体（待ち時間） */}
                           <span
-                            className="absolute bottom-[7px] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg border-2 border-white px-2 py-[3px] text-[13px] font-bold leading-none text-white shadow-[0_3px_0_rgba(18,73,90,0.45)]"
+                            className="absolute bottom-[7px] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg border-2 border-white px-2 py-[4px] font-heading text-[14px] font-black leading-none text-white shadow-[0_3px_0_rgba(18,73,90,0.45)]"
                             style={{ backgroundColor: look.bg }}
                           >
                             {look.text}
@@ -210,21 +210,22 @@ function MapContent() {
                           分からないと地図の意味がないため。白いフチを付けて
                           下の図面が透けるようにしている。 */}
                       <span
-                        className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-[12px] font-bold text-kosei-800"
+                        // 白いフチだけだと図面の線が文字に透けて読みにくいので、
+                        // 半透明の白い下地を敷いている。完全な白にしないのは、
+                        // 四角が並んで地図が塊だらけに見えるのを避けるため。
+                        className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-white/90 px-1.5 py-px font-heading text-[13px] font-black leading-tight text-kosei-800 ring-1 ring-white"
                         style={{
                           // 数字が出ているときは吹き出しの下に2段で、
                           // 点だけのときは点の上下に振り分ける
                           top: showTime
                             ? lane === 0
-                              ? "7px"
-                              : "23px"
+                              ? "8px"
+                              : "27px"
                             : lane === 0
                               ? undefined
-                              : "10px",
+                              : "11px",
                           bottom:
-                            !showTime && lane === 0 ? "10px" : undefined,
-                          textShadow:
-                            "0 1px 2px #fff, 1px 0 2px #fff, -1px 0 2px #fff, 0 -1px 2px #fff, 0 0 3px #fff",
+                            !showTime && lane === 0 ? "11px" : undefined,
                         }}
                       >
                         {showTime ? name : shortName(name)}
