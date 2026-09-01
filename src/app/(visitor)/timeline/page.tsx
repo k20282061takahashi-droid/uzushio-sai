@@ -14,6 +14,24 @@ const PX_PER_MIN = 1.8;
 const DEFAULT_START = 9 * 60; // 9:00
 const DEFAULT_END = 16 * 60; // 16:00
 
+// 会場の列を並べる順番。
+//
+// 以前はイベントの出てきた順に列を作っていたため、1日目と2日目で
+// 最初のイベントの会場が違うと、体育館と校庭の左右が入れ替わっていた。
+// 来場者は同じ場所に同じ会場があると思って見るので、日によって
+// 入れ替わるのは分かりにくい。ここに書いた順に必ず並ぶようにする。
+//
+// ここに無い会場は、この後ろに名前順で並ぶ（順番が毎回変わらないよう
+// 名前で並べる）。「会場未定」はいちばん右に置く。
+const VENUE_ORDER = ["体育館", "校庭"];
+
+function venueRank(venue: string): number {
+  const i = VENUE_ORDER.indexOf(venue);
+  if (i >= 0) return i;
+  if (venue === "会場未定") return VENUE_ORDER.length + 1;
+  return VENUE_ORDER.length;
+}
+
 function formatTime(min: number) {
   const h = Math.floor(min / 60);
   const m = min % 60;
@@ -84,6 +102,8 @@ export default function TimelinePage() {
     for (let h = min; h <= max; h += 60) marks.push(h);
     const uniqueVenues = Array.from(
       new Set(events.map((e) => e.venue || "会場未定")),
+    ).sort(
+      (a, b) => venueRank(a) - venueRank(b) || a.localeCompare(b, "ja"),
     );
     return {
       axisStart: min,
