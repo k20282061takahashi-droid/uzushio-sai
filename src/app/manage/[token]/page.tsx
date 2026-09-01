@@ -581,6 +581,14 @@ export default function BoothManagePage() {
                 >
                   {savingSetup ? "保存中..." : "保存する"}
                 </button>
+
+                {/* 保存を押さずに画面を閉じると入力が消えることを伝える。
+                    途中まで書いて閉じてしまう事故がいちばん多いため。 */}
+                <p className="font-read -mt-1 text-center text-sm leading-relaxed text-bbb-yellow sm:col-span-2">
+                  入力が終わったら「保存する」を押してください。
+                  <br />
+                  押さずに画面を閉じると、入力した内容は消えて最初からになります。
+                </p>
               </section>
           </div>
           <section className="mb-4 rounded-2xl border-2 border-white/15 bg-bbb-panel/88 p-4 lg:col-start-2 lg:mb-0">
