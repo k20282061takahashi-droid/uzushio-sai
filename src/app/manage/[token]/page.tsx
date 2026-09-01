@@ -20,8 +20,8 @@ import {
   sendEmergencyAlert,
   subscribeFestivalPhase,
   updateBooth,
-  uploadSignboardImage,
 } from "@/lib/booth";
+import { saveSignboard, loadSignboard } from "@/lib/signboard";
 
 const GENRE_OPTIONS = Object.keys(GENRE_LABELS) as BoothGenre[];
 
@@ -169,6 +169,9 @@ export default function BoothManagePage() {
   const [genre, setGenre] = useState<BoothGenre | "">("");
   const [timePerGroup, setTimePerGroup] = useState<number | "">("");
   const [uploadingSignboard, setUploadingSignboard] = useState(false);
+  const [signboardError, setSignboardError] = useState("");
+  // 看板画像は別のコレクションにあるので、開いたときに読み込む
+  const [signboard, setSignboard] = useState<string | null>(null);
   const [savingSetup, setSavingSetup] = useState(false);
 
   const [waitingGroups, setWaitingGroups] = useState(0);
@@ -180,10 +183,6 @@ export default function BoothManagePage() {
   const [lostItemDescription, setLostItemDescription] = useState("");
   const [lostItemFoundLocation, setLostItemFoundLocation] = useState("");
   const [lostItemStorageLocation, setLostItemStorageLocation] = useState("");
-  const [lostItemPhoto, setLostItemPhoto] = useState<File | null>(null);
-  const [lostItemPhotoPreview, setLostItemPhotoPreview] = useState<
-    string | null
-  >(null);
   const [lostItemSaving, setLostItemSaving] = useState(false);
   const [lostItemSaved, setLostItemSaved] = useState(false);
 
@@ -299,14 +298,42 @@ export default function BoothManagePage() {
     setSavingSetup(false);
   }
 
+  // 看板画像の読み込み
+  useEffect(() => {
+    let alive = true;
+    const load =
+      booth?.hasSignboard && booth.id
+        ? loadSignboard(booth.id)
+        : Promise.resolve(null);
+    load
+      .then((url) => {
+        if (alive) setSignboard(url);
+      })
+      .catch(() => {
+        if (alive) setSignboard(null);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [booth?.id, booth?.hasSignboard]);
+
   async function handleSignboardChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file || !booth) return;
     setUploadingSignboard(true);
-    const url = await uploadSignboardImage(booth.id, file);
-    await updateBooth(booth.id, { signboardUrl: url });
-    setBooth({ ...booth, signboardUrl: url });
-    setUploadingSignboard(false);
+    setSignboardError("");
+    try {
+      // ブラウザの中で縮小・圧縮してからFirestoreに保存する
+      const dataUrl = await saveSignboard(booth.id, file);
+      await updateBooth(booth.id, { hasSignboard: true });
+      setBooth({ ...booth, hasSignboard: true });
+      setSignboard(dataUrl);
+    } catch {
+      setSignboardError("画像を保存できませんでした。もう一度お試しください");
+    } finally {
+      // 失敗しても「アップロード中」のまま固まらないように必ず戻す
+      setUploadingSignboard(false);
+    }
   }
 
   async function adjustWaiting(delta: number) {
@@ -334,32 +361,20 @@ export default function BoothManagePage() {
     setLostItemDescription("");
     setLostItemFoundLocation("");
     setLostItemStorageLocation("");
-    setLostItemPhoto(null);
-    setLostItemPhotoPreview(null);
     setLostItemSaved(false);
     setLostItemOpen(true);
-  }
-
-  function handleLostItemPhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0] ?? null;
-    setLostItemPhoto(file);
-    setLostItemPhotoPreview(file ? URL.createObjectURL(file) : null);
   }
 
   async function submitLostItem() {
     if (!booth) return;
     setLostItemSaving(true);
-    await registerLostItem(
-      {
-        boothId: booth.id,
-        boothName: booth.name,
-        description: lostItemDescription,
-        foundLocation: lostItemFoundLocation,
-        storageLocation: lostItemStorageLocation,
-        photoUrl: null,
-      },
-      lostItemPhoto,
-    );
+    await registerLostItem({
+      boothId: booth.id,
+      boothName: booth.name,
+      description: lostItemDescription,
+      foundLocation: lostItemFoundLocation,
+      storageLocation: lostItemStorageLocation,
+    });
     setLostItemSaving(false);
     setLostItemSaved(true);
     setLostItemOpen(false);
@@ -487,10 +502,10 @@ export default function BoothManagePage() {
                     看板画像
                   </span>
                   <div className="mb-1 flex items-center gap-2">
-                    {booth.signboardUrl ? (
+                    {signboard ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={booth.signboardUrl}
+                        src={signboard}
                         alt="看板画像"
                         className="h-16 w-16 rounded-lg object-cover"
                       />
@@ -523,6 +538,11 @@ export default function BoothManagePage() {
                       </label>
                     </div>
                   </div>
+                  {signboardError && (
+                    <p className="font-read text-sm text-red-300">
+                      {signboardError}
+                    </p>
+                  )}
                 </div>
   
                 <label className="mb-3 block">
@@ -733,46 +753,6 @@ export default function BoothManagePage() {
       {lostItemOpen && (
         <Modal onClose={() => setLostItemOpen(false)}>
           <h2 className="font-pop mb-3 text-xl text-white">落とし物登録</h2>
-
-          <label className="mb-3 block">
-            <span className="font-read mb-1.5 block text-sm text-white/70">画像</span>
-            <div className="flex items-center gap-2">
-              {lostItemPhotoPreview ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={lostItemPhotoPreview}
-                  alt="落とし物の画像"
-                  className="h-16 w-16 rounded-lg object-cover"
-                />
-              ) : (
-                <div className="flex h-16 w-16 items-center justify-center rounded-xl border-2 border-white/20 bg-black/40 text-[11px] text-white/45">
-                  未設定
-                </div>
-              )}
-              <div className="flex flex-col gap-2">
-                {/* capture を付けると、スマホでは撮影画面が直接ひらく */}
-                <label className="chunk font-pop cursor-pointer rounded-xl bg-bbb-yellow px-4 py-3 text-center text-sm text-black shadow-[0_5px_0_#A98F00]">
-                  写真を撮る
-                  <input
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    onChange={handleLostItemPhotoChange}
-                    className="hidden"
-                  />
-                </label>
-                <label className="chunk cursor-pointer rounded-xl border-2 border-white/25 px-4 py-3 text-center text-sm font-bold text-white shadow-[0_5px_0_rgba(255,255,255,0.12)]">
-                  画像を選ぶ
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleLostItemPhotoChange}
-                    className="hidden"
-                  />
-                </label>
-              </div>
-            </div>
-          </label>
 
           <label className="mb-3 block">
             <span className="font-read mb-1.5 block text-sm text-white/70">内容</span>

@@ -15,8 +15,7 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { db, storage } from "./firebase";
+import { db } from "./firebase";
 
 export type BoothType =
   "alumni" | "shop" | "class" | "grade" | "club" | "info" | "volunteer";
@@ -107,7 +106,9 @@ export type Booth = {
   timePerGroup: number | null;
   genre: BoothGenre | null;
   isSetupDone: boolean;
-  signboardUrl: string | null;
+  // 看板画像はFirestoreの boothSignboards コレクションに別で入れている
+  // （Cloud Storageが無料プランで使えないため）。ここでは有無だけを持つ。
+  hasSignboard: boolean;
   // 待ちグループ数を最後に更新した時刻。長い間更新されていない企画を
   // 運営が見つけられるようにするために記録している。
   waitingUpdatedAt: number | null;
@@ -137,7 +138,7 @@ function docToBooth(d: {
     timePerGroup: data.timePerGroup ?? null,
     genre: data.genre ?? null,
     isSetupDone: !!data.isSetupDone,
-    signboardUrl: data.signboardUrl ?? null,
+    hasSignboard: data.hasSignboard === true,
     waitingUpdatedAt:
       (data.waitingUpdatedAt as { toMillis?: () => number } | null)
         ?.toMillis?.() ?? null,
@@ -190,7 +191,7 @@ export async function getBoothByToken(token: string): Promise<Booth | null> {
     timePerGroup: data.timePerGroup ?? null,
     genre: data.genre ?? null,
     isSetupDone: !!data.isSetupDone,
-    signboardUrl: data.signboardUrl ?? null,
+    hasSignboard: data.hasSignboard === true,
     waitingUpdatedAt: data.waitingUpdatedAt?.toMillis?.() ?? null,
   };
 }
@@ -220,7 +221,7 @@ export function subscribeBooths(
         timePerGroup: data.timePerGroup ?? null,
         genre: data.genre ?? null,
         isSetupDone: !!data.isSetupDone,
-        signboardUrl: data.signboardUrl ?? null,
+        hasSignboard: data.hasSignboard === true,
         waitingUpdatedAt: data.waitingUpdatedAt?.toMillis?.() ?? null,
       } satisfies Booth;
     });
@@ -249,7 +250,7 @@ export async function updateBooth(
       | "isSetupDone"
       | "hasWaiting"
       | "status"
-      | "signboardUrl"
+      | "hasSignboard"
       | "projectName"
       | "location"
       | "floor"
@@ -267,39 +268,22 @@ export async function updateBooth(
   });
 }
 
-export async function uploadSignboardImage(
-  boothId: string,
-  file: File,
-): Promise<string> {
-  const fileRef = ref(storage, `booths/${boothId}/signboard`);
-  await uploadBytes(fileRef, file);
-  return getDownloadURL(fileRef);
-}
-
 export type LostItem = {
   boothId: string;
   boothName: string;
   description: string;
   foundLocation: string;
   storageLocation: string;
-  photoUrl: string | null;
 };
 
-export async function uploadLostItemImage(
-  lostItemId: string,
-  file: File,
-): Promise<string> {
-  const fileRef = ref(storage, `lostItems/${lostItemId}/photo`);
-  await uploadBytes(fileRef, file);
-  return getDownloadURL(fileRef);
-}
-
-export async function registerLostItem(item: LostItem, photo: File | null) {
+// 落とし物を登録する。
+// 写真は扱わない。誰でも見られる一覧に財布や学生証の写真が並ぶと、
+// 個人情報がそのまま公開されるうえ、持ち主の確認（本人しか知らない特徴を
+// 言えるか）ができなくなるため、文字の説明だけにしている。
+export async function registerLostItem(item: LostItem) {
   const docRef = doc(collection(db, "lostItems"));
-  const photoUrl = photo ? await uploadLostItemImage(docRef.id, photo) : null;
   await setDoc(docRef, {
     ...item,
-    photoUrl,
     status: "unclaimed",
     createdAt: serverTimestamp(),
   });
@@ -327,7 +311,6 @@ export function subscribeLostItems(
             description: data.description ?? "",
             foundLocation: data.foundLocation ?? "",
             storageLocation: data.storageLocation ?? "",
-            photoUrl: data.photoUrl ?? null,
             status: data.status === "claimed" ? "claimed" : "unclaimed",
           };
         }),
@@ -845,7 +828,7 @@ export async function createBooth(input: NewBoothInput): Promise<string> {
     timePerGroup: null,
     genre: null,
     isSetupDone: false,
-    signboardUrl: null,
+    hasSignboard: false,
     createdAt: serverTimestamp(),
   });
   return docRef.id;

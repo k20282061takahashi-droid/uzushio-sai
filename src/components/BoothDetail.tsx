@@ -1,13 +1,37 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { GENRE_LABELS, type Booth } from "@/lib/booth";
 import { waitMinutesOfBooth } from "@/lib/boothPlacement";
 import { waitColor } from "@/lib/waitColor";
+import { loadSignboard } from "@/lib/signboard";
 
 // 地図のピンを押したときに下から出てくるカードの中身。
 // 出す順番：場所 → クラス名 → 企画名 → 待ち時間 → 写真 → 詳細説明
 export default function BoothDetail({ booth }: { booth: Booth }) {
   const minutes = waitMinutesOfBooth(booth);
+
+  // 看板画像は企画データとは別に置いてあるので、このカードを開いたときだけ読む。
+  // こうしないと、地図に出す企画一覧に全部の画像がぶら下がって重くなる。
+  const [signboard, setSignboard] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    const load = booth.hasSignboard
+      ? loadSignboard(booth.id)
+      : Promise.resolve(null);
+    load
+      .then((url) => {
+        if (alive) setSignboard(url);
+      })
+      .catch(() => {
+        // 画像が出せなくても、他の情報は読めるようにしておく
+        if (alive) setSignboard(null);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [booth.id, booth.hasSignboard]);
+
   const place = [
     booth.location,
     booth.floor !== null ? (booth.floor === -1 ? "B1" : `${booth.floor}F`) : null,
@@ -62,10 +86,10 @@ export default function BoothDetail({ booth }: { booth: Booth }) {
       </div>
 
       {/* 写真（看板画像） */}
-      {booth.signboardUrl && (
+      {signboard && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={booth.signboardUrl}
+          src={signboard}
           alt={booth.projectName || booth.name}
           className="mb-3 max-h-52 w-full rounded-2xl border-2 border-kosei-200 object-cover"
         />

@@ -41,18 +41,6 @@ export default function LostItemsPage() {
               className="pressable animate-fade-in-up overflow-hidden rounded-2xl border-2 border-kosei-700 bg-white shadow-[0_4px_0_var(--color-kosei-700)]"
               style={{ animationDelay: `${80 + i * 40}ms` }}
             >
-              {item.photoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={item.photoUrl}
-                  alt={item.description || "落とし物"}
-                  className="aspect-square w-full object-cover"
-                />
-              ) : (
-                <div className="flex aspect-square w-full items-center justify-center bg-kosei-100 text-xs text-kosei-500">
-                  画像なし
-                </div>
-              )}
               <div className="p-3">
                 <p className="text-sm font-bold text-kosei-800">
                   {item.description || "（内容未登録）"}

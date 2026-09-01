@@ -390,18 +390,6 @@ export default function OverallTab({
                       key={item.id}
                       className="flex items-center gap-3 rounded-lg bg-neutral-950/70 p-2"
                     >
-                      {item.photoUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={item.photoUrl}
-                          alt=""
-                          className="h-14 w-14 shrink-0 rounded-lg object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-neutral-800 text-[12px] text-neutral-400">
-                          画像なし
-                        </div>
-                      )}
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-medium">
                           {item.description || "（内容未入力）"}

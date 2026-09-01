@@ -66,18 +66,6 @@ export default function LostItemsFloat({
                 item.status === "claimed" ? "opacity-40" : ""
               }`}
             >
-              {item.photoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={item.photoUrl}
-                  alt={item.description || "落とし物"}
-                  className="aspect-square w-full object-cover"
-                />
-              ) : (
-                <div className="flex aspect-square w-full items-center justify-center bg-neutral-950 text-xs text-neutral-400">
-                  画像なし
-                </div>
-              )}
               <div className="p-3">
                 <p className="text-sm font-medium">
                   {item.description || "（内容未入力）"}

@@ -16,8 +16,8 @@ import {
   deleteBooth,
   subscribeBooths,
   updateBooth,
-  uploadSignboardImage,
 } from "@/lib/booth";
+import { saveSignboard, loadSignboard } from "@/lib/signboard";
 import {
   groupAndSortBooths,
   isWaitingStale,
@@ -65,22 +65,21 @@ function BoothCard({
         selected ? "border-emerald-400 ring-1 ring-emerald-400" : "border-white/10"
       }`}
     >
-      {/* 看板画像（小さめのサムネイル） */}
-      <div className="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-lg bg-neutral-950">
-        {booth.signboardUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={booth.signboardUrl}
-            alt=""
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-center text-[12px] leading-tight text-neutral-400">
-            画像
-            <br />
-            未登録
-          </div>
-        )}
+      {/* 看板画像の有無。
+          画像そのものは出さない。58件ぶんの画像を一覧で読み込むと重くなるうえ、
+          この一覧で見たいのは「登録が済んでいるか」だけのため。
+          実物は企画を開けば見られる。 */}
+      <div
+        className={`flex h-[72px] w-[72px] shrink-0 flex-col items-center justify-center gap-1 rounded-lg border text-center text-[12px] leading-tight ${
+          booth.hasSignboard
+            ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-300"
+            : "border-white/10 bg-neutral-950 text-neutral-400"
+        }`}
+      >
+        <span className="text-base">{booth.hasSignboard ? "✓" : "―"}</span>
+        看板
+        <br />
+        {booth.hasSignboard ? "登録済み" : "未登録"}
       </div>
 
       {/* 本文 */}
@@ -181,6 +180,8 @@ function BoothDetailForm({
   const [confirmDelete, setConfirmDelete] = useState(false);
   // 看板画像を差し替えたときの、この画面だけの表示用URL
   const [newSignboardUrl, setNewSignboardUrl] = useState<string | null>(null);
+  // 看板画像は別のコレクションにあるので、この画面を開いたときに1件だけ読む
+  const [savedSignboard, setSavedSignboard] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imageError, setImageError] = useState("");
 
@@ -190,6 +191,26 @@ function BoothDetailForm({
       : `/manage/${booth.accessToken}`;
 
   // 看板画像を押すとファイル選択が開き、選んだ画像にその場で差し替える
+  // 開いている企画の看板画像を読み込む
+  useEffect(() => {
+    let alive = true;
+    const load = booth.hasSignboard
+      ? loadSignboard(booth.id)
+      : Promise.resolve(null);
+    load
+      .then((url) => {
+        if (!alive) return;
+        setSavedSignboard(url);
+        setNewSignboardUrl(null);
+      })
+      .catch(() => {
+        if (alive) setSavedSignboard(null);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [booth.id, booth.hasSignboard]);
+
   async function handleSignboardChange(
     e: React.ChangeEvent<HTMLInputElement>,
   ) {
@@ -208,15 +229,12 @@ function BoothDetailForm({
     setImageError("");
     setUploadingImage(true);
     try {
-      const url = await uploadSignboardImage(booth.id, file);
-      await updateBooth(booth.id, { signboardUrl: url });
-      // 保存先のファイル名が同じなので、末尾に時刻を足して
-      // 古い画像が表示され続けないようにする（この画面の表示だけ）
-      setNewSignboardUrl(
-        `${url}${url.includes("?") ? "&" : "?"}t=${Date.now()}`,
-      );
+      // ブラウザの中で縮小・圧縮してからFirestoreに保存する
+      const dataUrl = await saveSignboard(booth.id, file);
+      await updateBooth(booth.id, { hasSignboard: true });
+      setNewSignboardUrl(dataUrl);
     } catch {
-      setImageError("アップロードに失敗しました。もう一度お試しください");
+      setImageError("保存に失敗しました。もう一度お試しください");
     } finally {
       setUploadingImage(false);
     }
@@ -239,7 +257,7 @@ function BoothDetailForm({
 
   const minutes = waitMinutesOf(booth);
   // 差し替え直後はこの画面で選んだ画像を、それ以外は保存済みの画像を出す
-  const shownSignboardUrl = newSignboardUrl ?? booth.signboardUrl;
+  const shownSignboardUrl = newSignboardUrl ?? savedSignboard;
 
   return (
     <FloatPanel
