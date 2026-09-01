@@ -12,10 +12,13 @@ import {
 
 // スプレッドシートやExcelからコピーした一覧を貼り付けて、企画をまとめて登録する画面。
 //
-// 1行に1件。タブ区切り（Excelからコピーするとこうなる）でもカンマ区切りでも読めます。
-//   例）3年A組	クラス企画	高校棟
-//   例）3年A組,クラス企画,高校棟
-// クラス名だけを並べても登録できます。
+// 1行に1件。行の最初は「クラス名」で、そのあとに空白を空けて書いたぶんが
+// そのまま「企画名」になります。
+//   例）3年A組 お化け屋敷      → クラス名「3年A組」／企画名「お化け屋敷」
+//   例）3年A組                → クラス名だけ（企画名はあとで各企画が入力する）
+//
+// 種別と場所も一緒に入れたい場合は、タブかカンマで区切って続けます。
+//   例）3年A組 お化け屋敷	クラス企画	高校棟
 
 const TYPE_ALIASES: Record<string, BoothType> = {
   クラス企画: "class",
@@ -47,7 +50,13 @@ function parseText(text: string, defaultType: BoothType): ParsedRow[] {
         .map((c) => c.trim())
         .filter((c) => c.length > 0);
 
-      const name = cells[0] ?? "";
+      // 1列目は「クラス名 企画名」。最初の空白より前がクラス名、
+      // 残りがまるごと企画名になる（企画名に空白が入っていてもよい）。
+      const first = cells[0] ?? "";
+      const split = first.match(/^(\S+)\s+(.+)$/);
+      const name = split ? split[1] : first;
+      const projectName = split ? split[2].trim() : "";
+
       const typeText = cells[1] ?? "";
       const location = cells[2] ?? "";
 
@@ -60,6 +69,7 @@ function parseText(text: string, defaultType: BoothType): ParsedRow[] {
       return {
         raw: line,
         name,
+        projectName: projectName || null,
         type,
         location: location || null,
         warning,
@@ -90,7 +100,12 @@ export default function BulkImportFloat({
   async function submit() {
     setSaving(true);
     const res = await createBoothsBulk(
-      rows.map(({ name, type, location }) => ({ name, type, location })),
+      rows.map(({ name, projectName, type, location }) => ({
+        name,
+        projectName,
+        type,
+        location,
+      })),
       existingNames,
     );
     setSaving(false);
@@ -113,13 +128,23 @@ export default function BulkImportFloat({
         <section>
           <div className="mb-2 rounded-lg border border-white/10 bg-neutral-950/70 p-3 text-xs text-neutral-400">
             <p className="mb-1 font-medium text-neutral-300">貼り付け方</p>
-            <p>1行につき1つの企画。列は左から順に次のとおりです。</p>
+            <p>
+              1行につき1つの企画。行のはじめが<strong className="text-neutral-200">クラス名</strong>
+              で、空白を空けて書いたぶんが<strong className="text-neutral-200">企画名</strong>になります。
+            </p>
             <p className="mt-1 font-mono text-[13px] text-neutral-300">
-              クラス名（必須） / 種別 / 場所
+              3年A組 お化け屋敷
             </p>
             <p className="mt-1">
-              クラス名だけを並べても登録できます。種別が空欄のときは下で選んだ種別になります。
+              クラス名だけでも登録できます（企画名はあとで各企画の担当者が入力します）。
             </p>
+            <p className="mt-2">
+              種別と場所も一緒に入れたいときは、タブかカンマで区切って続けます。
+            </p>
+            <p className="mt-1 font-mono text-[13px] text-neutral-300">
+              3年A組 お化け屋敷 , クラス企画 , 高校棟
+            </p>
+            <p className="mt-1">種別が空欄のときは下で選んだ種別になります。</p>
           </div>
 
           <label className="mb-2 flex items-center gap-2 text-xs text-neutral-400">
@@ -145,7 +170,9 @@ export default function BulkImportFloat({
               setResult(null);
             }}
             rows={14}
-            placeholder={"3年A組\t クラス企画\t 高校棟\n3年B組\t クラス企画\t 高校棟\n吹奏楽部\t 部活動\t 体育館"}
+            placeholder={
+              "3年A組 お化け屋敷\n3年B組 手作りカフェ\n吹奏楽部 ミニコンサート,部活動,体育館\n2年C組"
+            }
             className="w-full rounded-lg border border-white/10 bg-neutral-950 p-3 font-mono text-xs"
           />
         </section>
@@ -178,6 +205,11 @@ export default function BulkImportFloat({
                     }`}
                   >
                     <span className="font-medium">{r.name || "（名前なし）"}</span>
+                    {r.projectName && (
+                      <span className="ml-2 text-neutral-200">
+                        {r.projectName}
+                      </span>
+                    )}
                     <span className="ml-2 text-neutral-400">
                       {BOOTH_TYPE_LABELS[r.type]}
                       {r.location && ` ・ ${r.location}`}

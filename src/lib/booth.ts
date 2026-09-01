@@ -803,6 +803,7 @@ export function generateAccessToken(length = 10): string {
 
 export type NewBoothInput = {
   name: string; // クラス名・団体名
+  projectName?: string | null; // 企画名（「3年A組 お化け屋敷」の後ろの部分）
   type: BoothType;
   location?: string | null;
   floor?: number | null;
@@ -813,7 +814,7 @@ export type NewBoothInput = {
 export async function createBooth(input: NewBoothInput): Promise<string> {
   const docRef = await addDoc(collection(db, "booths"), {
     name: input.name,
-    projectName: null,
+    projectName: input.projectName || null,
     type: input.type,
     status: "open",
     accessToken: generateAccessToken(),

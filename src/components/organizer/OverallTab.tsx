@@ -110,6 +110,8 @@ export default function OverallTab({
   const [events, setEvents] = useState<FestivalEvent[]>([]);
   const [lostItems, setLostItems] = useState<LostItemRecord[]>([]);
   const [days, setDays] = useState<string[]>([]);
+  // タイムテーブルで表示している日。null のあいだは自動で決める。
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
 
   const [float, setFloat] = useState<FloatKind>("none");
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -173,10 +175,37 @@ export default function OverallTab({
   const dayWithEvents = sortedDays.find((d) =>
     events.some((e) => e.day === d),
   );
-  const shownDay = sortedDays.includes(today)
+  // 何も選んでいないときに出す日
+  const autoDay = sortedDays.includes(today)
     ? today
     : (dayWithEvents ?? sortedDays[0] ?? "");
+  // 運営が日を選んだらそちらを優先する。開催日の設定が変わって選んだ日が
+  // 無くなった場合は、自動で決まる日に戻す。
+  const shownDay =
+    selectedDay && sortedDays.includes(selectedDay) ? selectedDay : autoDay;
   const todaysEvents = events.filter((e) => e.day === shownDay);
+
+  // 1日目・2日目を切り替えるボタン。開催日が2日以上あるときだけ出す。
+  // カードの中に置くので、押してもカード全体のクリック（フロートを開く）が
+  // 起きないように stopPropagation している。
+  const dayTabs =
+    sortedDays.length > 1 ? (
+      <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+        {sortedDays.map((d, i) => (
+          <button
+            key={d}
+            onClick={() => setSelectedDay(d)}
+            className={`rounded-lg px-2.5 py-1 text-[12px] ${
+              shownDay === d
+                ? "bg-white font-medium text-neutral-950"
+                : "border border-white/15 text-neutral-300 hover:bg-white/10"
+            }`}
+          >
+            {i + 1}日目
+          </button>
+        ))}
+      </div>
+    ) : null;
 
   async function applySwitch() {
     setUpdating(true);
@@ -335,6 +364,7 @@ export default function OverallTab({
             <ClickableCard
               title="イベントのタイムテーブル"
               badge={shownDay || undefined}
+              action={dayTabs}
               onClick={() => setFloat("timetable")}
             >
               {todaysEvents.length === 0 ? (
@@ -357,6 +387,7 @@ export default function OverallTab({
                       >
                         <span className="shrink-0 font-mono text-[13px] text-neutral-400">
                           {e.startAt ?? "--:--"}
+                          {e.endAt ? `〜${e.endAt}` : ""}
                         </span>
                         <span className="truncate">
                           {e.name || "（未設定）"}
@@ -451,10 +482,12 @@ export default function OverallTab({
         onClose={() => setFloat("none")}
         width="medium"
       >
+        {dayTabs && <div className="mb-3">{dayTabs}</div>}
         <div className="h-[60vh]">
           <EventTimeline
             events={todaysEvents}
             showNowLine={shownDay === today}
+            scrollSignal={shownDay}
           />
         </div>
       </FloatPanel>
