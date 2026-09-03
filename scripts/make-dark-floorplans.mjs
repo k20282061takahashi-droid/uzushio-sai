@@ -18,6 +18,8 @@ const SWAPS = [
   [/stroke="black"/g, 'stroke="#C3CDD8"'],       // 壁・仕切りの線
   [/stroke="#000000"/gi, 'stroke="#C3CDD8"'],
   [/fill="#1F1F1F"/gi, 'fill="#C3CDD8"'],        // 階段・EVなどの記号
+  [/stroke="#101010"/gi, 'stroke="#C3CDD8"'],    // 体育館の線
+  [/fill="#101010"/gi, 'fill="#C3CDD8"'],        // 体育館の「高校棟」の文字
   [/fill="white"/gi, 'fill="#1A2430"'],          // 記号の下地
   [/fill="#FFFFFF"/gi, 'fill="#1A2430"'],
 ];
