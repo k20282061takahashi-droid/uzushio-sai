@@ -124,7 +124,9 @@ function MapContent() {
         >
           {/* 拡大率を受け取り、縮小しているあいだは企画名を出さないようにする */}
           {(scale) => (
-            <div className="flex h-full w-full items-center justify-center">
+            // px/py で図のまわりに余白をとっている。ピンの名前は左右にはみ出して
+            // 表示されるので、図を画面いっぱいに広げると端の企画の名前が切れる。
+            <div className="flex h-full w-full items-center justify-center px-10 py-6">
               {/* フロア全体が一目で見えるよう横幅に合わせる。枠が図とぴったり
                   重なるので、ピンの%座標がそのまま図面上の位置と一致する。
                   containerType は、部屋名の文字を図面の幅に対する割合で
@@ -253,7 +255,7 @@ function MapContent() {
         </PannableZoom>
 
         {/* 色の見方。最初は開いておき、地図に触れたら畳む */}
-        <div className="absolute right-3 top-[84px] z-20">
+        <div className="absolute right-3 top-[104px] z-20">
           {legendOpen ? (
             <div className="animate-fade-in-up rounded-2xl border-2 border-kosei-700 bg-white/95 p-2.5 shadow-[0_3px_0_var(--color-kosei-700)]">
               <p className="mb-1.5 text-[10px] font-bold text-kosei-800">
