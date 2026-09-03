@@ -52,6 +52,9 @@ function MapContent() {
   const [booths, setBooths] = useState<Booth[]>([]);
   // 色の説明。最初は開いておき、地図に触れたら畳む
   const [legendOpen, setLegendOpen] = useState(true);
+  // 図面の横縦比。体育館は縦長なので、横幅に合わせると画面からはみ出す。
+  // 読み込んだ図の実際の比率を使って、全体が収まる大きさで出す。
+  const [planRatio, setPlanRatio] = useState<number | null>(null);
 
   // 企画の情報をリアルタイムで受け取る（待ち時間もその場で変わる）
   useEffect(() => subscribeVisitorBooths(setBooths), []);
@@ -127,15 +130,26 @@ function MapContent() {
                   containerType は、部屋名の文字を図面の幅に対する割合で
                   決めるために付けている。 */}
               <div
-                className="relative w-full"
-                style={{ containerType: "inline-size" }}
+                className="relative"
+                style={{
+                  containerType: "inline-size",
+                  width: "100%",
+                  aspectRatio: planRatio ?? undefined,
+                  maxHeight: "100%",
+                  maxWidth: "100%",
+                }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={planSrc}
                   alt=""
                   draggable={false}
-                  className="block w-full select-none"
+                  className="block h-full w-full select-none"
+                  onLoad={(e) => {
+                    const el = e.currentTarget;
+                    if (el.naturalHeight > 0)
+                      setPlanRatio(el.naturalWidth / el.naturalHeight);
+                  }}
                 />
 
                 {/* 部屋の名前。図面に印刷されているように見せたいので、

@@ -52,6 +52,10 @@ export default function BoothMapPicker({
   // confirmAllReset が true ならこのフロア全体。
   const [resetTarget, setResetTarget] = useState<string | null>(null);
   const [confirmAllReset, setConfirmAllReset] = useState(false);
+  // 図面の横縦比。体育館だけ縦長で、他の階と同じように横幅いっぱいに広げると
+  // 枠からはみ出して下半分（露天など）が見えなくなるため、読み込んだ図から
+  // 実際の比率を取って、枠に収まる大きさで表示する。
+  const [planRatio, setPlanRatio] = useState<number | null>(null);
   const planRef = useRef<HTMLDivElement>(null);
 
   const showFloors = hasFloors(area);
@@ -241,7 +245,13 @@ export default function BoothMapPicker({
       <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto rounded-xl border border-white/10 bg-neutral-950/40 p-2">
         <div
           ref={planRef}
-          className="relative w-full touch-none"
+          className="relative touch-none"
+          style={{
+            width: "100%",
+            aspectRatio: planRatio ?? undefined,
+            maxHeight: "100%",
+            maxWidth: "100%",
+          }}
           onPointerMove={onPinPointerMove}
           onPointerUp={onPinPointerUp}
           onPointerCancel={onPinPointerUp}
@@ -251,8 +261,13 @@ export default function BoothMapPicker({
             // 運営画面は背景が暗いので、線を明るくしたダーク版の図面を使う
             src={floorplanSrc(area, currentFloor, true)}
             alt=""
-            className="block w-full select-none"
+            className="block h-full w-full select-none"
             draggable={false}
+            onLoad={(e) => {
+              const el = e.currentTarget;
+              if (el.naturalHeight > 0)
+                setPlanRatio(el.naturalWidth / el.naturalHeight);
+            }}
           />
 
           {/* 部屋のあたり判定と部屋名。
