@@ -1,8 +1,6 @@
-import BottomNav from "@/components/BottomNav";
-import VisitRecorder from "@/components/VisitRecorder";
 import OpeningScreen from "@/components/OpeningScreen";
 import SwirlBackground from "@/components/SwirlBackground";
-import AddToHomeHint from "@/components/AddToHomeHint";
+import VisitorShell from "@/components/VisitorShell";
 
 export default function VisitorLayout({
   children,
@@ -20,21 +18,9 @@ export default function VisitorLayout({
       <SwirlBackground />
       {/* アプリを開いた最初に出るオープニング演出。この間に本体が読み込まれる */}
       <OpeningScreen />
-      {/* 来場者がアプリを開いたことを記録する（人数集計用・画面には出ない） */}
-      <VisitRecorder />
-      {/* 下のタブに隠れないための余白。--nav-h はタブが自分の高さをはかって
-          入れてくれるので、機種や文字サイズ設定が変わっても自動で合う。 */}
-      <div
-        className="relative z-10 flex-1"
-        style={{ paddingBottom: "var(--nav-h)" }}
-      >
-        {children}
-      </div>
-      {/* iPhoneのブラウザで開いている人にだけ、1度だけ出す案内 */}
-      <AddToHomeHint />
-      <div className="relative z-10">
-        <BottomNav />
-      </div>
+      {/* 文化祭が始まる前は、中身のかわりに「あと○日」を出す（VisitorShell が判断する）。
+          下のタブ・来場者数の記録・ホーム画面追加の案内も、その中で切り替わる。 */}
+      <VisitorShell>{children}</VisitorShell>
     </div>
   );
 }

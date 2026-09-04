@@ -233,6 +233,24 @@ export default function OverallTab({
           >
             {phase === "before" ? "文化祭を開始する" : "文化祭前の状態に戻す"}
           </button>
+          {/* 開始前は、来場者には「文化祭まであと○日」だけが見える。
+              関係者が本番と同じ画面を確認するための入口を案内しておく。 */}
+          {phase === "before" && (
+            <p className="mt-2 text-[11px] leading-relaxed text-neutral-400">
+              いまは来場者に「文化祭まであと○日」だけが見えています。
+              <br />
+              本番と同じ画面を確認するには{" "}
+              <a
+                href="/test"
+                target="_blank"
+                rel="noreferrer"
+                className="underline decoration-neutral-500 underline-offset-2 hover:text-neutral-200"
+              >
+                /test
+              </a>{" "}
+              を開いてください（この端末だけ）。
+            </p>
+          )}
         </div>
 
         <VisitorCountPanel />
