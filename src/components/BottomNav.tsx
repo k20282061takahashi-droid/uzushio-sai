@@ -35,6 +35,15 @@ function MapIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+function SearchIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" {...props}>
+      <circle cx="10.5" cy="10.5" r="6.5" />
+      <path d="M15.4 15.4 20 20" />
+    </svg>
+  );
+}
+
 function StampIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" {...props}>
@@ -46,8 +55,10 @@ function StampIcon(props: SVGProps<SVGSVGElement>) {
 
 const items = [
   { href: "/", label: "ホーム", Icon: HomeIcon },
-  { href: "/timeline", label: "タイムテーブル", Icon: TimelineIcon },
+  { href: "/booths", label: "さがす", Icon: SearchIcon },
   { href: "/map", label: "マップ", Icon: MapIcon },
+  // 5つ並ぶので「タイムテーブル」では横幅に収まらない。中身はイベントの予定表。
+  { href: "/timeline", label: "イベント", Icon: TimelineIcon },
   { href: "/stamp", label: "スタンプ", Icon: StampIcon },
 ];
 
@@ -64,7 +75,7 @@ export default function BottomNav() {
       style={{ paddingBottom: "max(env(safe-area-inset-bottom), 10px)" }}
     >
       <div className="mx-auto max-w-md">
-        <ul className="grid grid-cols-4 gap-1 px-2 pt-2">
+        <ul className="grid grid-cols-5 gap-1 px-2 pt-2">
           {items.map((item, index) => {
             const isActive = index === activeIndex;
             const Icon = item.Icon;
@@ -72,7 +83,7 @@ export default function BottomNav() {
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={`flex flex-col items-center justify-center gap-1 rounded-2xl px-1 py-1.5 text-[11px] font-bold transition-transform duration-150 ease-out active:scale-90 ${
+                  className={`flex flex-col items-center justify-center gap-1 whitespace-nowrap rounded-2xl px-0.5 py-1.5 text-[10px] font-bold transition-transform duration-150 ease-out active:scale-90 ${
                     isActive
                       ? "bg-kosei-600 text-white shadow-[0_3px_0_var(--color-kosei-800)]"
                       : "text-kosei-400"

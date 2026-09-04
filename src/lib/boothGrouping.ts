@@ -33,6 +33,24 @@ export const STATUS_LABELS: Record<BoothStatus, string> = {
   closed: "終了",
 };
 
+// 会場（体育館・校庭など）の列を並べる順番。
+//
+// イベントの出てきた順に列を作ると、1日目と2日目で最初のイベントの会場が
+// 違ったときに左右が入れ替わってしまう。ここに書いた順に必ず並べる。
+// ここに無い会場はこの後ろに名前順、「会場未定」はいちばん右。
+export const VENUE_ORDER = ["体育館", "校庭"];
+
+export function venueRank(venue: string): number {
+  const i = VENUE_ORDER.indexOf(venue);
+  if (i >= 0) return i;
+  if (venue === "会場未定") return VENUE_ORDER.length + 1;
+  return VENUE_ORDER.length;
+}
+
+export function compareVenues(a: string, b: string): number {
+  return venueRank(a) - venueRank(b) || a.localeCompare(b, "ja");
+}
+
 // クラス名を学校の名簿の順に並べるための処理。
 //
 // 並べる順番
@@ -77,6 +95,21 @@ export function classSortKey(name: string): ClassKey {
   if (/(部|同好会)$/.test(n)) return { group: 4, grade: 0, rest: n };
 
   return { group: 5, grade: 0, rest: n };
+}
+
+// 学年などのまとまりの名前（classSortKey の group と同じ並び）
+export const CLASS_GROUP_LABELS = [
+  "中学",
+  "高校1年",
+  "高校2年",
+  "高校3年",
+  "部活動",
+  "その他",
+];
+
+// そのクラス名がどのまとまりに入るか（0〜5）
+export function classGroupOf(name: string): number {
+  return classSortKey(name).group;
 }
 
 // クラス名どうしを名簿の順で比べる

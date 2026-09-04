@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { FestivalEvent } from "@/lib/booth";
 import { useNowMinutes } from "@/lib/nowLine";
+import { compareVenues } from "@/lib/boothGrouping";
 
 // Appleのカレンダーのような、時間軸に沿ってイベントを並べる表示。
 // ・拡大／縮小できる
@@ -54,6 +55,13 @@ export default function EventTimeline({
 
   // 現在時刻の赤線（1分ごとに動く）
   const nowMin = useNowMinutes(showNowLine);
+
+  // 会場ごとに列を分ける。体育館と校庭のイベントが同じ時間に重なると、
+  // 1本の列に重ねて置いていたため、後ろのイベントが隠れて読めなかった。
+  const venues = Array.from(
+    new Set(events.map((e) => e.venue || "会場未定")),
+  ).sort(compareVenues);
+  const colWidth = 100 / Math.max(1, venues.length);
 
   // 表示する時間の範囲。イベントがはみ出す場合は自動で広げる
   const times = events
@@ -128,6 +136,22 @@ export default function EventTimeline({
         ref={scrollRef}
         className="min-h-0 flex-1 overflow-y-auto rounded-xl border border-white/10 bg-neutral-950/40"
       >
+        {venues.length > 1 && (
+          <div className="sticky top-0 z-20 flex bg-neutral-950/90 px-2 pt-2 backdrop-blur">
+            <div className="w-12 shrink-0" />
+            <div className="flex flex-1">
+              {venues.map((v) => (
+                <div
+                  key={v}
+                  className="truncate border-l border-white/10 px-2 pb-1 text-center text-[13px] font-medium text-neutral-300"
+                  style={{ width: `${colWidth}%` }}
+                >
+                  {v}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="flex px-2 py-2">
           {/* 時刻の目盛り */}
           <div className="w-12 shrink-0">
@@ -162,6 +186,16 @@ export default function EventTimeline({
               />
             ))}
 
+            {/* 会場の区切り線 */}
+            {venues.length > 1 &&
+              venues.slice(1).map((v, i) => (
+                <div
+                  key={`sep-${v}`}
+                  className="absolute inset-y-0 border-l border-white/10"
+                  style={{ left: `${(i + 1) * colWidth}%` }}
+                />
+              ))}
+
             {/* イベント */}
             {events.map((e) => {
               const start = parseTime(e.startAt);
@@ -177,14 +211,19 @@ export default function EventTimeline({
                 <button
                   key={e.id}
                   onClick={() => onSelect?.(e)}
-                  className={`absolute left-1 right-1 overflow-hidden rounded-lg border px-2 py-1 text-left transition-colors ${
+                  className={`absolute overflow-hidden rounded-lg border px-2 py-1 text-left transition-colors ${
                     cancelled
                       ? "border-white/10 bg-neutral-950/70 opacity-50"
                       : e.delayed
                         ? "border-amber-400/50 bg-amber-400/15"
                         : "border-white/20 bg-white/[0.07]"
                   } ${isSelected ? "ring-2 ring-white/60" : ""}`}
-                  style={{ top: (start - rangeStart) * zoom + 1, height }}
+                  style={{
+                    top: (start - rangeStart) * zoom + 1,
+                    height,
+                    left: `calc(${venues.indexOf(e.venue || "会場未定") * colWidth}% + 4px)`,
+                    width: `calc(${colWidth}% - 8px)`,
+                  }}
                 >
                   {/* 高さが足りないときは、時刻と名前を1行にまとめて表示する */}
                   {height < 44 ? (
