@@ -35,3 +35,32 @@ for (const name of readdirSync(SRC)) {
   n++;
 }
 console.log(`ダーク版を ${n} 枚つくりました → ${OUT}`);
+
+// ------------------------------------------------------------------
+// 図面の縦横比の一覧をつくる。
+//
+// ブラウザで画像を読み込んでから naturalWidth / naturalHeight で測る方法は、
+// SVGだとブラウザによって返る値が違う（iPhoneのSafariでは、実際の図の大きさ
+// ではなく画面に表示されている大きさが返ることがある）。それを縦横比として
+// 使うと、図とピンの位置がまるごとズレる。
+// 図面はこちらで用意するものなので、ファイルから読み取って表に書き出しておく。
+// ------------------------------------------------------------------
+const ratios = {};
+for (const name of readdirSync(SRC)) {
+  if (!name.endsWith(".svg")) continue;
+  const svg = readFileSync(join(SRC, name), "utf8").slice(0, 500);
+  const w = svg.match(/width="([\d.]+)"/);
+  const h = svg.match(/height="([\d.]+)"/);
+  if (!w || !h) continue;
+  const width = Number(w[1]);
+  const height = Number(h[1]);
+  if (!width || !height) continue;
+  ratios[name.replace(/\.svg$/, "")] = Number((width / height).toFixed(4));
+}
+writeFileSync(
+  "src/lib/floorplanRatios.json",
+  JSON.stringify(ratios, null, 2) + "\n",
+);
+console.log(
+  `縦横比の表をつくりました（${Object.keys(ratios).length}件） → src/lib/floorplanRatios.json`,
+);

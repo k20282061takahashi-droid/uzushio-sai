@@ -13,6 +13,7 @@ import {
   type PlacedBooth,
 } from "@/lib/boothPlacement";
 import {
+  floorplanRatio,
   floorplanSrc,
   floorsFor,
   hasFloors,
@@ -53,10 +54,6 @@ function MapContent() {
   const [booths, setBooths] = useState<Booth[]>([]);
   // 色の説明。最初は開いておき、地図に触れたら畳む
   const [legendOpen, setLegendOpen] = useState(true);
-  // 図面の横縦比。体育館は縦長なので、横幅に合わせると画面からはみ出す。
-  // 読み込んだ図の実際の比率を使って、全体が収まる大きさで出す。
-  const [planRatio, setPlanRatio] = useState<number | null>(null);
-  const { frameRef, size: planSize } = useFitBox(planRatio);
 
   // 企画の情報をリアルタイムで受け取る（待ち時間もその場で変わる）
   useEffect(() => subscribeVisitorBooths(setBooths), []);
@@ -90,6 +87,10 @@ function MapContent() {
     [booths, activeArea, floor],
   );
   const planSrc = floorplanSrc(activeArea, floor);
+  // 図を枠に収める大きさ。縦横比は表から引く（ブラウザで測らない）
+  const { frameRef, size: planSize } = useFitBox(
+    floorplanRatio(activeArea, floor),
+  );
   // 図面に薄く敷く部屋名（教室名）。企画が無い部屋も出す目印になる
   const roomLabels = roomsFor(activeArea, floor);
 
@@ -152,11 +153,6 @@ function MapContent() {
                   alt=""
                   draggable={false}
                   className="block h-full w-full select-none"
-                  onLoad={(e) => {
-                    const el = e.currentTarget;
-                    if (el.naturalHeight > 0)
-                      setPlanRatio(el.naturalWidth / el.naturalHeight);
-                  }}
                 />
 
                 {/* 部屋の名前。図面に印刷されているように見せたいので、

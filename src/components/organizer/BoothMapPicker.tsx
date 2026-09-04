@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import {
+  floorplanRatio,
   floorplanSrc,
   floorLabel,
   floorsFor,
@@ -49,16 +50,18 @@ export default function BoothMapPicker({
   // confirmAllReset が true ならこのフロア全体。
   const [resetTarget, setResetTarget] = useState<string | null>(null);
   const [confirmAllReset, setConfirmAllReset] = useState(false);
-  // 図面の横縦比。体育館だけ縦長で、他の階と同じように横幅いっぱいに広げると
-  // 枠からはみ出して下半分（露天など）が見えなくなるため、読み込んだ図から
-  // 実際の比率を取って、枠に収まる大きさで表示する。
-  const [planRatio, setPlanRatio] = useState<number | null>(null);
-  const { frameRef, size: planSize } = useFitBox(planRatio);
   const planRef = useRef<HTMLDivElement>(null);
 
   const showFloors = hasFloors(area);
   const currentFloor = showFloors ? floor : undefined;
   const areaName = AREAS.find((a) => a.id === area)?.name ?? "";
+
+  // 体育館だけ縦長なので、他の階と同じように横幅いっぱいに広げると枠から
+  // はみ出して下半分（露天など）が見えなくなる。縦横比の表をもとに、
+  // 枠に収まる大きさを計算して表示する。
+  const { frameRef, size: planSize } = useFitBox(
+    floorplanRatio(area, currentFloor),
+  );
 
   const rooms = roomsFor(area, currentFloor);
 
@@ -268,11 +271,6 @@ export default function BoothMapPicker({
             alt=""
             className="block h-full w-full select-none"
             draggable={false}
-            onLoad={(e) => {
-              const el = e.currentTarget;
-              if (el.naturalHeight > 0)
-                setPlanRatio(el.naturalWidth / el.naturalHeight);
-            }}
           />
 
           {/* 部屋のあたり判定と部屋名。

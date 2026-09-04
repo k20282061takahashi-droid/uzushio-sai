@@ -23,9 +23,10 @@ export function useFitBox(ratio: number | null) {
     const el = frameRef.current;
     if (!el || !ratio) return;
     // ResizeObserver は監視を始めた時点で1回呼ばれるので、初回もここで決まる
-    const ro = new ResizeObserver(() => {
-      const r = el.getBoundingClientRect();
-      if (r.width <= 0 || r.height <= 0) return;
+    const ro = new ResizeObserver((entries) => {
+      // contentRect は余白（padding）を除いた「中身が置ける大きさ」
+      const r = entries[0]?.contentRect;
+      if (!r || r.width <= 0 || r.height <= 0) return;
       const width = Math.min(r.width, r.height * ratio);
       setSize({ width, height: width / ratio });
     });

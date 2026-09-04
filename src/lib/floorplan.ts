@@ -8,6 +8,7 @@
 //    アプリ側のコードは変更不要です。
 
 import rooms from "./floorplanRooms.json";
+import ratios from "./floorplanRatios.json";
 
 export type AreaId = "gym" | "senior" | "junior" | "schoolyard";
 
@@ -35,6 +36,17 @@ const FLOORS_BY_AREA: Record<AreaId, number[]> = {
   gym: [],
   schoolyard: [],
 };
+
+// 図面の縦横比（横 ÷ 縦）。
+// ブラウザで測ると、SVGでは naturalWidth / naturalHeight の返る値が
+// 環境によって違い（iPhoneのSafariで顕著）、図とピンの位置がまるごと
+// ズレる原因になる。図面はこちらで用意するものなので、ファイルから
+// 読み取って作った表を使う。表は scripts/make-dark-floorplans.mjs が作る。
+const ratioIndex = ratios as Record<string, number>;
+
+export function floorplanRatio(area: AreaId, floor?: number): number | null {
+  return ratioIndex[keyFor(area, floor)] ?? null;
+}
 
 export function floorsFor(area: AreaId): number[] {
   return FLOORS_BY_AREA[area] ?? [];
