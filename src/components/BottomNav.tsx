@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { SVGProps } from "react";
+import { useEffect, type SVGProps } from "react";
+import { useMeasuredHeight } from "@/lib/useMeasuredHeight";
 
 // アウトライン線画アイコン（雰囲気案v3で確定した仮アイコン）。
 // 本採用のアイコンは別途決めて差し替える。
@@ -69,13 +70,30 @@ export default function BottomNav() {
     items.findIndex((item) => item.href === pathname)
   );
 
+  // 自分の高さをはかって、CSS変数 --nav-h として全体に知らせる。
+  // 地図の表示範囲や、下に隠れないための余白は、この値を見て決める。
+  // 端末の safe area（ホームバーの余白）や文字サイズ設定で高さが変わっても、
+  // 数字を書き換えずに全部が追従する。
+  const { ref, height } = useMeasuredHeight<HTMLElement>();
+  useEffect(() => {
+    if (height > 0) {
+      document.documentElement.style.setProperty("--nav-h", `${height}px`);
+    }
+  }, [height]);
+
   return (
     <nav
+      ref={ref}
       className="fixed bottom-0 left-0 right-0 z-50 border-t-2 border-kosei-700 bg-white/95 backdrop-blur-md"
       style={{ paddingBottom: "max(env(safe-area-inset-bottom), 10px)" }}
     >
       <div className="mx-auto max-w-md">
-        <ul className="grid grid-cols-5 gap-1 px-2 pt-2">
+        <ul
+          className="grid grid-cols-5 gap-1 px-2 pt-2"
+          // 文字とアイコンの大きさを画面幅に合わせて連続的に変える。
+          // 320pxの小さい端末でも5つ並び、大きい端末では大きくなりすぎない。
+          style={{ fontSize: "clamp(0.5625rem, 2.7vw, 0.6875rem)" }}
+        >
           {items.map((item, index) => {
             const isActive = index === activeIndex;
             const Icon = item.Icon;
@@ -83,14 +101,15 @@ export default function BottomNav() {
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={`flex flex-col items-center justify-center gap-1 whitespace-nowrap rounded-2xl px-0.5 py-1.5 text-[10px] font-bold transition-transform duration-150 ease-out active:scale-90 ${
+                  className={`flex flex-col items-center justify-center gap-1 whitespace-nowrap rounded-2xl px-0.5 py-1.5 text-[length:inherit] font-bold transition-transform duration-150 ease-out active:scale-90 ${
                     isActive
                       ? "bg-kosei-600 text-white shadow-[0_3px_0_var(--color-kosei-800)]"
                       : "text-kosei-400"
                   }`}
                 >
                   <Icon
-                    className="h-[22px] w-[22px]"
+                    // アイコンも画面幅に合わせて変える（18px〜24px）
+                    className="h-[clamp(1.125rem,5.5vw,1.5rem)] w-[clamp(1.125rem,5.5vw,1.5rem)]"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth={isActive ? 2.2 : 1.8}

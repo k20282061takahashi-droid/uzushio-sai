@@ -30,7 +30,7 @@ export default function DetailSheet({
           className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pt-1"
           style={{
             paddingBottom:
-              "calc(20px + 69px + max(env(safe-area-inset-bottom), 10px))",
+              "calc(20px + var(--nav-h))",
           }}
         >
           {children}

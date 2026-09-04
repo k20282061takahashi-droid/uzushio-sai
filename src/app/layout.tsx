@@ -53,6 +53,13 @@ const delaGothicOne = Dela_Gothic_One({
 export const metadata: Metadata = {
   title: "渦潮祭",
   description: "渦潮祭 来場者用アプリ",
+  // 「ホーム画面に追加」したときに、ブラウザのバーを出さず全画面で開くための設定。
+  // どの機種でも、上下のバーが消えるぶん（100px前後）画面が広くなる。
+  appleWebApp: {
+    capable: true,
+    title: "渦潮祭",
+    statusBarStyle: "default",
+  },
 };
 
 export const viewport: Viewport = {

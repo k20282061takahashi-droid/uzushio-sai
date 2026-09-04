@@ -22,6 +22,7 @@ import {
 } from "@/lib/floorplan";
 import { pinLook, PIN_LEGEND } from "@/lib/waitColor";
 import { useFitBox } from "@/lib/useFitBox";
+import { useMeasuredHeight } from "@/lib/useMeasuredHeight";
 
 const areas: { id: AreaId; name: string }[] = [
   { id: "gym", name: "体育館" },
@@ -54,6 +55,9 @@ function MapContent() {
   const [booths, setBooths] = useState<Booth[]>([]);
   // 色の説明。最初は開いておき、地図に触れたら畳む
   const [legendOpen, setLegendOpen] = useState(true);
+  // 上に浮いているエリア選択の帯の高さを実際にはかる。
+  // 「104px」のような決め打ちだと、文字サイズ設定や端末幅でズレるため。
+  const { ref: headerRef, height: headerH } = useMeasuredHeight<HTMLDivElement>();
 
   // 企画の情報をリアルタイムで受け取る（待ち時間もその場で変わる）
   useEffect(() => subscribeVisitorBooths(setBooths), []);
@@ -119,9 +123,18 @@ function MapContent() {
   return (
     <>
       <div
-        className="fixed inset-x-0 top-0"
-        style={{ bottom: "calc(69px + max(env(safe-area-inset-bottom), 10px))" }}
+        className="fixed inset-x-0 top-0 bg-kosei-50"
+        // 下のタブの高さは --nav-h（タブが自分ではかった値）から取る
+        style={{ bottom: "var(--nav-h)" }}
       >
+        {/* 地図を動かせる範囲は、上のエリア選択の帯より下だけにする。
+            帯の下に図面が潜り込むと上のほうが隠れて見えないし、
+            拡大したときの中心も帯のぶんだけ下にずれてしまうため。
+            帯の高さは実測なので、機種や文字サイズが変わっても合う。 */}
+        <div
+          className="absolute inset-x-0 bottom-0"
+          style={{ top: headerH }}
+        >
         <PannableZoom
           className="h-full w-full bg-kosei-50"
           onInteract={() => setLegendOpen(false)}
@@ -132,7 +145,11 @@ function MapContent() {
             // 表示されるので、図を画面いっぱいに広げると端の企画の名前が切れる。
             <div
               ref={frameRef}
-              className="flex h-full w-full items-center justify-center px-10 py-6"
+              className="flex h-full w-full items-center justify-center"
+              // 余白は画面の大きさに合わせて連続的に変わる（globals.css の
+              // --map-pad-x / --map-pad-y）。小さい端末では詰まり、
+              // 大きい端末では広くなる。機種ごとの分岐は書かない。
+              style={{ padding: "var(--map-pad-y) var(--map-pad-x)" }}
             >
               {/* フロア全体が一目で見えるよう横幅に合わせる。枠が図とぴったり
                   重なるので、ピンの%座標がそのまま図面上の位置と一致する。
@@ -254,12 +271,23 @@ function MapContent() {
             </div>
           )}
         </PannableZoom>
+        </div>
 
         {/* 色の見方。最初は開いておき、地図に触れたら畳む */}
-        <div className="absolute right-3 top-[104px] z-20">
+        <div
+          className="absolute z-20"
+          style={{
+            top: `calc(${headerH}px + var(--gap-page))`,
+            right: "var(--gap-page)",
+          }}
+        >
           {legendOpen ? (
-            <div className="animate-fade-in-up rounded-2xl border-2 border-kosei-700 bg-white/95 p-2.5 shadow-[0_3px_0_var(--color-kosei-700)]">
-              <p className="mb-1.5 text-[10px] font-bold text-kosei-800">
+            <div
+              className="animate-fade-in-up rounded-2xl border-2 border-kosei-700 bg-white/95 p-2 shadow-[0_3px_0_var(--color-kosei-700)]"
+              // 凡例の文字も画面幅に合わせる。320pxの端末で地図を覆いすぎないように。
+              style={{ fontSize: "clamp(0.5625rem, 2.7vw, 0.75rem)" }}
+            >
+              <p className="mb-1 text-[length:inherit] font-bold text-kosei-800">
                 ピンの色
               </p>
               <ul className="space-y-1">
@@ -269,7 +297,7 @@ function MapContent() {
                       className="h-3 w-3 shrink-0 rounded-full border border-white"
                       style={{ backgroundColor: l.color }}
                     />
-                    <span className="text-[10px] font-bold text-kosei-800">
+                    <span className="text-[length:inherit] font-bold text-kosei-800">
                       {l.label}
                     </span>
                   </li>
@@ -277,7 +305,7 @@ function MapContent() {
               </ul>
               <button
                 onClick={() => setLegendOpen(false)}
-                className="mt-1.5 w-full rounded-full bg-kosei-100 py-0.5 text-[10px] font-bold text-kosei-700"
+                className="mt-1.5 w-full rounded-full bg-kosei-100 py-0.5 text-[length:inherit] font-bold text-kosei-700"
               >
                 閉じる
               </button>
@@ -285,7 +313,8 @@ function MapContent() {
           ) : (
             <button
               onClick={() => setLegendOpen(true)}
-              className="pressable rounded-full border-2 border-kosei-700 bg-white px-3 py-1.5 text-[11px] font-bold text-kosei-700 shadow-[0_3px_0_var(--color-kosei-700)]"
+              className="pressable rounded-full border-2 border-kosei-700 bg-white px-3 py-1.5 font-bold text-kosei-700 shadow-[0_3px_0_var(--color-kosei-700)]"
+              style={{ fontSize: "clamp(0.625rem, 2.9vw, 0.75rem)" }}
             >
               色の見方
             </button>
@@ -293,7 +322,11 @@ function MapContent() {
         </div>
 
         {/* 上部オーバーレイ：エリア選択 */}
-        <div className="animate-fade-in-up pointer-events-none absolute inset-x-0 top-0 z-10 bg-gradient-to-b from-kosei-50 via-kosei-50/90 to-transparent p-3 pt-4">
+        <div
+          ref={headerRef}
+          className="animate-fade-in-up pointer-events-none absolute inset-x-0 top-0 z-10 bg-gradient-to-b from-kosei-50 via-kosei-50/90 to-transparent"
+          style={{ padding: "var(--gap-page)" }}
+        >
           <div className="pointer-events-auto mx-auto grid max-w-md grid-cols-4 gap-2">
             {areas.map((area) => (
               <button
@@ -305,7 +338,13 @@ function MapContent() {
                   if (list.length > 0 && !list.includes(activeFloor))
                     setActiveFloor(list[0]);
                 }}
-                className={`pressable flex h-14 items-center justify-center rounded-full border-2 px-2 text-xs font-bold ${
+                // 高さと文字の大きさは画面に合わせて連続的に変える。
+                // 小さい端末でも指で押せる44pxは確保する（--tap-h）。
+                style={{
+                  height: "var(--tap-h)",
+                  fontSize: "clamp(0.6875rem, 3.2vw, 0.875rem)",
+                }}
+                className={`pressable flex items-center justify-center rounded-full border-2 px-2 font-bold ${
                   activeArea === area.id
                     ? "border-kosei-800 bg-kosei-500 text-white shadow-[0_3px_0_var(--color-kosei-800)]"
                     : "border-kosei-700 bg-white text-kosei-700 shadow-[0_3px_0_var(--color-kosei-700)]"
@@ -315,7 +354,10 @@ function MapContent() {
               </button>
             ))}
           </div>
-          <p className="pointer-events-none mt-2 text-center text-xs font-bold text-kosei-600">
+          <p
+            className="hide-on-short pointer-events-none mt-1.5 text-center font-bold text-kosei-600"
+            style={{ fontSize: "clamp(0.625rem, 3vw, 0.75rem)" }}
+          >
             {rooms.length === 0
               ? "このフロアに企画はありません"
               : "ピンチ／Ctrl+ホイールで拡大縮小、ドラッグで移動できます"}
