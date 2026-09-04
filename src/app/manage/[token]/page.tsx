@@ -597,11 +597,15 @@ export default function BoothManagePage() {
                 </p>
               </section>
           </div>
-          <section className="mb-4 rounded-2xl border-2 border-white/15 bg-bbb-panel/88 p-4 lg:col-start-2 lg:mb-0">
-            <h2 className="font-logo mb-2 text-[13px] text-bbb-cyan">
+          {/* 運営からのれんらく。連絡が増えても画面全体が伸びないよう、
+              高さを決めてこの枠の中だけスクロールさせる。 */}
+          <section className="mb-4 flex max-h-[60vh] flex-col rounded-2xl border-2 border-white/15 bg-bbb-panel/88 p-4 lg:col-start-2 lg:mb-0 lg:sticky lg:top-4 lg:max-h-[calc(100vh-8rem)]">
+            <h2 className="font-logo mb-2 shrink-0 text-[13px] text-bbb-cyan">
               運営からのれんらく
             </h2>
-            <AnnouncementBoard announcements={announcements} />
+            <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+              <AnnouncementBoard announcements={announcements} />
+            </div>
           </section>
         </div>
       ) : (
