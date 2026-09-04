@@ -1,6 +1,7 @@
 import Link from "next/link";
 import AnnouncementTicker from "@/components/AnnouncementTicker";
 import CampusMap from "@/components/CampusMap";
+import HomeSearchBar from "@/components/HomeSearchBar";
 import NowNextEvent from "@/components/NowNextEvent";
 import StampSummary from "@/components/StampSummary";
 
@@ -13,6 +14,11 @@ export default function VisitorHome() {
           渦潮祭
         </h1>
       </header>
+
+      {/* 検索バー（押すと「さがす」タブへ） */}
+      <section className="animate-fade-in-up mb-4" style={{ animationDelay: "20ms" }}>
+        <HomeSearchBar />
+      </section>
 
       {/* お知らせティッカー */}
       <div className="animate-fade-in-up mb-4" style={{ animationDelay: "40ms" }}>

@@ -587,6 +587,23 @@ export default function BoothsTab({ onDataUpdate }: { onDataUpdate: () => void }
     });
   }
 
+  // 図面の好きな場所を押して、そこにピンを作る（部屋として登録されていない場所用）
+  async function pickPoint(
+    area: AreaId,
+    floor: number | undefined,
+    x: number,
+    y: number,
+  ) {
+    if (!selected) return;
+    await updateBooth(selected.id, {
+      location: AREA_NAMES[area],
+      floor: floor ?? null,
+      roomName: null,
+      pinX: Math.round(x * 10) / 10,
+      pinY: Math.round(y * 10) / 10,
+    });
+  }
+
   async function addBooth() {
     if (!newName.trim()) return;
     await createBooth({ name: newName.trim(), type: "class" });
@@ -687,6 +704,7 @@ export default function BoothsTab({ onDataUpdate }: { onDataUpdate: () => void }
                   booths={booths}
                   selectedBooth={selected}
                   onPickRoom={pickRoom}
+                  onPickPoint={pickPoint}
                 />
               </div>
             </div>

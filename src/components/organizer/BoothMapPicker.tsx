@@ -33,10 +33,17 @@ export default function BoothMapPicker({
   booths,
   selectedBooth,
   onPickRoom,
+  onPickPoint,
 }: {
   booths: Booth[];
   selectedBooth: Booth | null;
   onPickRoom?: (area: AreaId, floor: number | undefined, room: string) => void;
+  onPickPoint?: (
+    area: AreaId,
+    floor: number | undefined,
+    x: number,
+    y: number,
+  ) => void;
 }) {
   const [area, setArea] = useState<AreaId>("senior");
   const [floor, setFloor] = useState(4);
@@ -50,6 +57,9 @@ export default function BoothMapPicker({
   // confirmAllReset が true ならこのフロア全体。
   const [resetTarget, setResetTarget] = useState<string | null>(null);
   const [confirmAllReset, setConfirmAllReset] = useState(false);
+  // 「自由に置く」モード。図面の好きな場所を押すと、そこにピンを作る。
+  // 部屋として登録されていない場所（廊下・校庭・露天など）に企画を置きたいときに使う。
+  const [freeMode, setFreeMode] = useState(false);
   const planRef = useRef<HTMLDivElement>(null);
 
   const showFloors = hasFloors(area);
@@ -226,9 +236,35 @@ export default function BoothMapPicker({
               </button>
             </>
           ) : selectedBooth ? (
-            <span className="text-[13px] text-emerald-300">
-              図面の部屋を押すと「{selectedBooth.name}」の場所になります
-            </span>
+            <>
+              <span className="truncate text-[13px] text-emerald-300">
+                {freeMode
+                  ? `図面の好きな場所を押すと、そこに「${selectedBooth.name}」のピンを作ります`
+                  : `図面の部屋を押すと「${selectedBooth.name}」の場所になります`}
+              </span>
+              <div className="flex shrink-0 gap-1">
+                <button
+                  onClick={() => setFreeMode(false)}
+                  className={
+                    freeMode
+                      ? "rounded-lg bg-neutral-900/75 px-3 py-1.5 text-[13px] text-neutral-300"
+                      : "rounded-lg bg-white px-3 py-1.5 text-[13px] font-bold text-neutral-950"
+                  }
+                >
+                  部屋から選ぶ
+                </button>
+                <button
+                  onClick={() => setFreeMode(true)}
+                  className={
+                    freeMode
+                      ? "rounded-lg bg-white px-3 py-1.5 text-[13px] font-bold text-neutral-950"
+                      : "rounded-lg bg-neutral-900/75 px-3 py-1.5 text-[13px] text-neutral-300"
+                  }
+                >
+                  自由に置く
+                </button>
+              </div>
+            </>
           ) : (
             <>
               <span className="text-[13px] text-neutral-400">
@@ -254,12 +290,19 @@ export default function BoothMapPicker({
       >
         <div
           ref={planRef}
-          className="relative touch-none"
+          className={`relative touch-none ${
+            freeMode && selectedBooth ? "cursor-crosshair" : ""
+          }`}
           style={
             planSize
               ? { width: planSize.width, height: planSize.height }
               : { width: "100%" }
           }
+          onClick={(e) => {
+            if (!freeMode || !selectedBooth || !onPickPoint) return;
+            const point = pointToPercent(e.clientX, e.clientY);
+            if (point) onPickPoint(area, currentFloor, point.x, point.y);
+          }}
           onPointerMove={onPinPointerMove}
           onPointerUp={onPinPointerUp}
           onPointerCancel={onPinPointerUp}
@@ -291,7 +334,12 @@ export default function BoothMapPicker({
                     : `${room.label}（企画なし）`
                 }
                 className="absolute z-10 -translate-x-1/2 -translate-y-1/2 disabled:cursor-default"
-                style={{ left: `${room.x}%`, top: `${room.y}%` }}
+                style={{
+                  left: `${room.x}%`,
+                  top: `${room.y}%`,
+                  // 自由に置くモードでは、部屋のボタンがクリックを奪わないようにする
+                  pointerEvents: freeMode && selectedBooth ? "none" : undefined,
+                }}
               >
                 {/* 企画を選んでいるときだけ、押せる場所として枠を出す */}
                 <span
@@ -307,7 +355,10 @@ export default function BoothMapPicker({
                     企画が入っている部屋には企画ピンが同じ位置に立つので、
                     重ならないようにここでは出さない（名前はホバーで出る）。 */}
                 {!booth && (
-                  <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded bg-neutral-900/85 px-1.5 py-0.5 text-[12px] font-medium text-neutral-200 ring-1 ring-white/15">
+                  <span
+                    className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded bg-neutral-900/85 px-1.5 py-0.5 font-medium text-neutral-200 ring-1 ring-white/15"
+                    style={{ fontSize: `${12 * (room.size ?? 1)}px` }}
+                  >
                     {room.label}
                   </span>
                 )}

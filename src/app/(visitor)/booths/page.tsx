@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import DetailSheet from "@/components/DetailSheet";
 import BoothDetail from "@/components/BoothDetail";
 import {
@@ -45,10 +46,20 @@ function Chip({
   );
 }
 
-export default function BoothsPage() {
+function BoothsPageInner() {
+  // ホーム画面から渡された条件（?group=1 や ?focus=1）を最初の状態にする
+  const params = useSearchParams();
+  const groupParam = params.get("group");
+  const autoFocus = params.get("focus") === "1";
+
   const [booths, setBooths] = useState<Booth[]>([]);
-  const [query, setQuery] = useState("");
-  const [group, setGroup] = useState<number | null>(null);
+  const [query, setQuery] = useState(() => params.get("q") ?? "");
+  const [group, setGroup] = useState<number | null>(() => {
+    const n = Number(groupParam);
+    return groupParam !== null && Number.isInteger(n) && n >= 0 && n < CLASS_GROUP_LABELS.length
+      ? n
+      : null;
+  });
   const [genre, setGenre] = useState<BoothGenre | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>("class");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -97,6 +108,7 @@ export default function BoothsPage() {
       {/* 検索 */}
       <div className="animate-fade-in-up relative mb-3">
         <input
+          autoFocus={autoFocus}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="クラス名・企画名で検索（例：2年A組、たこ焼き）"
@@ -229,5 +241,13 @@ export default function BoothsPage() {
         )}
       </DetailSheet>
     </div>
+  );
+}
+
+export default function BoothsPage() {
+  return (
+    <Suspense>
+      <BoothsPageInner />
+    </Suspense>
   );
 }

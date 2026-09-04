@@ -164,7 +164,7 @@ function MapContent() {
                     style={{
                       left: `${r.x}%`,
                       top: `${r.y}%`,
-                      fontSize: "2.6cqw",
+                      fontSize: `${2.6 * (r.size ?? 1)}cqw`,
                     }}
                   >
                     {r.label}
