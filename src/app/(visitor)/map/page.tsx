@@ -14,11 +14,13 @@ import {
 } from "@/lib/boothPlacement";
 import {
   floorplanSrc,
+  floorsFor,
   hasFloors,
   roomsFor,
   type AreaId,
 } from "@/lib/floorplan";
 import { pinLook, PIN_LEGEND } from "@/lib/waitColor";
+import { useFitBox } from "@/lib/useFitBox";
 
 const areas: { id: AreaId; name: string }[] = [
   { id: "gym", name: "体育館" },
@@ -27,7 +29,6 @@ const areas: { id: AreaId; name: string }[] = [
   { id: "schoolyard", name: "校庭" },
 ];
 
-const floors = [4, 3, 2, 1];
 
 // この倍率より小さいあいだは、待ち時間の数字を出さずに色の点だけにする。
 // 全体表示のままだと教室1つが画面上40px台しかなく、数字と名前の両方は入らない。
@@ -55,6 +56,7 @@ function MapContent() {
   // 図面の横縦比。体育館は縦長なので、横幅に合わせると画面からはみ出す。
   // 読み込んだ図の実際の比率を使って、全体が収まる大きさで出す。
   const [planRatio, setPlanRatio] = useState<number | null>(null);
+  const { frameRef, size: planSize } = useFitBox(planRatio);
 
   // 企画の情報をリアルタイムで受け取る（待ち時間もその場で変わる）
   useEffect(() => subscribeVisitorBooths(setBooths), []);
@@ -80,6 +82,7 @@ function MapContent() {
   }
 
   const showFloors = hasFloors(activeArea);
+  const floors = floorsFor(activeArea);
   const floor = showFloors ? activeFloor : undefined;
 
   const rooms = useMemo(
@@ -126,7 +129,10 @@ function MapContent() {
           {(scale) => (
             // px/py で図のまわりに余白をとっている。ピンの名前は左右にはみ出して
             // 表示されるので、図を画面いっぱいに広げると端の企画の名前が切れる。
-            <div className="flex h-full w-full items-center justify-center px-10 py-6">
+            <div
+              ref={frameRef}
+              className="flex h-full w-full items-center justify-center px-10 py-6"
+            >
               {/* フロア全体が一目で見えるよう横幅に合わせる。枠が図とぴったり
                   重なるので、ピンの%座標がそのまま図面上の位置と一致する。
                   containerType は、部屋名の文字を図面の幅に対する割合で
@@ -135,10 +141,9 @@ function MapContent() {
                 className="relative"
                 style={{
                   containerType: "inline-size",
-                  width: "100%",
-                  aspectRatio: planRatio ?? undefined,
-                  maxHeight: "100%",
-                  maxWidth: "100%",
+                  ...(planSize
+                    ? { width: planSize.width, height: planSize.height }
+                    : { width: "100%" }),
                 }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -297,7 +302,13 @@ function MapContent() {
             {areas.map((area) => (
               <button
                 key={area.id}
-                onClick={() => setActiveArea(area.id)}
+                onClick={() => {
+                  setActiveArea(area.id);
+                  // 棟を変えたとき、その棟に無い階が選ばれたままにならないように
+                  const list = floorsFor(area.id);
+                  if (list.length > 0 && !list.includes(activeFloor))
+                    setActiveFloor(list[0]);
+                }}
                 className={`pressable flex h-14 items-center justify-center rounded-full border-2 px-2 text-xs font-bold ${
                   activeArea === area.id
                     ? "border-kosei-800 bg-kosei-500 text-white shadow-[0_3px_0_var(--color-kosei-800)]"

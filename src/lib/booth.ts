@@ -1,6 +1,7 @@
 import {
   arrayUnion,
   addDoc,
+  increment,
   collection,
   deleteDoc,
   doc,
@@ -134,7 +135,10 @@ function docToBooth(d: {
     pinX: typeof data.pinX === "number" ? data.pinX : null,
     pinY: typeof data.pinY === "number" ? data.pinY : null,
     hasWaiting: !!data.hasWaiting,
-    waitingGroups: data.waitingGroups ?? null,
+    waitingGroups:
+      typeof data.waitingGroups === "number"
+        ? Math.max(0, data.waitingGroups)
+        : null,
     timePerGroup: data.timePerGroup ?? null,
     genre: data.genre ?? null,
     isSetupDone: !!data.isSetupDone,
@@ -187,7 +191,10 @@ export async function getBoothByToken(token: string): Promise<Booth | null> {
     pinX: typeof data.pinX === "number" ? data.pinX : null,
     pinY: typeof data.pinY === "number" ? data.pinY : null,
     hasWaiting: !!data.hasWaiting,
-    waitingGroups: data.waitingGroups ?? null,
+    waitingGroups:
+      typeof data.waitingGroups === "number"
+        ? Math.max(0, data.waitingGroups)
+        : null,
     timePerGroup: data.timePerGroup ?? null,
     genre: data.genre ?? null,
     isSetupDone: !!data.isSetupDone,
@@ -217,7 +224,10 @@ export function subscribeBooths(
         pinX: typeof data.pinX === "number" ? data.pinX : null,
         pinY: typeof data.pinY === "number" ? data.pinY : null,
         hasWaiting: !!data.hasWaiting,
-        waitingGroups: data.waitingGroups ?? null,
+        waitingGroups:
+      typeof data.waitingGroups === "number"
+        ? Math.max(0, data.waitingGroups)
+        : null,
         timePerGroup: data.timePerGroup ?? null,
         genre: data.genre ?? null,
         isSetupDone: !!data.isSetupDone,
@@ -860,10 +870,28 @@ export async function deleteBooth(id: string) {
   await deleteDoc(doc(db, "booths", id));
 }
 
-// 待ちグループ数の更新。更新した時刻も一緒に記録する。
+// 待ちグループ数を「◯にする」形で保存する。数を直接打ち込むとき用。
 export async function updateWaitingGroups(id: string, waitingGroups: number) {
   await updateDoc(doc(db, "booths", id), {
-    waitingGroups,
+    waitingGroups: Math.max(0, waitingGroups),
+    waitingUpdatedAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+}
+
+// 待ちグループ数を「1増やす／1減らす」形で保存する。
+//
+// 画面に出ている数から計算して「◯にする」と保存すると、2人が同時に
+// ＋1を押したときに片方の操作が消える（どちらも「3＋1＝4」を保存するので、
+// 5になるべきところが4のままになる）。当日は担当者が交代で列を見張るので
+// 十分に起こり、ズレは足し算でたまっていく。
+//
+// increment はデータベース側で足し算するため、同時に押しても両方反映される。
+// 電波が切れていても、つながったときにまとめて反映される（この点でも
+// 読み込んでから書き戻すやり方より当日の環境に向いている）。
+export async function adjustWaitingGroups(id: string, delta: number) {
+  await updateDoc(doc(db, "booths", id), {
+    waitingGroups: increment(delta),
     waitingUpdatedAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });

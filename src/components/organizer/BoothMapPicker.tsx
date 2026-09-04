@@ -3,6 +3,8 @@
 import { useMemo, useRef, useState } from "react";
 import {
   floorplanSrc,
+  floorLabel,
+  floorsFor,
   hasFloors,
   roomsFor,
   type AreaId,
@@ -11,6 +13,7 @@ import { pinLook } from "@/lib/waitColor";
 import { waitMinutesOf } from "@/lib/boothGrouping";
 import { placeBooths } from "@/lib/boothPlacement";
 import { updateBooth, type Booth } from "@/lib/booth";
+import { useFitBox } from "@/lib/useFitBox";
 
 // 図面のエリアと、企画データの「場所」の名前をつなぐ対応表。
 // 本物の校内図に差し替えるときは、ここの名前を合わせてください。
@@ -20,12 +23,6 @@ const AREAS: { id: AreaId; name: string }[] = [
   { id: "gym", name: "体育館" },
   { id: "schoolyard", name: "校庭" },
 ];
-
-const FLOORS = [4, 3, 2, 1];
-
-function floorLabel(f: number): string {
-  return f === -1 ? "B1" : `${f}F`;
-}
 
 // 運営が図面を見ながら、企画の場所を直したり混み具合を確認したりする地図。
 //
@@ -56,6 +53,7 @@ export default function BoothMapPicker({
   // 枠からはみ出して下半分（露天など）が見えなくなるため、読み込んだ図から
   // 実際の比率を取って、枠に収まる大きさで表示する。
   const [planRatio, setPlanRatio] = useState<number | null>(null);
+  const { frameRef, size: planSize } = useFitBox(planRatio);
   const planRef = useRef<HTMLDivElement>(null);
 
   const showFloors = hasFloors(area);
@@ -151,7 +149,12 @@ export default function BoothMapPicker({
           {AREAS.map((a) => (
             <button
               key={a.id}
-              onClick={() => setArea(a.id)}
+              onClick={() => {
+                setArea(a.id);
+                // 棟を変えたとき、その棟に無い階が選ばれたままにならないようにする
+                const list = floorsFor(a.id);
+                if (list.length > 0 && !list.includes(floor)) setFloor(list[0]);
+              }}
               className={
                 area === a.id
                   ? "rounded-lg bg-white px-3.5 py-2 text-sm font-bold text-neutral-950"
@@ -164,7 +167,7 @@ export default function BoothMapPicker({
         </div>
         {showFloors && (
           <div className="flex gap-1">
-            {FLOORS.map((f) => (
+            {floorsFor(area).map((f) => (
               <button
                 key={f}
                 onClick={() => setFloor(f)}
@@ -242,16 +245,18 @@ export default function BoothMapPicker({
       </div>
 
       {/* 図面 */}
-      <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto rounded-xl border border-white/10 bg-neutral-950/40 p-2">
+      <div
+        ref={frameRef}
+        className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-neutral-950/40 p-2"
+      >
         <div
           ref={planRef}
           className="relative touch-none"
-          style={{
-            width: "100%",
-            aspectRatio: planRatio ?? undefined,
-            maxHeight: "100%",
-            maxWidth: "100%",
-          }}
+          style={
+            planSize
+              ? { width: planSize.width, height: planSize.height }
+              : { width: "100%" }
+          }
           onPointerMove={onPinPointerMove}
           onPointerUp={onPinPointerUp}
           onPointerCancel={onPinPointerUp}

@@ -20,6 +20,7 @@ import {
   sendEmergencyAlert,
   subscribeFestivalPhase,
   updateBooth,
+  adjustWaitingGroups,
 } from "@/lib/booth";
 import { saveSignboard, loadSignboard } from "@/lib/signboard";
 
@@ -338,11 +339,16 @@ export default function BoothManagePage() {
 
   async function adjustWaiting(delta: number) {
     if (!booth) return;
+    // 0のときに「−1」を押しても何もしない（マイナスにしないため）
+    if (delta < 0 && waitingGroups <= 0) return;
+
     lastLocalEditAt.current = Date.now();
     const next = Math.max(0, waitingGroups + delta);
+    // 画面はすぐ動かして、保存はデータベース側の足し算にまかせる。
+    // 2人が同時に押しても、どちらの操作も消えない。
     setWaitingGroups(next);
     setSavingWait(true);
-    await updateBooth(booth.id, { waitingGroups: next });
+    await adjustWaitingGroups(booth.id, delta);
     setBooth({ ...booth, waitingGroups: next });
     setSavingWait(false);
   }

@@ -27,6 +27,24 @@ export function hasFloors(area: AreaId): boolean {
   return area === "senior" || area === "junior";
 }
 
+// その棟で選べる階（上から順）。
+// 地下があるのは中学棟だけ。高校棟にも地下はあるが、立ち入れず企画も無いので出さない。
+const FLOORS_BY_AREA: Record<AreaId, number[]> = {
+  senior: [4, 3, 2, 1],
+  junior: [4, 3, 2, 1, -1],
+  gym: [],
+  schoolyard: [],
+};
+
+export function floorsFor(area: AreaId): number[] {
+  return FLOORS_BY_AREA[area] ?? [];
+}
+
+// 階の見せ方（-1 は B1）
+export function floorLabel(floor: number): string {
+  return floor === -1 ? "B1" : `${floor}F`;
+}
+
 function keyFor(area: AreaId, floor?: number): string {
   return hasFloors(area) ? `${area}-${floor}` : area;
 }
