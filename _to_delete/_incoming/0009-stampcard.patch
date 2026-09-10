@@ -1,0 +1,79 @@
+From 9bc7d18a5bf70ec8313bba8d1ee4da7a4cfb41c5 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Tue, 25 Aug 2026 18:10:35 +0000
+Subject: [PATCH] =?UTF-8?q?=E3=82=B9=E3=82=BF=E3=83=B3=E3=83=97=E3=82=AB?=
+ =?UTF-8?q?=E3=83=BC=E3=83=89=E3=81=AE=E3=82=B9=E3=82=BF=E3=83=B3=E3=83=97?=
+ =?UTF-8?q?=E3=82=92=E5=A4=A7=E3=81=8D=E3=81=8F=E3=81=97=E3=80=81=E3=83=92?=
+ =?UTF-8?q?=E3=83=B3=E3=83=88=E3=82=92=E4=B8=B8=E3=81=AE=E4=B8=AD=E3=81=AB?=
+ =?UTF-8?q?=E8=A1=A8=E7=A4=BA=E3=81=99=E3=82=8B?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ src/app/(visitor)/stamp/page.tsx | 37 +++++++++++++++++++++-----------
+ 1 file changed, 24 insertions(+), 13 deletions(-)
+
+diff --git a/src/app/(visitor)/stamp/page.tsx b/src/app/(visitor)/stamp/page.tsx
+index 8eb0222..47c7671 100644
+--- a/src/app/(visitor)/stamp/page.tsx
++++ b/src/app/(visitor)/stamp/page.tsx
+@@ -185,31 +185,42 @@ export default function StampPage() {
+             </Link>
+           )}
+ 
++          {/* スタンプカード。未獲得のマスには場所のヒントを丸の中に出す */}
+           <div
+-            className="animate-fade-in-up mb-6 grid grid-cols-5 gap-3"
++            className="animate-fade-in-up mb-6 grid grid-cols-3 gap-4"
+             style={{ animationDelay: "80ms" }}
+           >
+             {spots.map((spot) => {
+               const isCollected = collected.includes(spot.id);
+               return (
+-                <div key={spot.id} className="flex flex-col items-center gap-1">
++                <div
++                  key={spot.id}
++                  className="flex flex-col items-center gap-1.5"
++                >
+                   <div
+-                    className={`flex aspect-square w-full items-center justify-center rounded-full border-2 text-lg transition-transform duration-300 ${
++                    className={`flex aspect-square w-full items-center justify-center rounded-full border-2 p-2 transition-transform duration-300 ${
+                       isCollected
+-                        ? "scale-100 border-kosei-800 bg-kosei-500 shadow-[0_3px_0_var(--color-kosei-800)]"
+-                        : "scale-90 border-dashed border-kosei-300 bg-kosei-50 opacity-70"
++                        ? "scale-100 border-kosei-800 bg-kosei-500 shadow-[0_4px_0_var(--color-kosei-800)]"
++                        : "scale-95 border-dashed border-kosei-300 bg-kosei-50"
+                     }`}
+                   >
+-                    {isCollected &&
+-                      (ticket?.used ? (
+-                        <CheckIcon className="h-5 w-5 text-white" />
++                    {isCollected ? (
++                      ticket?.used ? (
++                        <CheckIcon className="h-12 w-12 text-white" />
+                       ) : (
+-                        <StampIcon className="h-5 w-5 text-white" />
+-                      ))}
++                        <StampIcon className="h-12 w-12 text-white" />
++                      )
++                    ) : (
++                      <span className="px-1 text-center text-[11px] font-bold leading-tight text-kosei-400">
++                        {spot.hint}
++                      </span>
++                    )}
+                   </div>
+-                  <span className="text-center text-[9px] font-bold leading-tight text-kosei-500">
+-                    {isCollected ? spot.name : spot.hint}
+-                  </span>
++                  {isCollected && (
++                    <span className="text-center text-[11px] font-bold leading-tight text-kosei-700">
++                      {spot.name}
++                    </span>
++                  )}
+                 </div>
+               );
+             })}
+-- 
+2.43.0
+

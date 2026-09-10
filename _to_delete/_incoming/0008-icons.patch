@@ -1,0 +1,478 @@
+From e8f85bb76efc6f533a437387f5dfaef44cfbc981 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Tue, 25 Aug 2026 18:05:40 +0000
+Subject: [PATCH] =?UTF-8?q?=E7=B5=B5=E6=96=87=E5=AD=97=E3=82=A2=E3=82=A4?=
+ =?UTF-8?q?=E3=82=B3=E3=83=B3=E3=82=92=E7=B7=9A=E7=94=BB=E3=82=A2=E3=82=A4?=
+ =?UTF-8?q?=E3=82=B3=E3=83=B3=E3=81=AB=E7=B5=B1=E4=B8=80=E3=81=97=E3=80=81?=
+ =?UTF-8?q?=E6=8C=91=E6=88=A6=E5=88=B8=E3=81=B8=E3=81=AE=E3=83=9C=E3=82=BF?=
+ =?UTF-8?q?=E3=83=B3=E3=82=92=E5=A4=A7=E3=81=8D=E3=81=8F=E3=81=99=E3=82=8B?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ src/app/(visitor)/announcements/page.tsx      |   3 +-
+ src/app/(visitor)/stamp/complete/page.tsx     |  10 +-
+ src/app/(visitor)/stamp/page.tsx              |  38 +++++-
+ src/app/manage/[token]/page.tsx               |   5 +-
+ src/app/reward/page.tsx                       |  13 +-
+ src/components/AnnouncementTicker.tsx         |   5 +-
+ src/components/Icon.tsx                       | 120 ++++++++++++++++++
+ src/components/StaffAlertOverlay.tsx          |   3 +-
+ src/components/StampSummary.tsx               |   5 +-
+ .../organizer/AnnouncementFloat.tsx           |   5 +-
+ src/components/organizer/OverallTab.tsx       |   5 +-
+ 11 files changed, 191 insertions(+), 21 deletions(-)
+ create mode 100644 src/components/Icon.tsx
+
+diff --git a/src/app/(visitor)/announcements/page.tsx b/src/app/(visitor)/announcements/page.tsx
+index 973560f..d7b95d3 100644
+--- a/src/app/(visitor)/announcements/page.tsx
++++ b/src/app/(visitor)/announcements/page.tsx
+@@ -3,6 +3,7 @@
+ import Link from "next/link";
+ import { useEffect, useState } from "react";
+ import { Announcement, subscribeVisitorAnnouncements } from "@/lib/booth";
++import { PinIcon } from "@/components/Icon";
+ import { truncate } from "@/lib/text";
+ 
+ function formatTime(ms: number | null) {
+@@ -55,7 +56,7 @@ export default function AnnouncementsPage() {
+           {pinned.length > 0 && (
+             <section>
+               <p className="mb-2 flex items-center gap-1 text-xs font-bold text-accent-700">
+-                <span aria-hidden>📌</span> ピン留めのお知らせ
++                <PinIcon className="inline h-4 w-4" /> ピン留めのお知らせ
+               </p>
+               <ul className="space-y-3">
+                 {pinned.map((a, i) => (
+diff --git a/src/app/(visitor)/stamp/complete/page.tsx b/src/app/(visitor)/stamp/complete/page.tsx
+index 4781d83..9b58da8 100644
+--- a/src/app/(visitor)/stamp/complete/page.tsx
++++ b/src/app/(visitor)/stamp/complete/page.tsx
+@@ -3,6 +3,7 @@
+ import Link from "next/link";
+ import { useEffect, useState } from "react";
+ import Confetti from "@/components/Confetti";
++import { CheckCircleIcon, CrownIcon, MapPinIcon } from "@/components/Icon";
+ import QrCode from "@/components/organizer/QrCode";
+ import {
+   getOrCreateRewardTicket,
+@@ -39,7 +40,7 @@ export default function StampCompletePage() {
+       <Confetti mode="party" />
+ 
+       <div className="animate-fade-in-up mb-6 text-center">
+-        <p className="mb-2 text-4xl">🎉</p>
++        <CrownIcon className="mx-auto mb-2 h-14 w-14 text-warn-600" />
+         <h1 className="font-heading text-3xl font-black leading-tight text-kosei-800">
+           コンプリート
+           <br />
+@@ -66,8 +67,9 @@ export default function StampCompletePage() {
+           href="/map"
+           className="pressable block rounded-2xl border-2 border-kosei-800 bg-white p-3 text-center shadow-[0_4px_0_var(--color-kosei-800)]"
+         >
+-          <p className="font-heading text-sm font-black text-kosei-800">
+-            📍 特別企画の場所をマップで見る
++          <p className="flex items-center justify-center gap-2 font-heading text-sm font-black text-kosei-800">
++            <MapPinIcon className="h-5 w-5 text-accent-700" />
++            特別企画の場所をマップで見る
+           </p>
+         </Link>
+       </section>
+@@ -89,7 +91,7 @@ export default function StampCompletePage() {
+           </p>
+         ) : ticket.used ? (
+           <div className="py-8">
+-            <p className="mb-2 text-5xl">✅</p>
++            <CheckCircleIcon className="mx-auto mb-2 h-16 w-16 text-success-800" />
+             <p className="font-heading text-lg font-black text-success-800">
+               使用済みです
+             </p>
+diff --git a/src/app/(visitor)/stamp/page.tsx b/src/app/(visitor)/stamp/page.tsx
+index 10de0f1..8eb0222 100644
+--- a/src/app/(visitor)/stamp/page.tsx
++++ b/src/app/(visitor)/stamp/page.tsx
+@@ -5,6 +5,12 @@ import { useRouter } from "next/navigation";
+ import { useCallback, useEffect, useRef, useState } from "react";
+ import QrScanner from "@/components/QrScanner";
+ import StampGetEffect from "@/components/StampGetEffect";
++import {
++  CheckCircleIcon,
++  CheckIcon,
++  StampIcon,
++  TicketIcon,
++} from "@/components/Icon";
+ import {
+   addCollectedId,
+   extractCode,
+@@ -154,11 +160,28 @@ export default function StampPage() {
+           {complete && (
+             <Link
+               href="/stamp/complete"
+-              className="pressable animate-fade-in-up mb-6 block rounded-2xl border-2 border-warn-800 bg-warn-50 p-3 text-center font-heading text-sm font-black text-warn-800 shadow-[0_4px_0_var(--color-warn-800)]"
++              className="pressable animate-fade-in-up mb-6 flex items-center gap-3 rounded-3xl border-2 border-accent-700 bg-accent-400 p-5 text-left shadow-[0_6px_0_var(--color-accent-700)]"
+             >
+-              {ticket?.used
+-                ? "✅ 特別企画に参加しました"
+-                : "🎉 コンプリート！特別企画の挑戦券を見る"}
++              {ticket?.used ? (
++                <CheckCircleIcon className="h-11 w-11 shrink-0 text-white" />
++              ) : (
++                <TicketIcon className="h-11 w-11 shrink-0 text-white" />
++              )}
++              <span className="min-w-0 flex-1">
++                <span className="block font-heading text-xl font-black leading-tight text-white">
++                  {ticket?.used
++                    ? "特別企画に参加しました"
++                    : "特別企画に挑戦できます"}
++                </span>
++                <span className="mt-0.5 block text-sm font-bold text-white/90">
++                  {ticket?.used
++                    ? "挑戦券は使用済みです"
++                    : "タップして挑戦券を表示"}
++                </span>
++              </span>
++              <span className="shrink-0 font-heading text-2xl font-black text-white">
++                ›
++              </span>
+             </Link>
+           )}
+ 
+@@ -177,7 +200,12 @@ export default function StampPage() {
+                         : "scale-90 border-dashed border-kosei-300 bg-kosei-50 opacity-70"
+                     }`}
+                   >
+-                    {isCollected ? (ticket?.used ? "✅" : "🎫") : ""}
++                    {isCollected &&
++                      (ticket?.used ? (
++                        <CheckIcon className="h-5 w-5 text-white" />
++                      ) : (
++                        <StampIcon className="h-5 w-5 text-white" />
++                      ))}
+                   </div>
+                   <span className="text-center text-[9px] font-bold leading-tight text-kosei-500">
+                     {isCollected ? spot.name : spot.hint}
+diff --git a/src/app/manage/[token]/page.tsx b/src/app/manage/[token]/page.tsx
+index 4da41ae..b0f77d3 100644
+--- a/src/app/manage/[token]/page.tsx
++++ b/src/app/manage/[token]/page.tsx
+@@ -3,6 +3,7 @@
+ import { useEffect, useRef, useState } from "react";
+ import { useParams } from "next/navigation";
+ import StaffAlertOverlay from "@/components/StaffAlertOverlay";
++import { PinIcon } from "@/components/Icon";
+ import {
+   Announcement,
+   Booth,
+@@ -66,7 +67,7 @@ function AnnouncementBoard({
+         <ul className="mb-2 space-y-1">
+           {pinned.map((a) => (
+             <li key={a.id} className="flex items-center gap-1 text-sm">
+-              <span className="shrink-0 text-amber-400">📌</span>
++              <PinIcon className="h-4 w-4 shrink-0 text-amber-400" />
+               <span className="truncate">{a.title}</span>
+             </li>
+           ))}
+@@ -603,7 +604,7 @@ export default function BoothManagePage() {
+                 >
+                   <p className="flex items-start gap-1 text-sm font-medium">
+                     {a.pinned && (
+-                      <span className="shrink-0 text-amber-400">📌</span>
++                      <PinIcon className="h-4 w-4 shrink-0 text-amber-400" />
+                     )}
+                     <span>{a.title}</span>
+                   </p>
+diff --git a/src/app/reward/page.tsx b/src/app/reward/page.tsx
+index 51d5f57..40cd93d 100644
+--- a/src/app/reward/page.tsx
++++ b/src/app/reward/page.tsx
+@@ -2,6 +2,11 @@
+ 
+ import { useCallback, useEffect, useRef, useState } from "react";
+ import QrScanner from "@/components/QrScanner";
++import {
++  AlertIcon,
++  CheckCircleIcon,
++  QuestionIcon,
++} from "@/components/Icon";
+ import { extractTicketCode, redeemRewardTicket } from "@/lib/stamp";
+ 
+ // 特別企画のスタッフが使うページ。QRコードを読み取るだけの画面。
+@@ -96,7 +101,7 @@ export default function RewardScanPage() {
+             <p className="py-10 text-base font-bold text-kosei-600">確認中...</p>
+           ) : result?.kind === "ok" ? (
+             <div className="py-6">
+-              <p className="mb-3 text-6xl">✅</p>
++              <CheckCircleIcon className="mx-auto mb-3 h-20 w-20 text-success-800" />
+               <p className="font-heading text-2xl font-black text-success-800">
+                 読み込み完了
+               </p>
+@@ -106,7 +111,7 @@ export default function RewardScanPage() {
+             </div>
+           ) : result?.kind === "already" ? (
+             <div className="py-6">
+-              <p className="mb-3 text-6xl">⚠️</p>
++              <AlertIcon className="mx-auto mb-3 h-20 w-20 text-danger-800" />
+               <p className="font-heading text-2xl font-black text-danger-800">
+                 スキャン済みです
+               </p>
+@@ -121,7 +126,7 @@ export default function RewardScanPage() {
+             </div>
+           ) : result?.kind === "notfound" ? (
+             <div className="py-6">
+-              <p className="mb-3 text-6xl">❓</p>
++              <QuestionIcon className="mx-auto mb-3 h-20 w-20 text-danger-800" />
+               <p className="font-heading text-xl font-black text-danger-800">
+                 この券は見つかりません
+               </p>
+@@ -131,7 +136,7 @@ export default function RewardScanPage() {
+             </div>
+           ) : (
+             <div className="py-6">
+-              <p className="mb-3 text-6xl">❓</p>
++              <QuestionIcon className="mx-auto mb-3 h-20 w-20 text-danger-800" />
+               <p className="font-heading text-xl font-black text-danger-800">
+                 読み取れませんでした
+               </p>
+diff --git a/src/components/AnnouncementTicker.tsx b/src/components/AnnouncementTicker.tsx
+index 5f09cac..764510c 100644
+--- a/src/components/AnnouncementTicker.tsx
++++ b/src/components/AnnouncementTicker.tsx
+@@ -3,6 +3,7 @@
+ import Link from "next/link";
+ import { useEffect, useState } from "react";
+ import { Announcement, subscribeVisitorAnnouncements } from "@/lib/booth";
++import { PinIcon } from "./Icon";
+ 
+ // ホームに出すお知らせのバナー。
+ // ・出すのは最新3件まで（全部は出さない。全部見たい人は一覧ページへ）
+@@ -49,7 +50,9 @@ export default function AnnouncementTicker() {
+               transform: `translateY(${(i - (index % items.length)) * 100}%)`,
+             }}
+           >
+-            {a.pinned && <span className="mr-1 shrink-0">📌</span>}
++            {a.pinned && (
++              <PinIcon className="mr-1 h-3.5 w-3.5 shrink-0 text-accent-700" />
++            )}
+             <span className="truncate text-sm font-bold text-accent-700">{a.title}</span>
+           </span>
+         ))}
+diff --git a/src/components/Icon.tsx b/src/components/Icon.tsx
+new file mode 100644
+index 0000000..cab7f6e
+--- /dev/null
++++ b/src/components/Icon.tsx
+@@ -0,0 +1,120 @@
++// アプリ全体で使うアイコン。絵文字は端末ごとに見た目が変わるので、
++// 線画（SVG）で統一している。色は文字色をそのまま引き継ぐ（currentColor）。
++//
++// 使い方: <PinIcon className="h-4 w-4 text-accent-700" />
++
++type Props = { className?: string };
++
++function Svg({
++  className = "h-5 w-5",
++  children,
++  filled = false,
++}: Props & { children: React.ReactNode; filled?: boolean }) {
++  return (
++    <svg
++      viewBox="0 0 24 24"
++      className={className}
++      fill={filled ? "currentColor" : "none"}
++      stroke="currentColor"
++      strokeWidth={1.8}
++      strokeLinecap="round"
++      strokeLinejoin="round"
++      aria-hidden
++    >
++      {children}
++    </svg>
++  );
++}
++
++// ピン留め
++export function PinIcon({ className }: Props) {
++  return (
++    <Svg className={className}>
++      <path d="M9 3h6l-1 5 3.5 3.5H6.5L10 8z" />
++      <line x1="12" y1="11.5" x2="12" y2="21" />
++    </Svg>
++  );
++}
++
++// スタンプ（獲得済みのしるし）
++export function StampIcon({ className }: Props) {
++  return (
++    <Svg className={className}>
++      <path d="M9 3.8a3 3 0 0 1 6 0c0 1.6-1.3 2.6-1.3 4.2h-3.4C10.3 6.4 9 5.4 9 3.8z" />
++      <rect x="5.5" y="12" width="13" height="3.4" rx="1.2" />
++      <path d="M4.5 18.2h15" />
++      <path d="M10.3 8h3.4l.8 4h-5z" />
++    </Svg>
++  );
++}
++
++// チェック
++export function CheckIcon({ className }: Props) {
++  return (
++    <Svg className={className}>
++      <path d="M4.5 12.5l5 5 10-11" strokeWidth={2.4} />
++    </Svg>
++  );
++}
++
++// 丸の中のチェック（完了・使用済み）
++export function CheckCircleIcon({ className }: Props) {
++  return (
++    <Svg className={className}>
++      <circle cx="12" cy="12" r="9" />
++      <path d="M7.8 12.3l2.9 2.9 5.6-6.1" />
++    </Svg>
++  );
++}
++
++// 注意・警告
++export function AlertIcon({ className }: Props) {
++  return (
++    <Svg className={className}>
++      <path d="M12 3.8L21 19.5H3z" />
++      <line x1="12" y1="9.5" x2="12" y2="14" />
++      <circle cx="12" cy="16.6" r="0.9" fill="currentColor" stroke="none" />
++    </Svg>
++  );
++}
++
++// 不明・見つからない
++export function QuestionIcon({ className }: Props) {
++  return (
++    <Svg className={className}>
++      <circle cx="12" cy="12" r="9" />
++      <path d="M9.6 9.4a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.8-.9 1.4v.5" />
++      <circle cx="12" cy="16.8" r="0.9" fill="currentColor" stroke="none" />
++    </Svg>
++  );
++}
++
++// コンプリート（王冠）
++export function CrownIcon({ className }: Props) {
++  return (
++    <Svg className={className}>
++      <path d="M3.5 7.5l3.8 3 4.7-6 4.7 6 3.8-3-1.8 10.2H5.3z" />
++      <line x1="5.3" y1="20.2" x2="18.7" y2="20.2" />
++    </Svg>
++  );
++}
++
++// 地図上の場所
++export function MapPinIcon({ className }: Props) {
++  return (
++    <Svg className={className}>
++      <path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11z" />
++      <circle cx="12" cy="10" r="2.6" />
++    </Svg>
++  );
++}
++
++// 挑戦券（チケット）
++export function TicketIcon({ className }: Props) {
++  return (
++    <Svg className={className}>
++      <path d="M3.5 8.5V6.8c0-.7.6-1.3 1.3-1.3h14.4c.7 0 1.3.6 1.3 1.3v1.7a2.8 2.8 0 0 0 0 7v1.7c0 .7-.6 1.3-1.3 1.3H4.8c-.7 0-1.3-.6-1.3-1.3v-1.7a2.8 2.8 0 0 0 0-7z" />
++      <line x1="14" y1="7.5" x2="14" y2="16.5" strokeDasharray="2 2.4" />
++    </Svg>
++  );
++}
+diff --git a/src/components/StaffAlertOverlay.tsx b/src/components/StaffAlertOverlay.tsx
+index 7a87f9d..e3896a5 100644
+--- a/src/components/StaffAlertOverlay.tsx
++++ b/src/components/StaffAlertOverlay.tsx
+@@ -6,6 +6,7 @@ import {
+   subscribeStaffAlertsForBooth,
+   type StaffAlertRecord,
+ } from "@/lib/booth";
++import { AlertIcon } from "./Icon";
+ 
+ // 運営から届いた緊急一斉連絡を、企画担当者の画面に割り込みで出す。
+ // ・赤い全画面表示 ＋ 音 ＋ バイブ（対応端末のみ）
+@@ -76,7 +77,7 @@ export default function StaffAlertOverlay({ boothId }: { boothId: string }) {
+     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-red-950/95 p-4">
+       <div className="w-full max-w-lg rounded-2xl border-2 border-red-400 bg-red-600 p-6 text-white shadow-2xl">
+         <p className="mb-2 flex items-center gap-2 text-sm font-bold tracking-widest">
+-          <span className="animate-pulse text-2xl">⚠</span>
++          <AlertIcon className="h-6 w-6 animate-pulse" />
+           運営からの緊急連絡
+         </p>
+         <p className="mb-6 whitespace-pre-wrap text-2xl font-bold leading-snug sm:text-3xl">
+diff --git a/src/components/StampSummary.tsx b/src/components/StampSummary.tsx
+index fd4c381..b95c3e7 100644
+--- a/src/components/StampSummary.tsx
++++ b/src/components/StampSummary.tsx
+@@ -7,6 +7,7 @@ import {
+   subscribeStampSpots,
+   type StampSpot,
+ } from "@/lib/stamp";
++import { StampIcon } from "./Icon";
+ 
+ // ホームに出すスタンプラリーの進み具合。
+ // 獲得状況はこの端末のブラウザに保存してあるものを読む。
+@@ -64,7 +65,9 @@ export default function StampSummary() {
+                 : "rounded-full border-2 border-dashed border-kosei-300 bg-kosei-50 opacity-70"
+             }`}
+           >
+-            {collected.includes(spot.id) ? "🎫" : ""}
++            {collected.includes(spot.id) && (
++              <StampIcon className="h-5 w-5 text-white" />
++            )}
+           </div>
+         ))}
+       </div>
+diff --git a/src/components/organizer/AnnouncementFloat.tsx b/src/components/organizer/AnnouncementFloat.tsx
+index d8bb380..83a0135 100644
+--- a/src/components/organizer/AnnouncementFloat.tsx
++++ b/src/components/organizer/AnnouncementFloat.tsx
+@@ -2,6 +2,7 @@
+ 
+ import { useEffect, useMemo, useState } from "react";
+ import FloatPanel from "./FloatPanel";
++import { PinIcon } from "../Icon";
+ import {
+   type Announcement,
+   type Booth,
+@@ -576,7 +577,9 @@ export default function AnnouncementFloat({
+                     <div className="flex items-start gap-2">
+                       <div className="min-w-0 flex-1">
+                         <p className="font-medium">
+-                          {a.pinned && <span className="mr-1">📌</span>}
++                          {a.pinned && (
++                            <PinIcon className="mr-1 inline h-4 w-4 text-amber-400" />
++                          )}
+                           {a.title}
+                         </p>
+                         {a.body && (
+diff --git a/src/components/organizer/OverallTab.tsx b/src/components/organizer/OverallTab.tsx
+index 144ee02..20dae2f 100644
+--- a/src/components/organizer/OverallTab.tsx
++++ b/src/components/organizer/OverallTab.tsx
+@@ -2,6 +2,7 @@
+ 
+ import { useEffect, useState } from "react";
+ import FloatPanel from "./FloatPanel";
++import { PinIcon } from "../Icon";
+ import AnnouncementFloat from "./AnnouncementFloat";
+ import EmergencyFloat from "./EmergencyFloat";
+ import StaffAlertFloat from "./StaffAlertFloat";
+@@ -293,7 +294,9 @@ export default function OverallTab({
+                       className="rounded-lg bg-white/5 px-3 py-2 text-sm"
+                     >
+                       <p className="truncate font-medium">
+-                        {a.pinned && <span className="mr-1">📌</span>}
++                        {a.pinned && (
++                          <PinIcon className="mr-1 inline h-4 w-4 text-amber-400" />
++                        )}
+                         {a.title}
+                       </p>
+                       <p className="text-[12px] text-slate-400">
+-- 
+2.43.0
+

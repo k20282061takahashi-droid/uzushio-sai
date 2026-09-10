@@ -1,0 +1,1279 @@
+From b985fd9f1e7bf0cb22618c050cd9cd670a52a536 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Tue, 25 Aug 2026 18:24:29 +0000
+Subject: [PATCH] =?UTF-8?q?=E5=9C=B0=E5=9B=B3=E3=81=A8=E3=82=BF=E3=82=A4?=
+ =?UTF-8?q?=E3=83=A0=E3=83=86=E3=83=BC=E3=83=96=E3=83=AB=E3=82=92=E5=AE=9F?=
+ =?UTF-8?q?=E3=83=87=E3=83=BC=E3=82=BF=E3=81=AB=E3=81=A4=E3=81=AA=E3=81=8E?=
+ =?UTF-8?q?=E3=80=81=E8=A9=B3=E7=B4=B0=E3=82=AB=E3=83=BC=E3=83=89=E3=81=AE?=
+ =?UTF-8?q?=E8=A6=8B=E5=88=87=E3=82=8C=E3=82=92=E4=BF=AE=E6=AD=A3=E3=80=82?=
+ =?UTF-8?q?=E9=81=8B=E5=96=B6=E3=81=AE=E5=9C=B0=E5=9B=B3=E3=81=A7=E3=83=94?=
+ =?UTF-8?q?=E3=83=B3=E3=82=92=E3=83=89=E3=83=A9=E3=83=83=E3=82=B0=E7=A7=BB?=
+ =?UTF-8?q?=E5=8B=95=E3=81=A7=E3=81=8D=E3=82=8B=E3=82=88=E3=81=86=E3=81=AB?=
+ =?UTF-8?q?=E3=81=97=E3=80=81=E4=BC=81=E7=94=BB=E6=8B=85=E5=BD=93=E8=80=85?=
+ =?UTF-8?q?=E3=81=AE=E9=80=A3=E7=B5=A1=E3=82=92=E5=BA=83=E3=81=84=E7=94=BB?=
+ =?UTF-8?q?=E9=9D=A2=E3=81=A7=E4=B8=80=E8=A6=A7=E8=A1=A8=E7=A4=BA=E3=81=99?=
+ =?UTF-8?q?=E3=82=8B?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ src/app/(visitor)/map/page.tsx              |  97 ++---
+ src/app/(visitor)/stamp/page.tsx            |  17 +-
+ src/app/(visitor)/timeline/page.tsx         | 379 ++++++++++++--------
+ src/app/manage/[token]/page.tsx             |  81 +++--
+ src/components/BoothDetail.tsx              |  84 +++++
+ src/components/DetailSheet.tsx              |  18 +-
+ src/components/organizer/BoothMapPicker.tsx | 123 ++++++-
+ src/lib/booth.ts                            |  20 ++
+ src/lib/boothPlacement.ts                   |  53 +++
+ src/lib/mockBooths.ts                       |  82 -----
+ 10 files changed, 646 insertions(+), 308 deletions(-)
+ create mode 100644 src/components/BoothDetail.tsx
+ create mode 100644 src/lib/boothPlacement.ts
+ delete mode 100644 src/lib/mockBooths.ts
+
+diff --git a/src/app/(visitor)/map/page.tsx b/src/app/(visitor)/map/page.tsx
+index 1f42825..a20970e 100644
+--- a/src/app/(visitor)/map/page.tsx
++++ b/src/app/(visitor)/map/page.tsx
+@@ -1,11 +1,17 @@
+ "use client";
+ 
+ import { useSearchParams } from "next/navigation";
+-import { useRef, useState, Suspense } from "react";
++import { useEffect, useMemo, useRef, useState, Suspense } from "react";
+ import PannableZoom from "@/components/PannableZoom";
+ import FloorSlider from "@/components/FloorSlider";
+ import DetailSheet from "@/components/DetailSheet";
+-import { boothsFor, type PlacedBooth } from "@/lib/mockBooths";
++import BoothDetail from "@/components/BoothDetail";
++import { subscribeVisitorBooths, type Booth } from "@/lib/booth";
++import {
++  placeBooths,
++  waitMinutesOfBooth,
++  type PlacedBooth,
++} from "@/lib/boothPlacement";
+ import { floorplanSrc, hasFloors, type AreaId } from "@/lib/floorplan";
+ import { waitColor } from "@/lib/waitColor";
+ 
+@@ -27,7 +33,11 @@ function MapContent() {
+ 
+   const [activeArea, setActiveArea] = useState<AreaId>(initialArea);
+   const [activeFloor, setActiveFloor] = useState(4);
+-  const [selected, setSelected] = useState<PlacedBooth | null>(null);
++  const [selectedId, setSelectedId] = useState<string | null>(null);
++  const [booths, setBooths] = useState<Booth[]>([]);
++
++  // 企画の情報をリアルタイムで受け取る（待ち時間もその場で変わる）
++  useEffect(() => subscribeVisitorBooths(setBooths), []);
+ 
+   // 地図をドラッグして動かしたときに、指を置いた場所のピンが
+   // 誤ってタップ扱いになるのを防ぐ。押した位置から一定以上動いていたら
+@@ -46,14 +56,19 @@ function MapContent() {
+       const moved = Math.hypot(e.clientX - start.x, e.clientY - start.y);
+       if (moved > DRAG_THRESHOLD_PX) return;
+     }
+-    setSelected(booth);
++    setSelectedId(booth.id);
+   }
+ 
+   const showFloors = hasFloors(activeArea);
+   const floor = showFloors ? activeFloor : undefined;
+ 
+-  const rooms = boothsFor(activeArea, floor);
++  const rooms = useMemo(
++    () => placeBooths(booths, activeArea, floor),
++    [booths, activeArea, floor],
++  );
+   const planSrc = floorplanSrc(activeArea, floor);
++  // 選んでいる企画。一覧が更新されても最新の内容が出るようIDで引く
++  const selected = booths.find((b) => b.id === selectedId) ?? null;
+ 
+   return (
+     <>
+@@ -84,25 +99,39 @@ function MapContent() {
+                 </p>
+               )}
+ 
+-              {rooms.map((room) => (
+-                <button
+-                  key={room.id}
+-                  onPointerDown={handlePinPress}
+-                  onClick={(e) => handlePinClick(e, room)}
+-                  className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
+-                  style={{ left: `${room.x}%`, top: `${room.y}%` }}
+-                >
+-                  <span
+-                    className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-white text-xs font-bold text-white shadow-[0_3px_0_rgba(18,73,90,0.55)]"
+-                    style={{ backgroundColor: waitColor(room.waitMinutes) }}
++              {rooms.map((room) => {
++                const minutes = waitMinutesOfBooth(room);
++                const closed = room.status === "closed";
++                return (
++                  <button
++                    key={room.id}
++                    onPointerDown={handlePinPress}
++                    onClick={(e) => handlePinClick(e, room)}
++                    className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
++                    style={{ left: `${room.x}%`, top: `${room.y}%` }}
+                   >
+-                    {room.waitMinutes}分
+-                  </span>
+-                  <span className="mt-1 max-w-[84px] truncate rounded-full bg-kosei-800/85 px-2 py-0.5 text-[9px] font-bold text-white">
+-                    {room.name}
+-                  </span>
+-                </button>
+-              ))}
++                    <span
++                      className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-white text-[11px] font-bold text-white shadow-[0_3px_0_rgba(18,73,90,0.55)]"
++                      style={{
++                        backgroundColor: closed
++                          ? "#9C9C97"
++                          : minutes !== null
++                            ? waitColor(minutes)
++                            : "var(--color-kosei-500)",
++                      }}
++                    >
++                      {closed
++                        ? "終了"
++                        : minutes !== null
++                          ? `${minutes}分`
++                          : "開催"}
++                    </span>
++                    <span className="mt-1 max-w-[84px] truncate rounded-full bg-kosei-800/85 px-2 py-0.5 text-[9px] font-bold text-white">
++                      {room.projectName || room.name}
++                    </span>
++                  </button>
++                );
++              })}
+             </div>
+           </div>
+         </PannableZoom>
+@@ -139,26 +168,8 @@ function MapContent() {
+         )}
+       </div>
+ 
+-      <DetailSheet open={selected != null} onClose={() => setSelected(null)}>
+-        {selected && (
+-          <div>
+-            <p className="mb-1 text-xs text-kosei-600">
+-              {selected.category} ・ {selected.room}
+-            </p>
+-            <h2 className="mb-2 font-heading text-xl font-black text-kosei-800">
+-              {selected.name}
+-            </h2>
+-            <p className="mb-4 text-sm text-kosei-700">{selected.description}</p>
+-            <div className="flex items-center gap-2">
+-              <span
+-                className="rounded-full px-3 py-1 text-sm font-bold text-white"
+-                style={{ backgroundColor: waitColor(selected.waitMinutes) }}
+-              >
+-                待ち時間 約{selected.waitMinutes}分
+-              </span>
+-            </div>
+-          </div>
+-        )}
++      <DetailSheet open={selected != null} onClose={() => setSelectedId(null)}>
++        {selected && <BoothDetail booth={selected} />}
+       </DetailSheet>
+     </>
+   );
+diff --git a/src/app/(visitor)/stamp/page.tsx b/src/app/(visitor)/stamp/page.tsx
+index 47c7671..ca8a509 100644
+--- a/src/app/(visitor)/stamp/page.tsx
++++ b/src/app/(visitor)/stamp/page.tsx
+@@ -22,6 +22,17 @@ import {
+   type StampSpot,
+ } from "@/lib/stamp";
+ 
++// ヒントの文字数に合わせて大きさを変える。
++// 短ければ大きく、長ければ小さくして、丸の中に収まるようにする。
++function hintSizeClass(hint: string): string {
++  const length = hint.length;
++  if (length <= 4) return "text-lg";
++  if (length <= 7) return "text-base";
++  if (length <= 11) return "text-sm";
++  if (length <= 16) return "text-[13px]";
++  return "text-[11px]";
++}
++
+ export default function StampPage() {
+   const [spots, setSpots] = useState<StampSpot[]>([]);
+   const [collected, setCollected] = useState<string[]>([]);
+@@ -211,7 +222,11 @@ export default function StampPage() {
+                         <StampIcon className="h-12 w-12 text-white" />
+                       )
+                     ) : (
+-                      <span className="px-1 text-center text-[11px] font-bold leading-tight text-kosei-400">
++                      <span
++                        className={`px-1 text-center font-bold leading-tight text-kosei-400 ${hintSizeClass(
++                          spot.hint,
++                        )}`}
++                      >
+                         {spot.hint}
+                       </span>
+                     )}
+diff --git a/src/app/(visitor)/timeline/page.tsx b/src/app/(visitor)/timeline/page.tsx
+index 18d99fd..64cbbfb 100644
+--- a/src/app/(visitor)/timeline/page.tsx
++++ b/src/app/(visitor)/timeline/page.tsx
+@@ -2,39 +2,17 @@
+ 
+ import { useEffect, useMemo, useRef, useState } from "react";
+ import DetailSheet from "@/components/DetailSheet";
++import {
++  subscribeEvents,
++  subscribeFestivalDays,
++  type FestivalEvent,
++} from "@/lib/booth";
+ import { useNowMinutes } from "@/lib/nowLine";
+ import { todayInJapan } from "@/lib/visits";
+ 
+-// 開催日。fullDate は「今日かどうか」を判定するために使う。
+-const days = [
+-  { fullDate: "2026-09-19", date: "9/19", label: "1日目" },
+-  { fullDate: "2026-09-20", date: "9/20", label: "2日目" },
+-];
+-
+-type EventItem = {
+-  start: number; // 開始（分, 0:00からの分数）
+-  end: number; // 終了（分）
+-  title: string;
+-  venue: string;
+-  description: string;
+-};
+-
+-const eventsByDay: EventItem[][] = [
+-  [
+-    { start: 9 * 60, end: 9 * 60 + 50, title: "吹奏楽部 演奏会", venue: "体育館", description: "吹奏楽部による定期演奏会。人気曲メドレーを予定。" },
+-    { start: 10 * 60, end: 10 * 60 + 50, title: "有志ダンス", venue: "体育館", description: "有志生徒によるダンスステージ。3チームが出演。" },
+-    { start: 11 * 60, end: 11 * 60 + 50, title: "軽音楽部 ライブ", venue: "体育館", description: "軽音楽部の各バンドによるライブステージ。" },
+-  ],
+-  [
+-    { start: 9 * 60 + 30, end: 10 * 60 + 10, title: "合唱部 発表会", venue: "体育館", description: "合唱部による合唱発表。全校合唱コーナーもあります。" },
+-    { start: 10 * 60 + 30, end: 11 * 60 + 30, title: "ダンス部 発表会", venue: "体育館", description: "ダンス部による最終日ステージ発表。" },
+-    { start: 13 * 60, end: 14 * 60, title: "有志コンテスト最終発表", venue: "体育館", description: "有志企画コンテストの結果発表・表彰式。" },
+-  ],
+-];
+-
+ const PX_PER_MIN = 1.8;
+-const TIMELINE_START = 9 * 60; // 9:00
+-const TIMELINE_END = 16 * 60; // 16:00
++const DEFAULT_START = 9 * 60; // 9:00
++const DEFAULT_END = 16 * 60; // 16:00
+ 
+ function formatTime(min: number) {
+   const h = Math.floor(min / 60);
+@@ -42,41 +20,89 @@ function formatTime(min: number) {
+   return `${h}:${m.toString().padStart(2, "0")}`;
+ }
+ 
+-// 今日が開催日なら、その日を最初に開く
+-function initialDayIndex(): number {
+-  const today = todayInJapan();
+-  const index = days.findIndex((d) => d.fullDate === today);
+-  return index >= 0 ? index : 0;
++// "10:30" のような文字列を、0:00からの分数に直す
++function toMinutes(text: string | null): number | null {
++  if (!text) return null;
++  const [h, m] = text.split(/[:：]/).map(Number);
++  if (Number.isNaN(h)) return null;
++  return h * 60 + (Number.isNaN(m) ? 0 : m);
++}
++
++// 日付を「9/19」の形にする
++function dayLabel(date: string): string {
++  const [, month, day] = date.split("-");
++  return month && day ? `${Number(month)}/${Number(day)}` : date;
+ }
+ 
+ export default function TimelinePage() {
+-  const [dayIndex, setDayIndex] = useState(initialDayIndex);
+-  const [selected, setSelected] = useState<EventItem | null>(null);
++  const [days, setDays] = useState<string[]>([]);
++  const [allEvents, setAllEvents] = useState<FestivalEvent[]>([]);
++  const [dayIndex, setDayIndex] = useState(0);
++  const [selectedId, setSelectedId] = useState<string | null>(null);
+   const gridRef = useRef<HTMLDivElement>(null);
+   const scrolled = useRef(false);
++  const pickedInitialDay = useRef(false);
+ 
+-  const events = eventsByDay[dayIndex];
++  useEffect(() => subscribeFestivalDays(setDays), []);
++  useEffect(() => subscribeEvents(setAllEvents), []);
+ 
+-  // 表示している日が今日のときだけ、現在時刻の赤い線を出す
+-  const isToday = days[dayIndex]?.fullDate === todayInJapan();
+-  const nowMin = useNowMinutes(isToday);
++  // 今日が開催日なら、その日を最初に開く
++  useEffect(() => {
++    if (pickedInitialDay.current || days.length === 0) return;
++    pickedInitialDay.current = true;
++    const index = days.indexOf(todayInJapan());
++    if (index > 0) {
++      const timer = setTimeout(() => setDayIndex(index), 0);
++      return () => clearTimeout(timer);
++    }
++  }, [days]);
++
++  const currentDay = days[dayIndex] ?? "";
++
++  // その日のイベントを開始時刻の順に並べる
++  const events = useMemo(
++    () =>
++      allEvents
++        .filter((e) => e.day === currentDay && toMinutes(e.startAt) !== null)
++        .sort(
++          (a, b) => (toMinutes(a.startAt) ?? 0) - (toMinutes(b.startAt) ?? 0),
++        ),
++    [allEvents, currentDay],
++  );
+ 
+-  const { hourMarks, axisStart, totalHeight, venues } = useMemo(() => {
++  // 表示する時間の幅は、その日のイベントに合わせて自動で決める
++  const { axisStart, axisEnd, hourMarks, venues } = useMemo(() => {
++    let min = DEFAULT_START;
++    let max = DEFAULT_END;
++    for (const e of events) {
++      const s = toMinutes(e.startAt);
++      const en = toMinutes(e.endAt) ?? (s !== null ? s + 60 : null);
++      if (s !== null) min = Math.min(min, Math.floor(s / 60) * 60);
++      if (en !== null) max = Math.max(max, Math.ceil(en / 60) * 60);
++    }
+     const marks: number[] = [];
+-    for (let h = TIMELINE_START; h <= TIMELINE_END; h += 60) marks.push(h);
+-    const uniqueVenues = Array.from(new Set(events.map((e) => e.venue)));
++    for (let h = min; h <= max; h += 60) marks.push(h);
++    const uniqueVenues = Array.from(
++      new Set(events.map((e) => e.venue || "会場未定")),
++    );
+     return {
++      axisStart: min,
++      axisEnd: max,
+       hourMarks: marks,
+-      axisStart: TIMELINE_START,
+-      totalHeight: (TIMELINE_END - TIMELINE_START) * PX_PER_MIN,
+-      venues: uniqueVenues,
++      venues: uniqueVenues.length > 0 ? uniqueVenues : ["会場未定"],
+     };
+   }, [events]);
+ 
++  const totalHeight = (axisEnd - axisStart) * PX_PER_MIN;
++
++  // 表示している日が今日のときだけ、現在時刻の赤い線を出す
++  const isToday = currentDay === todayInJapan();
++  const nowMin = useNowMinutes(isToday);
++
+   // 開いたとき、現在時刻の線が画面の中央あたりに来るようにスクロールする
+   useEffect(() => {
+     if (scrolled.current || nowMin === null) return;
+-    if (nowMin < axisStart || nowMin > TIMELINE_END) return;
++    if (nowMin < axisStart || nowMin > axisEnd) return;
+     const el = gridRef.current;
+     if (!el) return;
+ 
+@@ -90,11 +116,12 @@ export default function TimelinePage() {
+       scrolled.current = true;
+     }, 120);
+     return () => clearTimeout(timer);
+-  }, [nowMin, axisStart]);
++  }, [nowMin, axisStart, axisEnd]);
+ 
+-  // 赤い線を出す位置（時間の範囲の外なら出さない）
+   const showNowLine =
+-    nowMin !== null && nowMin >= axisStart && nowMin <= TIMELINE_END;
++    nowMin !== null && nowMin >= axisStart && nowMin <= axisEnd;
++
++  const selected = events.find((e) => e.id === selectedId) ?? null;
+ 
+   return (
+     <div className="mx-auto max-w-md px-4 pb-8 pt-8">
+@@ -102,117 +129,175 @@ export default function TimelinePage() {
+         タイムテーブル
+       </h1>
+ 
+-      <div className="animate-fade-in-up mb-4 flex gap-2" style={{ animationDelay: "40ms" }}>
+-        {days.map((day, i) => (
+-          <button
+-            key={day.date}
+-            onClick={() => setDayIndex(i)}
+-            className={`pressable flex-1 rounded-full border-2 py-2 text-sm font-bold ${
+-              i === dayIndex
+-                ? "border-kosei-800 bg-kosei-600 text-white shadow-[0_3px_0_var(--color-kosei-800)]"
+-                : "border-kosei-200 bg-white text-kosei-500"
+-            }`}
+-          >
+-            {day.label} {day.date}
+-          </button>
+-        ))}
+-      </div>
+-
+-      {venues.length > 1 && (
+-        <div className="mb-2 flex text-center text-[11px] font-bold text-kosei-600">
+-          <div style={{ width: 40 }} />
+-          {venues.map((v) => (
+-            <div key={v} className="flex-1">
+-              {v}
+-            </div>
++      {days.length > 1 && (
++        <div
++          className="animate-fade-in-up mb-4 flex gap-2"
++          style={{ animationDelay: "40ms" }}
++        >
++          {days.map((day, i) => (
++            <button
++              key={day}
++              onClick={() => setDayIndex(i)}
++              className={`pressable flex-1 rounded-full border-2 py-2 font-heading text-sm font-black ${
++                i === dayIndex
++                  ? "border-kosei-800 bg-kosei-600 text-white shadow-[0_3px_0_var(--color-kosei-800)]"
++                  : "border-kosei-700 bg-white text-kosei-700 shadow-[0_3px_0_var(--color-kosei-700)]"
++              }`}
++            >
++              {i + 1}日目 {dayLabel(day)}
++            </button>
+           ))}
+         </div>
+       )}
+ 
+-      <div
+-        className="animate-fade-in-up rounded-3xl border-2 border-kosei-700 bg-white p-3 shadow-[0_5px_0_var(--color-kosei-700)]"
+-        style={{ animationDelay: "80ms" }}
+-      >
+-        <div className="flex">
+-          {/* 時間軸 */}
+-          <div className="shrink-0" style={{ width: 40 }}>
+-            {hourMarks.map((h) => (
+-              <div key={h} style={{ height: 60 * PX_PER_MIN }} className="relative">
+-                <span className="absolute -top-2 right-1 text-[11px] text-kosei-500">
+-                  {formatTime(h)}
+-                </span>
+-              </div>
+-            ))}
+-          </div>
++      {events.length === 0 ? (
++        <p className="text-sm text-kosei-600">
++          この日のイベントはまだ登録されていません
++        </p>
++      ) : (
++        <>
++          {venues.length > 1 && (
++            <div className="mb-2 flex text-center text-[11px] font-bold text-kosei-600">
++              <div style={{ width: 40 }} />
++              {venues.map((v) => (
++                <div key={v} className="flex-1">
++                  {v}
++                </div>
++              ))}
++            </div>
++          )}
+ 
+-          {/* イベントグリッド */}
+           <div
+-            ref={gridRef}
+-            className="relative flex-1 rounded-lg border-l-2 border-kosei-100"
+-            style={{ height: totalHeight }}
++            className="animate-fade-in-up flex"
++            style={{ animationDelay: "80ms" }}
+           >
+-            {hourMarks.map((h) => (
+-              <div
+-                key={h}
+-                className="absolute inset-x-0 border-t border-kosei-100"
+-                style={{ top: (h - axisStart) * PX_PER_MIN }}
+-              />
+-            ))}
+-
+-            {events.map((ev, i) => {
+-              const colIndex = venues.indexOf(ev.venue);
+-              const colWidth = 100 / venues.length;
+-              return (
+-                <button
+-                  key={ev.title}
+-                  onClick={() => setSelected(ev)}
+-                  className="pressable animate-fade-in-up absolute overflow-hidden rounded-xl border-2 border-kosei-700 bg-kosei-50 p-2 text-left shadow-[0_3px_0_var(--color-kosei-700)]"
+-                  style={{
+-                    top: (ev.start - axisStart) * PX_PER_MIN + 1,
+-                    height: (ev.end - ev.start) * PX_PER_MIN - 2,
+-                    left: `${colIndex * colWidth}%`,
+-                    width: `${colWidth}%`,
+-                    animationDelay: `${80 + i * 40}ms`,
+-                  }}
++            {/* 時間軸 */}
++            <div className="shrink-0" style={{ width: 40 }}>
++              {hourMarks.map((h) => (
++                <div
++                  key={h}
++                  style={{ height: 60 * PX_PER_MIN }}
++                  className="relative"
+                 >
+-                  <p className="text-[10px] text-kosei-600">
+-                    {formatTime(ev.start)}〜{formatTime(ev.end)}
+-                  </p>
+-                  <p className="truncate text-sm font-bold text-kosei-800">{ev.title}</p>
+-                  {venues.length === 1 && (
+-                    <p className="text-[10px] text-kosei-600">@{ev.venue}</p>
+-                  )}
+-                </button>
+-              );
+-            })}
+-
+-            {/* 現在時刻の線 */}
+-            {showNowLine && nowMin !== null && (
+-              <div
+-                className="pointer-events-none absolute inset-x-0 z-10 flex items-center"
+-                style={{ top: (nowMin - axisStart) * PX_PER_MIN }}
+-              >
+-                <span className="-ml-1.5 h-3 w-3 shrink-0 rounded-full bg-accent-700" />
+-                <span className="h-[2px] flex-1 bg-accent-700" />
+-                <span className="ml-1 shrink-0 rounded-full bg-accent-700 px-1.5 py-0.5 text-[10px] font-bold text-white">
+-                  {formatTime(nowMin)}
+-                </span>
+-              </div>
+-            )}
++                  <span className="absolute -top-2 right-1 text-[11px] font-bold text-kosei-500">
++                    {formatTime(h)}
++                  </span>
++                </div>
++              ))}
++            </div>
++
++            {/* イベントの枠 */}
++            <div
++              ref={gridRef}
++              className="relative flex-1 rounded-lg border-l-2 border-kosei-200"
++              style={{ height: totalHeight }}
++            >
++              {hourMarks.map((h) => (
++                <div
++                  key={h}
++                  className="absolute inset-x-0 border-t-2 border-kosei-100"
++                  style={{ top: (h - axisStart) * PX_PER_MIN }}
++                />
++              ))}
++
++              {events.map((ev, i) => {
++                const start = toMinutes(ev.startAt) ?? axisStart;
++                const end = toMinutes(ev.endAt) ?? start + 50;
++                const colIndex = venues.indexOf(ev.venue || "会場未定");
++                const colWidth = 100 / venues.length;
++                const cancelled = ev.status === "cancelled";
++                return (
++                  <button
++                    key={ev.id}
++                    onClick={() => setSelectedId(ev.id)}
++                    className={`animate-fade-in-up absolute overflow-hidden rounded-xl border-2 p-2 text-left transition-transform active:scale-[0.97] ${
++                      cancelled
++                        ? "border-inkgray-400 bg-inkgray-50"
++                        : ev.delayed
++                          ? "border-warn-800 bg-warn-50"
++                          : "border-kosei-700 bg-white"
++                    }`}
++                    style={{
++                      top: (start - axisStart) * PX_PER_MIN + 1,
++                      height: Math.max(28, (end - start) * PX_PER_MIN - 2),
++                      left: `${colIndex * colWidth}%`,
++                      width: `${colWidth}%`,
++                      animationDelay: `${80 + i * 40}ms`,
++                    }}
++                  >
++                    <p className="text-[10px] font-bold text-kosei-600">
++                      {formatTime(start)}〜{formatTime(end)}
++                    </p>
++                    <p className="truncate font-heading text-sm font-black text-kosei-800">
++                      {ev.name || "（名称未定）"}
++                    </p>
++                    {cancelled && (
++                      <p className="text-[10px] font-bold text-danger-800">
++                        中止
++                      </p>
++                    )}
++                    {!cancelled && ev.delayed && (
++                      <p className="text-[10px] font-bold text-warn-800">
++                        開始遅れ
++                      </p>
++                    )}
++                  </button>
++                );
++              })}
++
++              {/* 現在時刻の赤い線 */}
++              {showNowLine && nowMin !== null && (
++                <div
++                  className="pointer-events-none absolute inset-x-0 z-10 flex items-center"
++                  style={{ top: (nowMin - axisStart) * PX_PER_MIN }}
++                >
++                  <span className="-ml-1.5 h-3 w-3 shrink-0 rounded-full bg-red-500" />
++                  <span className="h-[2px] flex-1 bg-red-500" />
++                  <span className="ml-1 shrink-0 rounded bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
++                    {formatTime(nowMin)}
++                  </span>
++                </div>
++              )}
++            </div>
+           </div>
+-        </div>
+-      </div>
++        </>
++      )}
+ 
+-      <DetailSheet open={selected != null} onClose={() => setSelected(null)}>
++      <DetailSheet open={selected != null} onClose={() => setSelectedId(null)}>
+         {selected && (
+           <div>
+-            <p className="mb-1 text-xs text-kosei-600">
+-              {formatTime(selected.start)}〜{formatTime(selected.end)} ・ {selected.venue}
++            {/* 開始時間・終了時間 */}
++            <p className="mb-1 text-sm font-bold text-kosei-600">
++              {formatTime(toMinutes(selected.startAt) ?? 0)}
++              {selected.endAt && `〜${formatTime(toMinutes(selected.endAt)!)}`}
++              {selected.venue && ` ・ ${selected.venue}`}
+             </p>
+-            <h2 className="mb-2 font-heading text-xl font-black text-kosei-800">
+-              {selected.title}
++
++            {/* 名前 */}
++            <h2 className="font-heading text-2xl font-black leading-tight text-kosei-800">
++              {selected.name || "（名称未定）"}
+             </h2>
+-            <p className="text-sm text-kosei-700">{selected.description}</p>
++
++            {/* 連絡（中止・遅れ）。無いときは何も出さない */}
++            {selected.status === "cancelled" && (
++              <p className="mt-3 rounded-xl border-2 border-danger-800 bg-danger-50 p-3 text-sm font-bold text-danger-800">
++                このイベントは中止になりました
++              </p>
++            )}
++            {selected.status !== "cancelled" && selected.delayed && (
++              <p className="mt-3 rounded-xl border-2 border-warn-800 bg-warn-50 p-3 text-sm font-bold text-warn-800">
++                開始時間が遅れています
++                {selected.originalStartAt && (
++                  <>
++                    <br />
++                    <span className="font-normal">
++                      もとの予定 {selected.originalStartAt} →{" "}
++                      {selected.startAt} 開始
++                    </span>
++                  </>
++                )}
++              </p>
++            )}
+           </div>
+         )}
+       </DetailSheet>
+diff --git a/src/app/manage/[token]/page.tsx b/src/app/manage/[token]/page.tsx
+index b0f77d3..28c15e3 100644
+--- a/src/app/manage/[token]/page.tsx
++++ b/src/app/manage/[token]/page.tsx
+@@ -61,32 +61,63 @@ function AnnouncementBoard({
+     return <p className="text-xs text-slate-500">現在お知らせはありません</p>;
+   }
+ 
++  // 並べ替え：ピン留めを先に、そのあと新しい順
++  const ordered = [
++    ...announcements.filter((a) => a.pinned),
++    ...announcements.filter((a) => !a.pinned),
++  ];
++
+   return (
+-    <button onClick={onOpenList} className="w-full text-left">
+-      {pinned.length > 0 && (
+-        <ul className="mb-2 space-y-1">
+-          {pinned.map((a) => (
+-            <li key={a.id} className="flex items-center gap-1 text-sm">
+-              <PinIcon className="h-4 w-4 shrink-0 text-amber-400" />
+-              <span className="truncate">{a.title}</span>
+-            </li>
+-          ))}
+-        </ul>
+-      )}
+-      {latest.length > 0 && (
+-        <div className="relative h-6 overflow-hidden text-sm text-slate-300">
+-          {latest.map((a, i) => (
+-            <span
+-              key={a.id}
+-              className="absolute inset-0 flex items-center transition-transform duration-500 ease-in-out"
+-              style={{ transform: `translateY(${(i - tickerIndex) * 100}%)` }}
+-            >
+-              <span className="truncate">{a.title}</span>
+-            </span>
+-          ))}
+-        </div>
+-      )}
+-    </button>
++    <>
++      {/* スマホ・タブレット：場所が狭いので、順番に流して見せる */}
++      <button onClick={onOpenList} className="w-full text-left lg:hidden">
++        {pinned.length > 0 && (
++          <ul className="mb-2 space-y-1">
++            {pinned.map((a) => (
++              <li key={a.id} className="flex items-center gap-1 text-sm">
++                <PinIcon className="h-4 w-4 shrink-0 text-amber-400" />
++                <span className="truncate">{a.title}</span>
++              </li>
++            ))}
++          </ul>
++        )}
++        {latest.length > 0 && (
++          <div className="relative h-6 overflow-hidden text-sm text-slate-300">
++            {latest.map((a, i) => (
++              <span
++                key={a.id}
++                className="absolute inset-0 flex items-center transition-transform duration-500 ease-in-out"
++                style={{ transform: `translateY(${(i - tickerIndex) * 100}%)` }}
++              >
++                <span className="truncate">{a.title}</span>
++              </span>
++            ))}
++          </div>
++        )}
++      </button>
++
++      {/* パソコンなど広い画面：縦に並べて全部そのまま読めるようにする */}
++      <ul className="hidden max-h-[calc(100vh-16rem)] space-y-2 overflow-y-auto lg:block">
++        {ordered.map((a) => (
++          <li
++            key={a.id}
++            className="rounded-lg border border-white/10 bg-white/5 p-3"
++          >
++            <p className="flex items-start gap-1.5 text-[15px] font-semibold">
++              {a.pinned && (
++                <PinIcon className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
++              )}
++              <span>{a.title}</span>
++            </p>
++            {a.body && (
++              <p className="mt-1 whitespace-pre-wrap text-[13px] text-slate-300">
++                {a.body}
++              </p>
++            )}
++          </li>
++        ))}
++      </ul>
++    </>
+   );
+ }
+ 
+diff --git a/src/components/BoothDetail.tsx b/src/components/BoothDetail.tsx
+new file mode 100644
+index 0000000..7fea718
+--- /dev/null
++++ b/src/components/BoothDetail.tsx
+@@ -0,0 +1,84 @@
++"use client";
++
++import { GENRE_LABELS, type Booth } from "@/lib/booth";
++import { waitMinutesOfBooth } from "@/lib/boothPlacement";
++import { waitColor } from "@/lib/waitColor";
++
++// 地図のピンを押したときに下から出てくるカードの中身。
++// 出す順番：場所 → クラス名 → 企画名 → 待ち時間 → 写真 → 詳細説明
++export default function BoothDetail({ booth }: { booth: Booth }) {
++  const minutes = waitMinutesOfBooth(booth);
++  const place = [
++    booth.location,
++    booth.floor !== null ? (booth.floor === -1 ? "B1" : `${booth.floor}F`) : null,
++    booth.roomName,
++  ]
++    .filter(Boolean)
++    .join(" ");
++
++  return (
++    <div>
++      {/* 場所 */}
++      {place && (
++        <p className="mb-1 text-xs font-bold text-kosei-600">{place}</p>
++      )}
++
++      {/* クラス名（団体名） */}
++      <p className="text-sm font-bold text-kosei-600">{booth.name}</p>
++
++      {/* 企画名 */}
++      <h2 className="mb-3 font-heading text-2xl font-black leading-tight text-kosei-800">
++        {booth.projectName || "（企画名は準備中）"}
++      </h2>
++
++      {/* 状態と待ち時間 */}
++      <div className="mb-4 flex flex-wrap items-center gap-2">
++        {booth.status === "closed" ? (
++          <span className="rounded-full bg-inkgray-400 px-3 py-1 text-sm font-bold text-white">
++            終了しました
++          </span>
++        ) : booth.status === "break" ? (
++          <span className="rounded-full bg-warn-600 px-3 py-1 text-sm font-bold text-white">
++            休憩中
++          </span>
++        ) : minutes !== null ? (
++          <span
++            className="rounded-full px-3 py-1 text-sm font-bold text-white"
++            style={{ backgroundColor: waitColor(minutes) }}
++          >
++            待ち時間 約{minutes}分
++          </span>
++        ) : (
++          <span className="rounded-full bg-success-600 px-3 py-1 text-sm font-bold text-white">
++            開催中
++          </span>
++        )}
++
++        {booth.genre && (
++          <span className="rounded-full border-2 border-kosei-300 px-3 py-1 text-sm font-bold text-kosei-700">
++            {GENRE_LABELS[booth.genre]}
++          </span>
++        )}
++      </div>
++
++      {/* 写真（看板画像） */}
++      {booth.signboardUrl && (
++        // eslint-disable-next-line @next/next/no-img-element
++        <img
++          src={booth.signboardUrl}
++          alt={booth.projectName || booth.name}
++          className="mb-3 max-h-52 w-full rounded-2xl border-2 border-kosei-200 object-cover"
++        />
++      )}
++
++      {/* 詳細説明 */}
++      {booth.description ? (
++        <p className="whitespace-pre-wrap text-sm leading-relaxed text-kosei-800">
++          {booth.description}
++        </p>
++      ) : (
++        <p className="text-sm text-kosei-500">説明は準備中です</p>
++      )}
++    </div>
++  );
++}
+diff --git a/src/components/DetailSheet.tsx b/src/components/DetailSheet.tsx
+index 70f849c..7a7f49c 100644
+--- a/src/components/DetailSheet.tsx
++++ b/src/components/DetailSheet.tsx
+@@ -16,13 +16,25 @@ export default function DetailSheet({
+       }`}
+     >
+       <div className="absolute inset-0 bg-kosei-800/50" onClick={onClose} />
++      {/* 中身が長いときはカードの中だけがスクロールする。
++          画面の高さの85%までに収め、下端は下のメニューに隠れないよう余白をとる。 */}
+       <div
+-        className={`absolute inset-x-0 bottom-0 mx-auto max-w-md rounded-t-[28px] border-2 border-b-0 border-kosei-700 bg-white p-5 transition-transform duration-200 ease-out ${
++        className={`absolute inset-x-0 bottom-0 mx-auto flex max-h-[85vh] max-w-md flex-col rounded-t-[28px] border-2 border-b-0 border-kosei-700 bg-white transition-transform duration-200 ease-out ${
+           open ? "translate-y-0" : "translate-y-full"
+         }`}
+       >
+-        <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-kosei-200" />
+-        {children}
++        <div className="shrink-0 px-5 pt-3">
++          <div className="mx-auto mb-2 h-1.5 w-12 rounded-full bg-kosei-200" />
++        </div>
++        <div
++          className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pt-1"
++          style={{
++            paddingBottom:
++              "calc(20px + 69px + max(env(safe-area-inset-bottom), 10px))",
++          }}
++        >
++          {children}
++        </div>
+       </div>
+     </div>
+   );
+diff --git a/src/components/organizer/BoothMapPicker.tsx b/src/components/organizer/BoothMapPicker.tsx
+index 699c0f1..1b68e0e 100644
+--- a/src/components/organizer/BoothMapPicker.tsx
++++ b/src/components/organizer/BoothMapPicker.tsx
+@@ -1,6 +1,6 @@
+ "use client";
+ 
+-import { useMemo, useState } from "react";
++import { useMemo, useRef, useState } from "react";
+ import {
+   floorplanSrc,
+   hasFloors,
+@@ -9,7 +9,8 @@ import {
+ } from "@/lib/floorplan";
+ import { waitColor } from "@/lib/waitColor";
+ import { waitMinutesOf } from "@/lib/boothGrouping";
+-import type { Booth } from "@/lib/booth";
++import { placeBooths } from "@/lib/boothPlacement";
++import { updateBooth, type Booth } from "@/lib/booth";
+ 
+ // 図面のエリアと、企画データの「場所」の名前をつなぐ対応表。
+ // 本物の校内図に差し替えるときは、ここの名前を合わせてください。
+@@ -41,6 +42,13 @@ export default function BoothMapPicker({
+ }) {
+   const [area, setArea] = useState<AreaId>("senior");
+   const [floor, setFloor] = useState(4);
++  // ドラッグ中の企画とその位置（%）
++  const [dragging, setDragging] = useState<{
++    boothId: string;
++    x: number;
++    y: number;
++  } | null>(null);
++  const planRef = useRef<HTMLDivElement>(null);
+ 
+   const showFloors = hasFloors(area);
+   const currentFloor = showFloors ? floor : undefined;
+@@ -60,6 +68,56 @@ export default function BoothMapPicker({
+     return map;
+   }, [booths, areaName, showFloors, floor]);
+ 
++  // 図面の上に置く企画（ドラッグで決めた座標があればそれを使う）
++  const placed = useMemo(
++    () => placeBooths(booths, area, currentFloor),
++    [booths, area, currentFloor],
++  );
++
++  // 図面の中での位置を%で求める
++  function pointToPercent(clientX: number, clientY: number) {
++    const el = planRef.current;
++    if (!el) return null;
++    const rect = el.getBoundingClientRect();
++    const x = ((clientX - rect.left) / rect.width) * 100;
++    const y = ((clientY - rect.top) / rect.height) * 100;
++    // 図面の外に出ないようにする
++    return {
++      x: Math.min(100, Math.max(0, x)),
++      y: Math.min(100, Math.max(0, y)),
++    };
++  }
++
++  function onPinPointerDown(e: React.PointerEvent, boothId: string) {
++    e.preventDefault();
++    e.stopPropagation();
++    (e.target as Element).setPointerCapture?.(e.pointerId);
++    const point = pointToPercent(e.clientX, e.clientY);
++    if (point) setDragging({ boothId, ...point });
++  }
++
++  function onPinPointerMove(e: React.PointerEvent) {
++    if (!dragging) return;
++    const point = pointToPercent(e.clientX, e.clientY);
++    if (point) setDragging({ ...dragging, ...point });
++  }
++
++  async function onPinPointerUp() {
++    if (!dragging) return;
++    const { boothId, x, y } = dragging;
++    setDragging(null);
++    // 小数第1位まで保存すれば十分（図面上で1%は数ピクセル）
++    await updateBooth(boothId, {
++      pinX: Math.round(x * 10) / 10,
++      pinY: Math.round(y * 10) / 10,
++    });
++  }
++
++  // ピンの位置を部屋の中心に戻す
++  async function resetPin(boothId: string) {
++    await updateBooth(boothId, { pinX: null, pinY: null });
++  }
++
+   return (
+     <div className="flex h-full flex-col">
+       {/* エリアと階の切り替え */}
+@@ -96,16 +154,26 @@ export default function BoothMapPicker({
+             ))}
+           </div>
+         )}
+-        {selectedBooth && (
++        {selectedBooth ? (
+           <p className="ml-auto text-[13px] text-emerald-300">
+             図面の部屋を押すと「{selectedBooth.name}」の場所になります
+           </p>
++        ) : (
++          <p className="ml-auto text-[13px] text-slate-400">
++            企画のピンはドラッグで動かせます（右クリックで位置をもとに戻す）
++          </p>
+         )}
+       </div>
+ 
+       {/* 図面 */}
+       <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto rounded-xl border border-white/10 bg-slate-950/40 p-2">
+-        <div className="relative w-full">
++        <div
++          ref={planRef}
++          className="relative w-full touch-none"
++          onPointerMove={onPinPointerMove}
++          onPointerUp={onPinPointerUp}
++          onPointerCancel={onPinPointerUp}
++        >
+           {/* eslint-disable-next-line @next/next/no-img-element */}
+           <img
+             src={floorplanSrc(area, currentFloor)}
+@@ -121,9 +189,7 @@ export default function BoothMapPicker({
+             return (
+               <button
+                 key={room.label}
+-                onClick={() =>
+-                  onPickRoom?.(area, currentFloor, room.label)
+-                }
++                onClick={() => onPickRoom?.(area, currentFloor, room.label)}
+                 disabled={!onPickRoom || !selectedBooth}
+                 title={
+                   booth
+@@ -156,6 +222,49 @@ export default function BoothMapPicker({
+               </button>
+             );
+           })}
++
++          {/* 企画のピン。ドラッグで位置を直せる */}
++          {placed.map((booth) => {
++            const isDragging = dragging?.boothId === booth.id;
++            const x = isDragging ? dragging.x : booth.x;
++            const y = isDragging ? dragging.y : booth.y;
++            const minutes = waitMinutesOf(booth);
++            const isTarget = selectedBooth?.id === booth.id;
++            return (
++              <div
++                key={`pin-${booth.id}`}
++                onPointerDown={(e) => onPinPointerDown(e, booth.id)}
++                onContextMenu={(e) => {
++                  e.preventDefault();
++                  resetPin(booth.id);
++                }}
++                title={`${booth.name}（ドラッグで移動／右クリックでもとに戻す）`}
++                className={`absolute flex -translate-x-1/2 -translate-y-1/2 cursor-grab flex-col items-center active:cursor-grabbing ${
++                  isDragging ? "z-30 scale-110" : "z-20"
++                }`}
++                style={{ left: `${x}%`, top: `${y}%` }}
++              >
++                <span
++                  className={`flex h-9 w-9 items-center justify-center rounded-full border-2 text-[12px] font-bold text-white shadow ${
++                    isTarget
++                      ? "border-emerald-300 ring-2 ring-emerald-300"
++                      : "border-white"
++                  }`}
++                  style={{
++                    backgroundColor:
++                      minutes !== null
++                        ? waitColor(minutes)
++                        : "rgba(100,116,139,0.95)",
++                  }}
++                >
++                  {minutes !== null ? `${minutes}分` : "―"}
++                </span>
++                <span className="mt-0.5 max-w-[96px] truncate rounded bg-black/80 px-1 text-[11px] text-white">
++                  {booth.projectName || booth.name}
++                </span>
++              </div>
++            );
++          })}
+         </div>
+       </div>
+     </div>
+diff --git a/src/lib/booth.ts b/src/lib/booth.ts
+index b26d351..813915d 100644
+--- a/src/lib/booth.ts
++++ b/src/lib/booth.ts
+@@ -98,6 +98,10 @@ export type Booth = {
+   floor: number | null;
+   // 校内図の部屋名（例: "3-A"）。地図にピンを置く位置を決めるのに使う。
+   roomName: string | null;
++  // 図面上のピンの位置（図の左上を0とした%）。
++  // 運営がドラッグで動かしたときだけ入る。未設定なら部屋名の中心に置く。
++  pinX: number | null;
++  pinY: number | null;
+   hasWaiting: boolean;
+   waitingGroups: number | null;
+   timePerGroup: number | null;
+@@ -130,6 +134,8 @@ export async function getBoothByToken(token: string): Promise<Booth | null> {
+     location: data.location ?? null,
+     floor: data.floor ?? null,
+     roomName: data.roomName ?? null,
++    pinX: typeof data.pinX === "number" ? data.pinX : null,
++    pinY: typeof data.pinY === "number" ? data.pinY : null,
+     hasWaiting: !!data.hasWaiting,
+     waitingGroups: data.waitingGroups ?? null,
+     timePerGroup: data.timePerGroup ?? null,
+@@ -158,6 +164,8 @@ export function subscribeBooths(
+         location: data.location ?? null,
+         floor: data.floor ?? null,
+         roomName: data.roomName ?? null,
++        pinX: typeof data.pinX === "number" ? data.pinX : null,
++        pinY: typeof data.pinY === "number" ? data.pinY : null,
+         hasWaiting: !!data.hasWaiting,
+         waitingGroups: data.waitingGroups ?? null,
+         timePerGroup: data.timePerGroup ?? null,
+@@ -172,6 +180,14 @@ export function subscribeBooths(
+   });
+ }
+ 
++// 来場者アプリ用。地図に出す企画をリアルタイムで購読する。
++// 運営が待ち時間や場所を変えると、その場で地図に反映される。
++export function subscribeVisitorBooths(
++  callback: (booths: Booth[]) => void,
++): () => void {
++  return subscribeBooths(callback);
++}
++
+ export async function updateBooth(
+   id: string,
+   fields: Partial<
+@@ -189,6 +205,8 @@ export async function updateBooth(
+       | "location"
+       | "floor"
+       | "roomName"
++      | "pinX"
++      | "pinY"
+       | "type"
+       | "name"
+     >
+@@ -771,6 +789,8 @@ export async function createBooth(input: NewBoothInput): Promise<string> {
+     location: input.location ?? null,
+     floor: input.floor ?? null,
+     roomName: null,
++    pinX: null,
++    pinY: null,
+     hasWaiting: input.hasWaiting ?? false,
+     waitingGroups: 0,
+     timePerGroup: null,
+diff --git a/src/lib/boothPlacement.ts b/src/lib/boothPlacement.ts
+new file mode 100644
+index 0000000..d928245
+--- /dev/null
++++ b/src/lib/boothPlacement.ts
+@@ -0,0 +1,53 @@
++// 企画データを、校内図の上に置ける形（座標つき）に変換する処理。
++//
++// 位置の決め方は2段階：
++//   1. 運営が地図上でドラッグして決めた座標（pinX / pinY）があればそれを使う
++//   2. 無ければ、部屋名（roomName）から図面上の中心位置を引く
++// これにより、本物の校内図に差し替えても部屋名が同じなら位置は保たれる。
++
++import type { Booth } from "./booth";
++import { roomCenter, hasFloors, type AreaId } from "./floorplan";
++
++export type PlacedBooth = Booth & { x: number; y: number };
++
++// 図面のエリアIDと、企画データの「場所」の名前の対応
++export const AREA_NAMES: Record<AreaId, string> = {
++  senior: "高校棟",
++  junior: "中学棟",
++  gym: "体育館",
++  schoolyard: "校庭",
++};
++
++// 待ち時間（分）。待ち時間を使わない企画は null。
++export function waitMinutesOfBooth(booth: Booth): number | null {
++  if (!booth.hasWaiting || !booth.timePerGroup) return null;
++  return (booth.waitingGroups ?? 0) * booth.timePerGroup;
++}
++
++// そのエリア・階に置く企画を、座標つきで返す
++export function placeBooths(
++  booths: Booth[],
++  area: AreaId,
++  floor?: number,
++): PlacedBooth[] {
++  const areaName = AREA_NAMES[area];
++  const placed: PlacedBooth[] = [];
++
++  for (const booth of booths) {
++    if (booth.location !== areaName) continue;
++    if (hasFloors(area) && booth.floor !== floor) continue;
++
++    // 1) 運営がドラッグで決めた位置
++    if (booth.pinX !== null && booth.pinY !== null) {
++      placed.push({ ...booth, x: booth.pinX, y: booth.pinY });
++      continue;
++    }
++    // 2) 部屋名から引く
++    if (booth.roomName) {
++      const point = roomCenter(area, floor, booth.roomName);
++      if (point) placed.push({ ...booth, x: point.x, y: point.y });
++    }
++  }
++
++  return placed;
++}
+diff --git a/src/lib/mockBooths.ts b/src/lib/mockBooths.ts
+deleted file mode 100644
+index b7e1be7..0000000
+--- a/src/lib/mockBooths.ts
++++ /dev/null
+@@ -1,82 +0,0 @@
+-// 動作確認用のダミー企画データ。
+-//
+-// ※ 本番ではFirestoreの booths コレクションに置き換えます（未対応）。
+-//   位置は座標ではなく「部屋名」で指定し、図面上の座標は
+-//   src/lib/floorplanRooms.json から自動で引きます。
+-//   これにより、本物の校内図に差し替えても部屋名が同じなら修正不要です。
+-
+-import { roomCenter, type AreaId } from "./floorplan";
+-
+-export type Booth = {
+-  id: string;
+-  name: string;
+-  category: string;
+-  description: string;
+-  area: AreaId;
+-  floor?: number; // senior / junior のみ
+-  room: string; // 図面上の部屋名（floorplanRooms.json の label と一致させる）
+-  waitMinutes: number;
+-};
+-
+-// 地図に表示するときの、座標つきの形
+-export type PlacedBooth = Booth & { x: number; y: number };
+-
+-export const booths: Booth[] = [
+-  // ---- 高校棟 4F ----
+-  { id: "s4-1", name: "3年A組 お化け屋敷", category: "アトラクション", description: "暗闇の中を進む脱出型お化け屋敷。所要時間約8分。", area: "senior", floor: 4, room: "3-A", waitMinutes: 28 },
+-  { id: "s4-2", name: "3年B組 カフェ", category: "飲食", description: "手作りスイーツとドリンクの喫茶店。", area: "senior", floor: 4, room: "3-B", waitMinutes: 12 },
+-  { id: "s4-3", name: "3年C組 脱出ゲーム", category: "アトラクション", description: "謎解き脱出ゲーム。1グループ最大6人。", area: "senior", floor: 4, room: "3-C", waitMinutes: 5 },
+-  { id: "s4-4", name: "3年D組 射的", category: "アトラクション", description: "コルクガンで的を狙うミニゲーム。", area: "senior", floor: 4, room: "3-D", waitMinutes: 0 },
+-  { id: "s4-5", name: "3年E組 写真展", category: "展示", description: "3年間の思い出を集めた写真展示。", area: "senior", floor: 4, room: "3-E", waitMinutes: 2 },
+-  { id: "s4-6", name: "映画研究部 上映会", category: "展示", description: "自主制作短編映画の上映。20分ごとの入れ替え制。", area: "senior", floor: 4, room: "多目的室", waitMinutes: 18 },
+-
+-  // ---- 高校棟 3F ----
+-  { id: "s3-1", name: "2年A組 縁日", category: "アトラクション", description: "ヨーヨー釣り・輪投げなどの縁日コーナー。", area: "senior", floor: 3, room: "2-A", waitMinutes: 3 },
+-  { id: "s3-2", name: "2年B組 プラネタリウム", category: "アトラクション", description: "手作りドームでの星空上映。", area: "senior", floor: 3, room: "2-B", waitMinutes: 18 },
+-  { id: "s3-3", name: "2年C組 占い", category: "アトラクション", description: "タロット・手相占いコーナー。", area: "senior", floor: 3, room: "2-C", waitMinutes: 22 },
+-  { id: "s3-4", name: "2年D組 クレープ", category: "飲食", description: "その場で焼く手作りクレープ。", area: "senior", floor: 3, room: "2-D", waitMinutes: 9 },
+-  { id: "s3-5", name: "放送部 公開録音", category: "パフォーマンス", description: "校内ラジオの公開収録。飛び入り参加歓迎。", area: "senior", floor: 3, room: "視聴覚室", waitMinutes: 0 },
+-
+-  // ---- 高校棟 2F ----
+-  { id: "s2-1", name: "1年A組 ダーツ", category: "アトラクション", description: "手作りダーツで景品を狙おう。", area: "senior", floor: 2, room: "1-A", waitMinutes: 4 },
+-  { id: "s2-2", name: "1年B組 手品ショー", category: "パフォーマンス", description: "30分ごとのミニ手品ショー。", area: "senior", floor: 2, room: "1-B", waitMinutes: 14 },
+-  { id: "s2-3", name: "図書委員会 古本市", category: "物販", description: "使わなくなった本の販売。1冊50円から。", area: "senior", floor: 2, room: "図書室", waitMinutes: 0 },
+-
+-  // ---- 高校棟 1F ----
+-  { id: "s1-1", name: "受付・パンフレット配布", category: "案内", description: "パンフレットの配布と総合案内。", area: "senior", floor: 1, room: "昇降口", waitMinutes: 0 },
+-  { id: "s1-2", name: "運営本部", category: "案内", description: "落とし物・迷子・体調不良の対応はこちら。", area: "senior", floor: 1, room: "本部", waitMinutes: 0 },
+-
+-  // ---- 中学棟 4F ----
+-  { id: "j4-1", name: "中3A組 巨大迷路", category: "アトラクション", description: "教室を使った巨大迷路。", area: "junior", floor: 4, room: "中3-A", waitMinutes: 9 },
+-  { id: "j4-2", name: "中3B組 わたあめ屋台", category: "飲食", description: "カラフルなわたあめを販売。", area: "junior", floor: 4, room: "中3-B", waitMinutes: 15 },
+-  { id: "j4-3", name: "科学部 実験ショー", category: "パフォーマンス", description: "液体窒素などを使った公開実験。", area: "junior", floor: 4, room: "理科室", waitMinutes: 6 },
+-
+-  // ---- 中学棟 3F ----
+-  { id: "j3-1", name: "中2A組 ボードゲーム", category: "アトラクション", description: "自作ボードゲームで遊べるコーナー。", area: "junior", floor: 3, room: "中2-A", waitMinutes: 4 },
+-  { id: "j3-2", name: "吹奏楽部 ミニ演奏", category: "パフォーマンス", description: "少人数編成でのミニコンサート。", area: "junior", floor: 3, room: "音楽室", waitMinutes: 20 },
+-
+-  // ---- 中学棟 2F ----
+-  { id: "j2-1", name: "中1A組 工作教室", category: "アトラクション", description: "小さいお子様向けの工作体験。", area: "junior", floor: 2, room: "中1-A", waitMinutes: 8 },
+-  { id: "j2-2", name: "美術部 作品展", category: "展示", description: "部員の絵画・立体作品の展示。", area: "junior", floor: 2, room: "美術室", waitMinutes: 1 },
+-
+-  // ---- 体育館 ----
+-  { id: "gym-1", name: "ステージ企画", category: "パフォーマンス", description: "有志・部活動によるステージ発表。タイムテーブルを確認してください。", area: "gym", room: "ステージ", waitMinutes: 0 },
+-  { id: "gym-2", name: "PTA 休憩コーナー", category: "飲食", description: "お茶と軽食の販売。座って休めます。", area: "gym", room: "アリーナ右", waitMinutes: 3 },
+-
+-  // ---- 校庭 ----
+-  { id: "yard-1", name: "有志企画 水風船割り", category: "アトラクション", description: "的当てで水風船を割るゲーム。", area: "schoolyard", room: "屋台エリアA", waitMinutes: 25 },
+-  { id: "yard-2", name: "PTA バザー", category: "物販", description: "手作りパン・軽食の販売。", area: "schoolyard", room: "屋台エリアB", waitMinutes: 6 },
+-  { id: "yard-3", name: "焼きそば屋台", category: "飲食", description: "同窓会による焼きそば販売。", area: "schoolyard", room: "屋台エリアC", waitMinutes: 17 },
+-];
+-
+-// 指定したエリア・階の企画を、図面上の座標つきで返す。
+-// 部屋名が図面に存在しないものは表示できないので除外する。
+-export function boothsFor(area: AreaId, floor?: number): PlacedBooth[] {
+-  return booths
+-    .filter((b) => b.area === area && (floor === undefined || b.floor === floor))
+-    .map((b) => {
+-      const point = roomCenter(area, floor, b.room);
+-      return point ? { ...b, x: point.x, y: point.y } : null;
+-    })
+-    .filter((b): b is PlacedBooth => b !== null);
+-}
+-- 
+2.43.0
+

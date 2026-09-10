@@ -1,0 +1,1033 @@
+From 0eda1073a903d41656b6c8f2129eeffc2a727ace Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Tue, 25 Aug 2026 17:51:22 +0000
+Subject: [PATCH] =?UTF-8?q?=E3=82=B9=E3=82=BF=E3=83=B3=E3=83=97=E5=85=A8?=
+ =?UTF-8?q?=E7=8D=B2=E5=BE=97=E3=81=A7=E7=89=B9=E5=88=A5=E4=BC=81=E7=94=BB?=
+ =?UTF-8?q?=E3=81=AE=E6=8C=91=E6=88=A6=E5=88=B8QR=E3=82=92=E7=99=BA?=
+ =?UTF-8?q?=E8=A1=8C=E3=81=97=E3=80=81=E5=B0=82=E7=94=A8=E3=82=B9=E3=82=BF?=
+ =?UTF-8?q?=E3=83=83=E3=83=95=E7=94=BB=E9=9D=A2=E3=81=A71=E5=9B=9E?=
+ =?UTF-8?q?=E3=81=A0=E3=81=91=E8=AA=AD=E3=81=BF=E5=8F=96=E3=82=8C=E3=82=8B?=
+ =?UTF-8?q?=E3=82=88=E3=81=86=E3=81=AB=E3=81=99=E3=82=8B=EF=BC=88=E7=8D=B2?=
+ =?UTF-8?q?=E5=BE=97=E3=83=BB=E3=82=B3=E3=83=B3=E3=83=97=E3=83=AA=E3=83=BC?=
+ =?UTF-8?q?=E3=83=88=E3=81=AE=E6=BC=94=E5=87=BA=E3=81=A4=E3=81=8D=EF=BC=89?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ src/app/(visitor)/stamp/complete/page.tsx | 121 +++++++++++++++++
+ src/app/(visitor)/stamp/page.tsx          |  70 ++++++++--
+ src/app/api/reward-login/route.ts         |  29 +++++
+ src/app/globals.css                       |  55 ++++++++
+ src/app/reward/layout.tsx                 |   7 +
+ src/app/reward/login/page.tsx             |  76 +++++++++++
+ src/app/reward/page.tsx                   | 151 ++++++++++++++++++++++
+ src/components/Confetti.tsx               | 140 ++++++++++++++++++++
+ src/components/StampGetEffect.tsx         |  48 +++++++
+ src/lib/stamp.ts                          | 130 +++++++++++++++++++
+ src/proxy.ts                              |  13 +-
+ 11 files changed, 827 insertions(+), 13 deletions(-)
+ create mode 100644 src/app/(visitor)/stamp/complete/page.tsx
+ create mode 100644 src/app/api/reward-login/route.ts
+ create mode 100644 src/app/reward/layout.tsx
+ create mode 100644 src/app/reward/login/page.tsx
+ create mode 100644 src/app/reward/page.tsx
+ create mode 100644 src/components/Confetti.tsx
+ create mode 100644 src/components/StampGetEffect.tsx
+
+diff --git a/src/app/(visitor)/stamp/complete/page.tsx b/src/app/(visitor)/stamp/complete/page.tsx
+new file mode 100644
+index 0000000..4781d83
+--- /dev/null
++++ b/src/app/(visitor)/stamp/complete/page.tsx
+@@ -0,0 +1,121 @@
++"use client";
++
++import Link from "next/link";
++import { useEffect, useState } from "react";
++import Confetti from "@/components/Confetti";
++import QrCode from "@/components/organizer/QrCode";
++import {
++  getOrCreateRewardTicket,
++  rewardUrl,
++  subscribeRewardTicket,
++  type RewardTicket,
++} from "@/lib/stamp";
++
++// スタンプを全部集めた人だけが見るお祝いの画面。
++// いちばん下に、特別企画で使える挑戦券のQRコードが出る。
++export default function StampCompletePage() {
++  const [ticket, setTicket] = useState<RewardTicket | null>(null);
++  const [loading, setLoading] = useState(true);
++  const [origin, setOrigin] = useState("");
++
++  useEffect(() => {
++    let unsubscribe: (() => void) | null = null;
++    const timer = setTimeout(async () => {
++      setOrigin(window.location.origin);
++      const t = await getOrCreateRewardTicket();
++      setTicket(t);
++      setLoading(false);
++      // スタッフに読み取られた瞬間に「使用済み」へ切り替える
++      if (t) unsubscribe = subscribeRewardTicket(t.code, setTicket);
++    }, 0);
++    return () => {
++      clearTimeout(timer);
++      unsubscribe?.();
++    };
++  }, []);
++
++  return (
++    <div className="mx-auto max-w-md px-4 pb-10 pt-10">
++      <Confetti mode="party" />
++
++      <div className="animate-fade-in-up mb-6 text-center">
++        <p className="mb-2 text-4xl">🎉</p>
++        <h1 className="font-heading text-3xl font-black leading-tight text-kosei-800">
++          コンプリート
++          <br />
++          おめでとうございます！
++        </h1>
++        <p className="mt-3 text-sm font-bold text-kosei-600">
++          スタンプを全部集めました
++        </p>
++      </div>
++
++      {/* 特別企画への案内 */}
++      <section
++        className="animate-fade-in-up mb-6 rounded-3xl border-2 border-accent-700 bg-accent-50 p-4 shadow-[0_5px_0_var(--color-accent-700)]"
++        style={{ animationDelay: "120ms" }}
++      >
++        <p className="mb-1 font-heading text-base font-black text-accent-700">
++          特別企画に挑戦できます
++        </p>
++        <p className="mb-3 text-sm leading-relaxed text-kosei-800">
++          下のQRコードを特別企画の受付で見せてください。
++          スタッフが読み取ると、1回だけ挑戦できます。
++        </p>
++        <Link
++          href="/map"
++          className="pressable block rounded-2xl border-2 border-kosei-800 bg-white p-3 text-center shadow-[0_4px_0_var(--color-kosei-800)]"
++        >
++          <p className="font-heading text-sm font-black text-kosei-800">
++            📍 特別企画の場所をマップで見る
++          </p>
++        </Link>
++      </section>
++
++      {/* 挑戦券のQRコード */}
++      <section
++        className="animate-fade-in-up rounded-3xl border-2 border-kosei-700 bg-white p-5 text-center shadow-[0_5px_0_var(--color-kosei-700)]"
++        style={{ animationDelay: "200ms" }}
++      >
++        <p className="mb-3 font-heading text-sm font-black text-kosei-800">
++          特別企画 挑戦券
++        </p>
++
++        {loading ? (
++          <p className="py-10 text-sm text-kosei-600">準備中...</p>
++        ) : !ticket ? (
++          <p className="py-10 text-sm text-danger-800">
++            挑戦券を作れませんでした。ブラウザの設定（プライベートモードなど）を確認してください。
++          </p>
++        ) : ticket.used ? (
++          <div className="py-8">
++            <p className="mb-2 text-5xl">✅</p>
++            <p className="font-heading text-lg font-black text-success-800">
++              使用済みです
++            </p>
++            <p className="mt-1 text-xs text-kosei-600">
++              特別企画への参加ありがとうございました
++            </p>
++          </div>
++        ) : (
++          <>
++            <div className="mx-auto mb-3 inline-block rounded-2xl border-2 border-kosei-200 bg-white p-3">
++              <QrCode value={rewardUrl(origin, ticket.code)} size={200} />
++            </div>
++            <p className="text-xs font-bold text-kosei-600">
++              1回だけ使えます。読み取られると使用済みになります
++            </p>
++          </>
++        )}
++      </section>
++
++      <Link
++        href="/stamp"
++        className="animate-fade-in-up mt-6 block text-center text-sm font-bold text-kosei-700"
++        style={{ animationDelay: "260ms" }}
++      >
++        ← スタンプカードへ戻る
++      </Link>
++    </div>
++  );
++}
+diff --git a/src/app/(visitor)/stamp/page.tsx b/src/app/(visitor)/stamp/page.tsx
+index 1a2124e..10de0f1 100644
+--- a/src/app/(visitor)/stamp/page.tsx
++++ b/src/app/(visitor)/stamp/page.tsx
+@@ -1,12 +1,18 @@
+ "use client";
+ 
+-import { useCallback, useEffect, useState } from "react";
++import Link from "next/link";
++import { useRouter } from "next/navigation";
++import { useCallback, useEffect, useRef, useState } from "react";
+ import QrScanner from "@/components/QrScanner";
++import StampGetEffect from "@/components/StampGetEffect";
+ import {
+   addCollectedId,
+   extractCode,
+   getCollectedIds,
++  getOrCreateRewardTicket,
++  subscribeRewardTicket,
+   subscribeStampSpots,
++  type RewardTicket,
+   type StampSpot,
+ } from "@/lib/stamp";
+ 
+@@ -14,8 +20,16 @@ export default function StampPage() {
+   const [spots, setSpots] = useState<StampSpot[]>([]);
+   const [collected, setCollected] = useState<string[]>([]);
+   const [scanning, setScanning] = useState(false);
+-  // 画面に出す一言（「スタンプGET！」など）
++  // 画面に出す一言（エラーや「すでに獲得済み」など）
+   const [message, setMessage] = useState<string | null>(null);
++  // スタンプを取った瞬間の演出に出す場所の名前
++  const [getEffect, setGetEffect] = useState<string | null>(null);
++  const [ticket, setTicket] = useState<RewardTicket | null>(null);
++  const router = useRouter();
++  // コンプリート画面へ飛ばすのは1回だけ
++  const jumped = useRef(false);
++  // 「この画面でスタンプを取った」ことの記録（開き直しただけでは飛ばさない）
++  const justCompleted = useRef(false);
+ 
+   useEffect(() => subscribeStampSpots(setSpots), []);
+   useEffect(() => {
+@@ -37,8 +51,9 @@ export default function StampPage() {
+         return true;
+       }
+       setCollected(addCollectedId(spot.id));
+-      setMessage(`スタンプGET！「${spot.name}」`);
+-      navigator.vibrate?.(200);
++      justCompleted.current = true;
++      setGetEffect(spot.name);
++      navigator.vibrate?.([60, 40, 120]);
+       return true;
+     },
+     [spots],
+@@ -79,6 +94,31 @@ export default function StampPage() {
+   const total = spots.length;
+   const got = spots.filter((s) => collected.includes(s.id)).length;
+   const progress = total === 0 ? 0 : Math.round((got / total) * 100);
++  const complete = total > 0 && got === total;
++
++  // 全部そろったら挑戦券を用意して、その状態を見張る
++  useEffect(() => {
++    if (!complete) return;
++    let unsubscribe: (() => void) | null = null;
++    const timer = setTimeout(async () => {
++      const t = await getOrCreateRewardTicket();
++      setTicket(t);
++      if (t) unsubscribe = subscribeRewardTicket(t.code, setTicket);
++    }, 0);
++    return () => {
++      clearTimeout(timer);
++      unsubscribe?.();
++    };
++  }, [complete]);
++
++  // 最後の1個を取った直後は、演出が終わったらお祝いの画面へ移動する
++  useEffect(() => {
++    if (!complete || getEffect !== null || jumped.current) return;
++    if (!justCompleted.current) return;
++    jumped.current = true;
++    const timer = setTimeout(() => router.push("/stamp/complete"), 200);
++    return () => clearTimeout(timer);
++  }, [complete, getEffect, router]);
+ 
+   return (
+     <div className="mx-auto max-w-md px-4 pb-8 pt-8">
+@@ -111,10 +151,15 @@ export default function StampPage() {
+             />
+           </div>
+ 
+-          {got === total && (
+-            <p className="animate-fade-in-up mb-6 rounded-2xl border-2 border-warn-800 bg-warn-50 p-3 text-center font-heading text-sm font-black text-warn-800 shadow-[0_4px_0_var(--color-warn-800)]">
+-              コンプリート！おめでとうございます 🎉
+-            </p>
++          {complete && (
++            <Link
++              href="/stamp/complete"
++              className="pressable animate-fade-in-up mb-6 block rounded-2xl border-2 border-warn-800 bg-warn-50 p-3 text-center font-heading text-sm font-black text-warn-800 shadow-[0_4px_0_var(--color-warn-800)]"
++            >
++              {ticket?.used
++                ? "✅ 特別企画に参加しました"
++                : "🎉 コンプリート！特別企画の挑戦券を見る"}
++            </Link>
+           )}
+ 
+           <div
+@@ -132,7 +177,7 @@ export default function StampPage() {
+                         : "scale-90 border-dashed border-kosei-300 bg-kosei-50 opacity-70"
+                     }`}
+                   >
+-                    {isCollected ? "🎫" : ""}
++                    {isCollected ? (ticket?.used ? "✅" : "🎫") : ""}
+                   </div>
+                   <span className="text-center text-[9px] font-bold leading-tight text-kosei-500">
+                     {isCollected ? spot.name : spot.hint}
+@@ -154,6 +199,13 @@ export default function StampPage() {
+ 
+       {scanning && <QrScanner onDetected={onDetected} />}
+ 
++      {getEffect !== null && (
++        <StampGetEffect
++          spotName={getEffect}
++          onDone={() => setGetEffect(null)}
++        />
++      )}
++
+       {message && (
+         <div className="fixed inset-x-4 bottom-24 z-50 mx-auto max-w-md rounded-3xl border-2 border-kosei-700 bg-white p-4 text-center font-heading text-base font-black text-kosei-800 shadow-[0_5px_0_var(--color-kosei-700)]">
+           {message}
+diff --git a/src/app/api/reward-login/route.ts b/src/app/api/reward-login/route.ts
+new file mode 100644
+index 0000000..116745e
+--- /dev/null
++++ b/src/app/api/reward-login/route.ts
+@@ -0,0 +1,29 @@
++import { NextResponse } from "next/server";
++
++// 特別企画スタッフ用ページのログイン。
++// 専用のパスワード（REWARD_STAFF_PASSWORD）を設定できる。
++// 未設定の場合は運営用パスワードで入れるようにしてある。
++export async function POST(request: Request) {
++  const { password } = await request.json();
++  const expected =
++    process.env.REWARD_STAFF_PASSWORD || process.env.ORGANIZER_PASSWORD;
++
++  if (typeof password !== "string" || !expected || password !== expected) {
++    return NextResponse.json({ ok: false }, { status: 401 });
++  }
++
++  const response = NextResponse.json({ ok: true });
++  response.cookies.set(
++    "reward_session",
++    process.env.ORGANIZER_SESSION_SECRET ?? "",
++    {
++      httpOnly: true,
++      secure: process.env.NODE_ENV === "production",
++      sameSite: "lax",
++      // 当日ずっと開きっぱなしにできるよう長めにしてある
++      maxAge: 60 * 60 * 24,
++      path: "/",
++    },
++  );
++  return response;
++}
+diff --git a/src/app/globals.css b/src/app/globals.css
+index f2d3d84..46dce27 100644
+--- a/src/app/globals.css
++++ b/src/app/globals.css
+@@ -171,3 +171,58 @@ body {
+     animation: none;
+   }
+ }
++
++/* ---- スタンプ獲得の演出（StampGetEffect）用 ---- */
++
++/* 大きく振りかぶってから、実際に「押す」ように叩きつける */
++@keyframes stamp-press {
++  0% {
++    opacity: 0;
++    transform: scale(2.6) rotate(-18deg);
++  }
++  45% {
++    opacity: 1;
++    transform: scale(1.02) rotate(-6deg);
++  }
++  /* 押した瞬間のバウンド */
++  60% {
++    transform: scale(1.14) rotate(-6deg);
++  }
++  75% {
++    transform: scale(0.97) rotate(-6deg);
++  }
++  100% {
++    opacity: 1;
++    transform: scale(1) rotate(-6deg);
++  }
++}
++
++.animate-stamp-press {
++  animation: stamp-press 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
++}
++
++/* 押した衝撃の輪 */
++@keyframes stamp-shock {
++  0% {
++    opacity: 0;
++    transform: scale(0.4);
++  }
++  40% {
++    opacity: 0.55;
++  }
++  100% {
++    opacity: 0;
++    transform: scale(2.2);
++  }
++}
++
++.animate-stamp-shock {
++  animation: stamp-shock 0.7s ease-out 0.32s both;
++}
++
++@media (prefers-reduced-motion: reduce) {
++  .animate-stamp-press,
++  .animate-stamp-shock {
++    animation: none;
++  }
++}
+diff --git a/src/app/reward/layout.tsx b/src/app/reward/layout.tsx
+new file mode 100644
+index 0000000..e597cb9
+--- /dev/null
++++ b/src/app/reward/layout.tsx
+@@ -0,0 +1,7 @@
++export default function RewardLayout({
++  children,
++}: {
++  children: React.ReactNode;
++}) {
++  return <div className="min-h-screen bg-kosei-50 text-kosei-800">{children}</div>;
++}
+diff --git a/src/app/reward/login/page.tsx b/src/app/reward/login/page.tsx
+new file mode 100644
+index 0000000..d599a8f
+--- /dev/null
++++ b/src/app/reward/login/page.tsx
+@@ -0,0 +1,76 @@
++"use client";
++
++import { Suspense, useState } from "react";
++import { useRouter, useSearchParams } from "next/navigation";
++
++function LoginForm() {
++  const router = useRouter();
++  const searchParams = useSearchParams();
++  const next = searchParams.get("next") || "/reward";
++
++  const [password, setPassword] = useState("");
++  const [error, setError] = useState(false);
++  const [submitting, setSubmitting] = useState(false);
++
++  async function handleSubmit(e: React.FormEvent) {
++    e.preventDefault();
++    setSubmitting(true);
++    setError(false);
++    const res = await fetch("/api/reward-login", {
++      method: "POST",
++      headers: { "Content-Type": "application/json" },
++      body: JSON.stringify({ password }),
++    });
++    setSubmitting(false);
++    if (res.ok) {
++      router.push(next);
++      router.refresh();
++    } else {
++      setError(true);
++    }
++  }
++
++  return (
++    <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-4">
++      <h1 className="mb-1 font-heading text-sm font-black text-kosei-800">
++        渦潮祭
++      </h1>
++      <p className="mb-6 text-xs text-kosei-600">特別企画スタッフ用</p>
++
++      <form onSubmit={handleSubmit}>
++        <label className="mb-3 block">
++          <span className="mb-1 block text-xs font-bold text-kosei-600">
++            パスワード
++          </span>
++          <input
++            type="password"
++            value={password}
++            onChange={(e) => setPassword(e.target.value)}
++            autoFocus
++            className="w-full rounded-xl border-2 border-kosei-700 bg-white p-3 text-base"
++          />
++        </label>
++        {error && (
++          <p className="mb-3 text-xs font-bold text-danger-800">
++            パスワードが違います
++          </p>
++        )}
++        <button
++          type="submit"
++          disabled={submitting}
++          className="pressable w-full rounded-xl border-2 border-kosei-800 bg-kosei-600 p-3 font-heading text-base font-black text-white shadow-[0_4px_0_var(--color-kosei-800)] disabled:opacity-50"
++        >
++          {submitting ? "確認中..." : "ログイン"}
++        </button>
++      </form>
++    </div>
++  );
++}
++
++export default function RewardLoginPage() {
++  return (
++    <Suspense>
++      <LoginForm />
++    </Suspense>
++  );
++}
+diff --git a/src/app/reward/page.tsx b/src/app/reward/page.tsx
+new file mode 100644
+index 0000000..51d5f57
+--- /dev/null
++++ b/src/app/reward/page.tsx
+@@ -0,0 +1,151 @@
++"use client";
++
++import { useCallback, useEffect, useRef, useState } from "react";
++import QrScanner from "@/components/QrScanner";
++import { extractTicketCode, redeemRewardTicket } from "@/lib/stamp";
++
++// 特別企画のスタッフが使うページ。QRコードを読み取るだけの画面。
++// ・読み取れたら「読み込み完了」
++// ・すでに使われた券なら「スキャン済みです」
++type Result =
++  | { kind: "ok" }
++  | { kind: "already"; usedAt: number | null }
++  | { kind: "notfound" }
++  | { kind: "invalid" };
++
++function formatTime(ms: number | null): string {
++  if (!ms) return "";
++  return new Date(ms).toLocaleString("ja-JP", {
++    month: "numeric",
++    day: "numeric",
++    hour: "2-digit",
++    minute: "2-digit",
++  });
++}
++
++export default function RewardScanPage() {
++  const [scanning, setScanning] = useState(true);
++  const [result, setResult] = useState<Result | null>(null);
++  const [checking, setChecking] = useState(false);
++  const [count, setCount] = useState(0);
++  // 同じ券を続けて何度も処理しないための控え
++  const busy = useRef(false);
++
++  const onDetected = useCallback(async (text: string) => {
++    if (busy.current) return;
++    const code = extractTicketCode(text);
++    if (!code) {
++      setResult({ kind: "invalid" });
++      return;
++    }
++    busy.current = true;
++    setChecking(true);
++    setScanning(false);
++    const res = await redeemRewardTicket(code);
++    setChecking(false);
++    if (res.status === "ok") {
++      setResult({ kind: "ok" });
++      setCount((c) => c + 1);
++      navigator.vibrate?.(200);
++    } else if (res.status === "already") {
++      setResult({ kind: "already", usedAt: res.usedAt });
++      navigator.vibrate?.([100, 80, 100]);
++    } else {
++      setResult({ kind: "notfound" });
++    }
++  }, []);
++
++  // 結果を消して、次の人を読み取れる状態に戻す
++  const reset = useCallback(() => {
++    setResult(null);
++    busy.current = false;
++    setScanning(true);
++  }, []);
++
++  // 結果は数秒で自動的に消える（スタッフが押さなくても次に進める）
++  useEffect(() => {
++    if (!result) return;
++    const timer = setTimeout(reset, 4000);
++    return () => clearTimeout(timer);
++  }, [result, reset]);
++
++  return (
++    <div className="mx-auto max-w-md px-4 pb-10 pt-8">
++      <div className="mb-4 flex items-end justify-between">
++        <div>
++          <h1 className="font-heading text-xl font-black text-kosei-800">
++            挑戦券の読み取り
++          </h1>
++          <p className="text-xs text-kosei-600">特別企画スタッフ用</p>
++        </div>
++        <p className="text-sm font-bold text-kosei-600">
++          本日 {count} 人
++        </p>
++      </div>
++
++      {scanning ? (
++        <>
++          <p className="mb-2 text-sm text-kosei-700">
++            来場者のQRコードをカメラに写してください
++          </p>
++          <QrScanner onDetected={onDetected} />
++        </>
++      ) : (
++        <div className="rounded-3xl border-2 border-kosei-700 bg-white p-6 text-center shadow-[0_5px_0_var(--color-kosei-700)]">
++          {checking ? (
++            <p className="py-10 text-base font-bold text-kosei-600">確認中...</p>
++          ) : result?.kind === "ok" ? (
++            <div className="py-6">
++              <p className="mb-3 text-6xl">✅</p>
++              <p className="font-heading text-2xl font-black text-success-800">
++                読み込み完了
++              </p>
++              <p className="mt-2 text-sm text-kosei-700">
++                この方は挑戦できます
++              </p>
++            </div>
++          ) : result?.kind === "already" ? (
++            <div className="py-6">
++              <p className="mb-3 text-6xl">⚠️</p>
++              <p className="font-heading text-2xl font-black text-danger-800">
++                スキャン済みです
++              </p>
++              <p className="mt-2 text-sm text-kosei-700">
++                この券はすでに使われています
++              </p>
++              {result.usedAt && (
++                <p className="mt-1 text-xs text-kosei-600">
++                  使用日時: {formatTime(result.usedAt)}
++                </p>
++              )}
++            </div>
++          ) : result?.kind === "notfound" ? (
++            <div className="py-6">
++              <p className="mb-3 text-6xl">❓</p>
++              <p className="font-heading text-xl font-black text-danger-800">
++                この券は見つかりません
++              </p>
++              <p className="mt-2 text-sm text-kosei-700">
++                渦潮祭アプリの挑戦券か確認してください
++              </p>
++            </div>
++          ) : (
++            <div className="py-6">
++              <p className="mb-3 text-6xl">❓</p>
++              <p className="font-heading text-xl font-black text-danger-800">
++                読み取れませんでした
++              </p>
++            </div>
++          )}
++
++          <button
++            onClick={reset}
++            className="pressable mt-4 w-full rounded-2xl border-2 border-kosei-800 bg-kosei-600 p-4 font-heading text-base font-black text-white shadow-[0_4px_0_var(--color-kosei-800)]"
++          >
++            次の人を読み取る
++          </button>
++        </div>
++      )}
++    </div>
++  );
++}
+diff --git a/src/components/Confetti.tsx b/src/components/Confetti.tsx
+new file mode 100644
+index 0000000..30c647b
+--- /dev/null
++++ b/src/components/Confetti.tsx
+@@ -0,0 +1,140 @@
++"use client";
++
++import { useEffect, useRef } from "react";
++
++// 紙吹雪の演出。外部ライブラリを使わず、canvasに自前で描いている。
++//
++// mode="sides"  … 左右から中央に向かって「バーン」と出る（スタンプGET用）
++// mode="party"  … 左右＋上からたっぷり出る（コンプリート用・こちらの方が派手）
++type Mode = "sides" | "party";
++
++type Piece = {
++  x: number;
++  y: number;
++  vx: number;
++  vy: number;
++  size: number;
++  color: string;
++  rotation: number;
++  spin: number;
++};
++
++const COLORS = [
++  "#2B93B0", // 湖青
++  "#4FB8D2",
++  "#A0DBEA",
++  "#E8825A", // アクセント
++  "#F2AB3E",
++  "#5FBE7E",
++  "#ffffff",
++];
++
++function makeBurst(
++  width: number,
++  height: number,
++  fromX: number,
++  direction: number,
++  count: number,
++): Piece[] {
++  const pieces: Piece[] = [];
++  for (let i = 0; i < count; i++) {
++    // 中央に向かって斜め上に飛ばす
++    const speed = 9 + Math.random() * 13;
++    const angle = (-70 + Math.random() * 55) * (Math.PI / 180);
++    pieces.push({
++      x: fromX,
++      y: height * (0.55 + Math.random() * 0.25),
++      vx: Math.cos(angle) * speed * direction,
++      vy: Math.sin(angle) * speed,
++      size: 6 + Math.random() * 7,
++      color: COLORS[Math.floor(Math.random() * COLORS.length)],
++      rotation: Math.random() * Math.PI,
++      spin: (Math.random() - 0.5) * 0.3,
++    });
++  }
++  return pieces;
++}
++
++function makeRain(width: number, count: number): Piece[] {
++  const pieces: Piece[] = [];
++  for (let i = 0; i < count; i++) {
++    pieces.push({
++      x: Math.random() * width,
++      y: -20 - Math.random() * 200,
++      vx: (Math.random() - 0.5) * 3,
++      vy: 3 + Math.random() * 4,
++      size: 6 + Math.random() * 7,
++      color: COLORS[Math.floor(Math.random() * COLORS.length)],
++      rotation: Math.random() * Math.PI,
++      spin: (Math.random() - 0.5) * 0.3,
++    });
++  }
++  return pieces;
++}
++
++export default function Confetti({ mode = "sides" }: { mode?: Mode }) {
++  const canvasRef = useRef<HTMLCanvasElement>(null);
++
++  useEffect(() => {
++    const canvas = canvasRef.current;
++    if (!canvas) return;
++
++    // 「動きを減らす」設定の人には出さない
++    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
++
++    const ctx = canvas.getContext("2d");
++    if (!ctx) return;
++
++    const dpr = window.devicePixelRatio || 1;
++    const width = canvas.clientWidth;
++    const height = canvas.clientHeight;
++    canvas.width = width * dpr;
++    canvas.height = height * dpr;
++    ctx.scale(dpr, dpr);
++
++    const count = mode === "party" ? 90 : 60;
++    let pieces = [
++      ...makeBurst(width, height, -10, 1, count),
++      ...makeBurst(width, height, width + 10, -1, count),
++    ];
++    if (mode === "party") pieces = [...pieces, ...makeRain(width, 80)];
++
++    let frame = 0;
++    let stopped = false;
++
++    function draw() {
++      if (stopped || !ctx) return;
++      ctx.clearRect(0, 0, width, height);
++      for (const p of pieces) {
++        p.x += p.vx;
++        p.y += p.vy;
++        p.vy += 0.32; // 重力
++        p.vx *= 0.99; // 空気抵抗
++        p.rotation += p.spin;
++
++        ctx.save();
++        ctx.translate(p.x, p.y);
++        ctx.rotate(p.rotation);
++        ctx.fillStyle = p.color;
++        ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
++        ctx.restore();
++      }
++      // 画面の下に出きったものは捨てる
++      pieces = pieces.filter((p) => p.y < height + 60);
++      if (pieces.length > 0) frame = requestAnimationFrame(draw);
++    }
++
++    draw();
++    return () => {
++      stopped = true;
++      cancelAnimationFrame(frame);
++    };
++  }, [mode]);
++
++  return (
++    <canvas
++      ref={canvasRef}
++      className="pointer-events-none fixed inset-0 z-[80] h-full w-full"
++    />
++  );
++}
+diff --git a/src/components/StampGetEffect.tsx b/src/components/StampGetEffect.tsx
+new file mode 100644
+index 0000000..1dead1f
+--- /dev/null
++++ b/src/components/StampGetEffect.tsx
+@@ -0,0 +1,48 @@
++"use client";
++
++import { useEffect } from "react";
++import Confetti from "./Confetti";
++
++// スタンプを取った瞬間に、その画面のまま重ねて出す演出。
++// 左右から紙吹雪が「バーン」と出て、真ん中にスタンプが押される。
++export default function StampGetEffect({
++  spotName,
++  onDone,
++}: {
++  spotName: string;
++  onDone: () => void;
++}) {
++  useEffect(() => {
++    const timer = setTimeout(onDone, 2600);
++    return () => clearTimeout(timer);
++  }, [onDone]);
++
++  return (
++    <div
++      className="fixed inset-0 z-[90] flex flex-col items-center justify-center bg-kosei-800/40 backdrop-blur-[2px]"
++      onClick={onDone}
++    >
++      <Confetti mode="sides" />
++
++      <div className="relative flex items-center justify-center">
++        {/* 押した衝撃の輪 */}
++        <span className="animate-stamp-shock absolute h-44 w-44 rounded-full border-4 border-accent-400" />
++
++        {/* スタンプ本体 */}
++        <div className="animate-stamp-press flex h-44 w-44 items-center justify-center rounded-full border-[6px] border-accent-700 bg-white/95 shadow-[0_6px_0_var(--color-accent-700)]">
++          <p className="text-center font-heading text-2xl font-black leading-tight text-accent-700">
++            スタンプ
++            <br />
++            GET！
++          </p>
++        </div>
++      </div>
++
++      {spotName && (
++        <p className="animate-fade-in-up mt-6 rounded-full bg-white px-5 py-2 font-heading text-base font-bold text-kosei-800 shadow-[0_3px_0_var(--color-kosei-700)]">
++          {spotName}
++        </p>
++      )}
++    </div>
++  );
++}
+diff --git a/src/lib/stamp.ts b/src/lib/stamp.ts
+index 4bcb31c..c283040 100644
+--- a/src/lib/stamp.ts
++++ b/src/lib/stamp.ts
+@@ -5,14 +5,20 @@ import {
+   collection,
+   deleteDoc,
+   doc,
++  getDoc,
++  getDocs,
++  limit,
+   onSnapshot,
+   orderBy,
+   query,
+   serverTimestamp,
++  setDoc,
+   updateDoc,
++  where,
+ } from "firebase/firestore";
+ import { db } from "./firebase";
+ import { generateAccessToken } from "./booth";
++import { getDeviceId } from "./visits";
+ 
+ // スタンプラリーの1つ分（設置場所）。
+ // code は QR に埋め込む合言葉。URLの ?code= に入る。
+@@ -117,3 +123,127 @@ export function extractCode(text: string): string | null {
+   }
+   return /^[A-Za-z0-9]{6,32}$/.test(trimmed) ? trimmed : null;
+ }
++
++// ─────────────────────────────────────────────────────────────
++// 特別企画の挑戦券（コンプリート報酬）
++//
++// スタンプを全部集めると、その端末だけの挑戦券が1枚できる。
++// 券にはQRコードが付いていて、特別企画のスタッフが読み取ると「使用済み」になる。
++// 一度使った券は二度と使えない。
++// ─────────────────────────────────────────────────────────────
++
++export type RewardTicket = {
++  // 券のID（QRコードに入る文字列）
++  code: string;
++  deviceId: string;
++  used: boolean;
++  usedAt: number | null;
++};
++
++const TICKET_KEY = "uzushiosai_reward_ticket";
++
++function toTicket(code: string, data: Record<string, unknown>): RewardTicket {
++  const usedAt = data.usedAt as { toMillis?: () => number } | undefined;
++  return {
++    code,
++    deviceId: typeof data.deviceId === "string" ? data.deviceId : "",
++    used: data.used === true,
++    usedAt: usedAt?.toMillis?.() ?? null,
++  };
++}
++
++// この端末の挑戦券を取り出す。無ければ1枚だけ作る。
++// 端末（＝利用者）ごとに1枚しか作られないようにしている。
++export async function getOrCreateRewardTicket(): Promise<RewardTicket | null> {
++  const deviceId = getDeviceId();
++  if (!deviceId) return null;
++
++  // 1) ブラウザに控えてある券番号から探す
++  let code: string | null = null;
++  try {
++    code = window.localStorage.getItem(TICKET_KEY);
++  } catch {
++    code = null;
++  }
++  if (code) {
++    const snap = await getDoc(doc(db, "rewardTickets", code));
++    if (snap.exists()) return toTicket(snap.id, snap.data());
++  }
++
++  // 2) 控えが消えていても、同じ端末の券がすでにあればそれを使う
++  const existing = await getDocs(
++    query(
++      collection(db, "rewardTickets"),
++      where("deviceId", "==", deviceId),
++      limit(1),
++    ),
++  );
++  if (!existing.empty) {
++    const found = existing.docs[0];
++    try {
++      window.localStorage.setItem(TICKET_KEY, found.id);
++    } catch {}
++    return toTicket(found.id, found.data());
++  }
++
++  // 3) どこにも無ければ新しく1枚作る
++  const newCode = generateAccessToken(16);
++  await setDoc(doc(db, "rewardTickets", newCode), {
++    deviceId,
++    used: false,
++    usedAt: null,
++    createdAt: serverTimestamp(),
++  });
++  try {
++    window.localStorage.setItem(TICKET_KEY, newCode);
++  } catch {}
++  return { code: newCode, deviceId, used: false, usedAt: null };
++}
++
++// 券の使用状況をリアルタイムで見張る（スタッフが読み取った瞬間に画面へ反映される）
++export function subscribeRewardTicket(
++  code: string,
++  callback: (ticket: RewardTicket | null) => void,
++): () => void {
++  return onSnapshot(doc(db, "rewardTickets", code), (snap) => {
++    callback(snap.exists() ? toTicket(snap.id, snap.data()) : null);
++  });
++}
++
++export type RedeemResult =
++  | { status: "ok" }
++  | { status: "already" ; usedAt: number | null }
++  | { status: "notfound" };
++
++// 特別企画のスタッフが券を読み取ったときの処理。
++// すでに使われていれば「スキャン済み」を返す。
++export async function redeemRewardTicket(code: string): Promise<RedeemResult> {
++  const ref = doc(db, "rewardTickets", code);
++  const snap = await getDoc(ref);
++  if (!snap.exists()) return { status: "notfound" };
++
++  const ticket = toTicket(snap.id, snap.data());
++  if (ticket.used) return { status: "already", usedAt: ticket.usedAt };
++
++  await updateDoc(ref, { used: true, usedAt: serverTimestamp() });
++  return { status: "ok" };
++}
++
++// QRに入れるURL。スタッフ用ページで読み取る。
++export function rewardUrl(origin: string, code: string): string {
++  return `${origin}/reward?ticket=${code}`;
++}
++
++// QRの中身から券番号を取り出す
++export function extractTicketCode(text: string): string | null {
++  if (!text) return null;
++  const trimmed = text.trim();
++  try {
++    const url = new URL(trimmed);
++    const code = url.searchParams.get("ticket");
++    if (code) return code;
++  } catch {
++    // URLでなければそのものを券番号として扱う
++  }
++  return /^[A-Za-z0-9]{10,40}$/.test(trimmed) ? trimmed : null;
++}
+diff --git a/src/proxy.ts b/src/proxy.ts
+index 5d0e9a6..8575830 100644
+--- a/src/proxy.ts
++++ b/src/proxy.ts
+@@ -4,20 +4,25 @@ import type { NextRequest } from "next/server";
+ export function proxy(request: NextRequest) {
+   const { pathname } = request.nextUrl;
+ 
+-  if (pathname === "/organizer/login") {
++  // 特別企画スタッフ用ページ（/reward）は専用のログインで守る
++  const isReward = pathname.startsWith("/reward");
++  const loginPath = isReward ? "/reward/login" : "/organizer/login";
++  const cookieName = isReward ? "reward_session" : "organizer_session";
++
++  if (pathname === loginPath) {
+     return NextResponse.next();
+   }
+ 
+-  const session = request.cookies.get("organizer_session")?.value;
++  const session = request.cookies.get(cookieName)?.value;
+   if (session && session === process.env.ORGANIZER_SESSION_SECRET) {
+     return NextResponse.next();
+   }
+ 
+-  const loginUrl = new URL("/organizer/login", request.url);
++  const loginUrl = new URL(loginPath, request.url);
+   loginUrl.searchParams.set("next", pathname);
+   return NextResponse.redirect(loginUrl);
+ }
+ 
+ export const config = {
+-  matcher: ["/organizer/:path*"],
++  matcher: ["/organizer/:path*", "/reward/:path*"],
+ };
+-- 
+2.43.0
+
