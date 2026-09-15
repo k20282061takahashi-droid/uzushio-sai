@@ -35,7 +35,7 @@ function LoginForm() {
       <h1 className="text-[15px] font-medium tracking-[0.08em] text-neutral-100">
         渦潮祭
       </h1>
-      <p className="mb-7 text-[12px] tracking-[0.14em] text-neutral-500">
+      <p className="mb-7 text-[13px] tracking-[0.14em] text-neutral-500">
         ORGANIZER
       </p>
 

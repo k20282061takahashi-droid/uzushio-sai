@@ -84,7 +84,7 @@ export default function OrganizerPage() {
           小さくても文字を添えている。 */}
       <aside className="flex w-[72px] shrink-0 flex-col items-center gap-1.5 border-r border-white/10 px-2 py-3">
         <div className="mb-2 text-center leading-tight">
-          <p className="text-[11px] font-medium text-neutral-200">渦潮祭</p>
+          <p className="text-[12px] font-medium text-neutral-200">渦潮祭</p>
           <p className="text-[9px] tracking-[0.12em] text-neutral-500">
             ORGANIZER
           </p>
@@ -99,7 +99,7 @@ export default function OrganizerPage() {
               onClick={() => setMode(t.key)}
               title={t.label}
               aria-current={active ? "page" : undefined}
-              className={`flex w-full flex-col items-center gap-1 rounded-xl px-1 py-2.5 transition-colors ${
+              className={`flex w-full flex-col items-center gap-1 rounded-2xl px-1 py-2.5 transition-colors ${
                 active
                   ? "glow-soft border border-org-700 bg-org-900/70 text-org-500"
                   : "border border-transparent text-neutral-500 hover:bg-white/[0.04] hover:text-neutral-300"
@@ -113,7 +113,7 @@ export default function OrganizerPage() {
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
-              <span className="text-[10px] leading-none">{t.short}</span>
+              <span className="text-[11px] leading-none">{t.short}</span>
             </button>
           );
         })}

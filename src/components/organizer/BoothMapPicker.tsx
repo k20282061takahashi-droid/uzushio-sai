@@ -237,7 +237,7 @@ export default function BoothMapPicker({
             </>
           ) : selectedBooth ? (
             <>
-              <span className="truncate text-[13px] text-emerald-300">
+              <span className="truncate text-[13px] text-org-300">
                 {freeMode
                   ? `図面の好きな場所を押すと、そこに「${selectedBooth.name}」のピンを作ります`
                   : `図面の部屋を押すと「${selectedBooth.name}」の場所になります`}
@@ -286,7 +286,7 @@ export default function BoothMapPicker({
       {/* 図面 */}
       <div
         ref={frameRef}
-        className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-neutral-950/40 p-2"
+        className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-neutral-950/40 p-2"
       >
         <div
           ref={planRef}
@@ -345,7 +345,7 @@ export default function BoothMapPicker({
                 <span
                   className={`block h-9 w-9 rounded-full border-2 border-dashed transition ${
                     isTarget
-                      ? "border-emerald-300 bg-emerald-400/30"
+                      ? "border-org-500 bg-emerald-400/30"
                       : selectedBooth
                         ? "border-neutral-400/70 bg-white/5 hover:bg-emerald-400/25"
                         : "border-transparent"
@@ -398,16 +398,16 @@ export default function BoothMapPicker({
                 }}
               >
                 <span
-                  className={`flex h-9 items-center justify-center rounded-lg border-2 px-1.5 text-[12px] font-bold text-white shadow ${
+                  className={`flex h-9 items-center justify-center rounded-lg border-2 px-1.5 text-[13px] font-bold text-white shadow ${
                     isTarget
-                      ? "border-emerald-300 ring-2 ring-emerald-300"
+                      ? "border-org-500 ring-2 ring-org-300"
                       : "border-white"
                   }`}
                   style={{ backgroundColor: look.bg }}
                 >
                   {look.text}
                 </span>
-                <span className="mt-0.5 max-w-[96px] truncate rounded bg-black/80 px-1 text-[12px] text-white">
+                <span className="mt-0.5 max-w-[96px] truncate rounded bg-black/80 px-1 text-[13px] text-white">
                   {booth.projectName || booth.name}
                 </span>
 
@@ -422,7 +422,7 @@ export default function BoothMapPicker({
                         setResetTarget(booth.id);
                       }}
                       title="部屋の中心に戻す"
-                      className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full border border-white/70 bg-neutral-900 text-[11px] leading-none text-white hover:bg-amber-400 hover:text-neutral-950"
+                      className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full border border-white/70 bg-neutral-900 text-[12px] leading-none text-white hover:bg-amber-400 hover:text-neutral-950"
                     >
                       ↺
                     </button>

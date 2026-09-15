@@ -40,7 +40,7 @@ function SpotCard({
   }
 
   return (
-    <li className="rounded-xl border border-white/10 bg-neutral-950/70 p-4">
+    <li className="rounded-2xl border border-white/10 bg-neutral-950/72 p-4">
       <div className="flex flex-col gap-4 sm:flex-row">
         <div className="shrink-0 self-center rounded-lg bg-white p-2">
           <QrCode value={url} size={140} />
@@ -75,7 +75,7 @@ function SpotCard({
             <button
               onClick={save}
               disabled={!changed || saving}
-              className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-bold text-white active:scale-95 disabled:opacity-40"
+              className="rounded-lg bg-org-500 px-4 py-2 text-sm font-bold text-neutral-950 active:scale-95 disabled:opacity-40"
             >
               {saving ? "保存中..." : "保存"}
             </button>
@@ -97,7 +97,7 @@ function SpotCard({
             </button>
           </div>
 
-          <p className="mt-2 break-all text-[12px] text-neutral-500">{url}</p>
+          <p className="mt-2 break-all text-[13px] text-neutral-500">{url}</p>
         </div>
       </div>
 
@@ -107,7 +107,7 @@ function SpotCard({
           onClick={() => setConfirmDelete(false)}
         >
           <div
-            className="w-full max-w-sm rounded-xl border border-white/12 bg-neutral-900/95 p-5 backdrop-blur-xl"
+            className="w-full max-w-sm rounded-2xl border border-white/12 bg-neutral-900/95 p-5 backdrop-blur-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <p className="mb-4 text-base font-medium">
@@ -183,7 +183,7 @@ export default function StampsTab({
 
   return (
     <div className="h-full overflow-y-auto pb-6">
-      <section className="mb-5 rounded-xl border border-white/10 bg-neutral-950/70 p-4">
+      <section className="mb-5 rounded-2xl border border-white/10 bg-neutral-950/72 p-4">
         <h2 className="mb-1 text-base font-bold">スタンプの設置場所を追加</h2>
         <p className="mb-3 text-xs text-neutral-400">
           追加するとQRコードが自動で発行されます。印刷して設置してください。
@@ -207,7 +207,7 @@ export default function StampsTab({
           <button
             onClick={add}
             disabled={adding || name.trim() === ""}
-            className="rounded-lg bg-emerald-500 px-6 py-3 text-base font-bold text-white active:scale-95 disabled:opacity-40"
+            className="rounded-lg bg-org-500 px-6 py-3 text-base font-bold text-neutral-950 active:scale-95 disabled:opacity-40"
           >
             {adding ? "追加中..." : "追加"}
           </button>

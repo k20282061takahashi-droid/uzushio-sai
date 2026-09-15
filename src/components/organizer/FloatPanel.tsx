@@ -48,15 +48,22 @@ export default function FloatPanel({
       onClick={onClose}
     >
       <div
-        className={`flex max-h-[94vh] w-full ${widthClass} flex-col overflow-hidden rounded-xl border border-white/12 bg-neutral-900/95 backdrop-blur-xl shadow-[0_24px_70px_rgba(0,0,0,0.65)] sm:max-h-[88vh]`}
+        className={`glow-soft flex max-h-[94vh] w-full ${widthClass} flex-col overflow-hidden rounded-2xl border border-white/12 bg-neutral-900/95 backdrop-blur-xl shadow-[0_24px_70px_rgba(0,0,0,0.65)] sm:max-h-[88vh]`}
         onClick={(e) => e.stopPropagation()}
       >
         <header className="flex shrink-0 items-start justify-between gap-4 border-b border-white/10 px-4 py-3.5 sm:px-6 sm:py-4">
-          <div>
+          <div className="flex min-w-0 gap-3">
+            {/* 見出しの左の縦線。どこまでが見出しかを線1本で示す */}
+            <span
+              aria-hidden
+              className="mt-1 h-6 w-[3px] shrink-0 rounded-full bg-org-500"
+            />
+            <div className="min-w-0">
             <h2 className="text-lg font-medium tracking-[0.02em]">{title}</h2>
             {subtitle && (
               <p className="mt-0.5 text-xs text-neutral-400">{subtitle}</p>
             )}
+            </div>
           </div>
           <button
             onClick={onClose}

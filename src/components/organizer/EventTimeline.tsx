@@ -126,7 +126,7 @@ export default function EventTimeline({
         </button>
         <button
           onClick={() => setZoom(1.6)}
-          className="rounded-md bg-neutral-950/70 px-3 py-1.5 text-[13px] text-neutral-400 active:scale-95"
+          className="rounded-md bg-neutral-950/72 px-3 py-1.5 text-[13px] text-neutral-400 active:scale-95"
         >
           標準に戻す
         </button>
@@ -134,7 +134,7 @@ export default function EventTimeline({
 
       <div
         ref={scrollRef}
-        className="min-h-0 flex-1 overflow-y-auto rounded-xl border border-white/10 bg-neutral-950/40"
+        className="min-h-0 flex-1 overflow-y-auto rounded-2xl border border-white/10 bg-neutral-950/40"
       >
         {venues.length > 1 && (
           <div className="sticky top-0 z-20 flex bg-neutral-950/90 px-2 pt-2 backdrop-blur">
@@ -213,7 +213,7 @@ export default function EventTimeline({
                   onClick={() => onSelect?.(e)}
                   className={`absolute overflow-hidden rounded-lg border px-2 py-1 text-left transition-colors ${
                     cancelled
-                      ? "border-white/10 bg-neutral-950/70 opacity-50"
+                      ? "border-white/10 bg-neutral-950/72 opacity-50"
                       : e.delayed
                         ? "border-amber-400/50 bg-amber-400/15"
                         : "border-white/20 bg-white/[0.07]"
@@ -236,12 +236,12 @@ export default function EventTimeline({
                         {e.name || "（名前未設定）"}
                       </span>
                       {e.delayed && (
-                        <span className="shrink-0 text-[12px] text-amber-300">
+                        <span className="shrink-0 text-[13px] text-amber-300">
                           遅延
                         </span>
                       )}
                       {cancelled && (
-                        <span className="shrink-0 text-[12px] text-red-300">
+                        <span className="shrink-0 text-[13px] text-red-300">
                           中止
                         </span>
                       )}
@@ -275,7 +275,7 @@ export default function EventTimeline({
               >
                 <span className="-ml-1 h-2.5 w-2.5 shrink-0 rounded-full bg-red-500" />
                 <span className="h-px flex-1 bg-red-500" />
-                <span className="ml-1 shrink-0 rounded bg-red-500 px-1 text-[12px] font-bold text-white">
+                <span className="ml-1 shrink-0 rounded bg-red-500 px-1 text-[13px] font-bold text-white">
                   {formatMinutes(nowMin)}
                 </span>
               </div>

@@ -61,7 +61,7 @@ export default function LostItemsFloat({
           {shown.map((item) => (
             <div
               key={item.id}
-              className={`overflow-hidden rounded-xl border border-white/10 bg-neutral-950/70 ${
+              className={`overflow-hidden rounded-2xl border border-white/10 bg-neutral-950/72 ${
                 // 返却済みは薄く表示して、未対応と見分けやすくする
                 item.status === "claimed" ? "opacity-40" : ""
               }`}
@@ -87,7 +87,7 @@ export default function LostItemsFloat({
                     返却済みにする
                   </button>
                 ) : (
-                  <p className="mt-3 rounded-lg bg-emerald-500/20 py-3 text-center text-sm text-emerald-200">
+                  <p className="mt-3 rounded-lg bg-org-500/20 py-3 text-center text-sm text-org-300">
                     返却済み
                   </p>
                 )}

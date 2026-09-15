@@ -60,7 +60,7 @@ export default function BoothStatusList({
   );
 
   return (
-    <section className="flex h-full flex-col rounded-xl border border-white/10 bg-neutral-950/70 p-4">
+    <section className="flex h-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-neutral-950/72 p-4 backdrop-blur-[2px]">
       <div className="mb-2 flex shrink-0 items-center justify-between gap-3">
         <h2 className="text-sm font-medium tracking-[0.04em] text-neutral-200">
           企画の状況（{filtered.length}
@@ -93,8 +93,15 @@ export default function BoothStatusList({
         {groups.map((group) => (
           <div key={group.label || "all"}>
             {group.label && (
-              <p className="sticky top-0 z-10 mb-1 bg-neutral-950/90 py-1 text-[13px] font-bold text-neutral-400 backdrop-blur">
-                {group.label}（{group.booths.length}）
+              <p className="sticky top-0 z-10 mb-1 flex items-center gap-2 bg-neutral-950/92 py-1.5 text-[13px] font-medium text-neutral-300 backdrop-blur">
+                <span
+                  aria-hidden
+                  className="h-3 w-[3px] shrink-0 rounded-full bg-org-700"
+                />
+                {group.label}
+                <span className="text-neutral-500">
+                  {group.booths.length}
+                </span>
               </p>
             )}
             <div className="grid grid-cols-1 gap-x-6 xl:grid-cols-2">
@@ -116,7 +123,7 @@ export default function BoothStatusList({
                         {b.name}
                         {b.projectName ? `（${b.projectName}）` : ""}
                       </p>
-                      <p className="truncate text-[12px] text-neutral-500">
+                      <p className="truncate text-[13px] text-neutral-500">
                         {BOOTH_TYPE_LABELS[b.type] ?? b.type}
                         {b.location && ` ・ ${b.location}`}
                         {b.floor != null &&
@@ -125,20 +132,31 @@ export default function BoothStatusList({
                       </p>
                       </div>
                     </div>
-                    <div className="flex shrink-0 items-center gap-3 text-[12px]">
+                    <div className="flex shrink-0 items-center gap-2.5 text-[13px]">
                       {stale && (
                         <span
-                          title="待ちグループ数がしばらく更新されていません"
-                          className="text-amber-300"
+                          title="混みぐあいがしばらく更新されていません"
+                          className="rounded-full bg-warn-800/25 px-2 py-[1px] text-[12px] font-medium text-warn-600"
                         >
                           未更新
                         </span>
                       )}
-                      <span className="w-20 text-right text-neutral-300">
+                      {/* 混みぐあいは色をつける。灰色の文字が並ぶと、
+                          どれが混んでいるのか探すのに時間がかかるため。 */}
+                      <span
+                        className="w-[6.5rem] text-right font-medium"
+                        style={
+                          level !== null
+                            ? { color: crowdInfo(level).color }
+                            : undefined
+                        }
+                      >
                         {level !== null ? crowdInfo(level).label : ""}
                       </span>
+                      {/* 「開催中」はほとんどの企画に付くので出さない。
+                          いつもと違う状態のときだけ出す。 */}
                       <span className="w-11 text-right text-neutral-500">
-                        {STATUS_LABELS[b.status]}
+                        {b.status === "open" ? "" : STATUS_LABELS[b.status]}
                       </span>
                     </div>
                   </div>

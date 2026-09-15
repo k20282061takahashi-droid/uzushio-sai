@@ -73,7 +73,7 @@ export function Card({
           )}
           {badge && (
             <span
-              className={`rounded-full px-2 py-[1px] text-[11px] font-medium ${
+              className={`rounded-full px-2 py-[1px] text-[12px] font-medium ${
                 tone === "alert"
                   ? "bg-danger-800/25 text-danger-600"
                   : tone === "warn"
@@ -125,7 +125,7 @@ export function StatCard({
   return (
     <Card tone={tone} onClick={onClick} className="justify-between">
       <div className="flex items-start justify-between gap-2 pt-1">
-        <p className="text-[12px] tracking-[0.06em] text-neutral-400">{label}</p>
+        <p className="text-[13px] tracking-[0.06em] text-neutral-400">{label}</p>
         {action}
       </div>
       <p className="mt-1 flex items-baseline gap-1.5">
@@ -138,7 +138,7 @@ export function StatCard({
           <span className="text-[13px] text-neutral-500">{unit}</span>
         )}
       </p>
-      {sub && <div className="mt-1.5 text-[12px] text-neutral-400">{sub}</div>}
+      {sub && <div className="mt-1.5 text-[13px] text-neutral-400">{sub}</div>}
       {children && <div className="mt-2">{children}</div>}
     </Card>
   );
@@ -160,7 +160,7 @@ export function SparkBars({
 }) {
   if (values.length === 0) {
     return (
-      <p className="text-[12px] text-neutral-600">まだ記録がありません</p>
+      <p className="text-[13px] text-neutral-600">まだ記録がありません</p>
     );
   }
   const max = Math.max(...values, 1);
@@ -212,7 +212,7 @@ export function Row({
       <div className="min-w-0 flex-1">
         <p className="truncate text-[13px] text-neutral-100">{title}</p>
         {sub && (
-          <p className="truncate text-[11px] text-neutral-500">{sub}</p>
+          <p className="truncate text-[12px] text-neutral-500">{sub}</p>
         )}
       </div>
       {right && <div className="shrink-0 text-right">{right}</div>}

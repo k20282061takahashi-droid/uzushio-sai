@@ -69,7 +69,7 @@ export default function StaffAlertFloat({
       width="medium"
     >
       {/* 送信フォーム */}
-      <section className="mb-6 rounded-xl border border-red-500/40 bg-red-500/10 p-4">
+      <section className="mb-6 rounded-2xl border border-red-500/40 bg-red-500/10 p-4">
         <label className="mb-3 block">
           <span className="mb-1 block text-sm text-neutral-300">連絡内容</span>
           <textarea
@@ -168,7 +168,7 @@ export default function StaffAlertFloat({
             {closedList.slice(0, 10).map((a) => (
               <li
                 key={a.id}
-                className="rounded-lg border border-white/10 bg-neutral-950/70 p-3 opacity-60"
+                className="rounded-lg border border-white/10 bg-neutral-950/72 p-3 opacity-60"
               >
                 <p className="text-sm">{a.message}</p>
                 <p className="mt-1 text-[13px] text-neutral-400">
@@ -188,7 +188,7 @@ export default function StaffAlertFloat({
           onClick={() => setConfirming(false)}
         >
           <div
-            className="w-full max-w-md rounded-xl border border-white/12 bg-neutral-900/95 p-5 backdrop-blur-xl"
+            className="w-full max-w-md rounded-2xl border border-white/12 bg-neutral-900/95 p-5 backdrop-blur-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <p className="mb-2 text-base font-bold text-red-300">

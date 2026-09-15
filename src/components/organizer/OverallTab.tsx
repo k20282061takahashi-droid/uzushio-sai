@@ -215,7 +215,7 @@ export default function OverallTab({
           <button
             key={d}
             onClick={() => setSelectedDay(d)}
-            className={`rounded-lg px-2.5 py-1 text-[12px] ${
+            className={`rounded-lg px-2.5 py-1 text-[13px] ${
               shownDay === d
                 ? "bg-white font-medium text-neutral-950"
                 : "border border-white/15 text-neutral-300 hover:bg-white/10"
@@ -292,7 +292,7 @@ export default function OverallTab({
               >
                 {phase === "before" ? "文化祭前" : "文化祭中"}
               </p>
-              <div className="mt-1 flex gap-4 text-[12px] text-neutral-400">
+              <div className="mt-1 flex gap-4 text-[13px] text-neutral-400">
                 <span>
                   開催中{" "}
                   <span className="text-neutral-200 tabular-nums">
@@ -326,7 +326,7 @@ export default function OverallTab({
                 {phase === "before" ? "文化祭を開始する" : "文化祭前に戻す"}
               </button>
               {phase === "before" && (
-                <p className="mt-1.5 text-[11px] leading-relaxed text-neutral-500">
+                <p className="mt-1.5 text-[12px] leading-relaxed text-neutral-500">
                   来場者には「あと○日」だけが見えています。本番の画面は{" "}
                   <a
                     href="/test"
@@ -368,7 +368,7 @@ export default function OverallTab({
                     e.stopPropagation();
                     setFloat("staffAlert");
                   }}
-                  className="rounded-lg bg-danger-800 px-3 py-1.5 text-[12px] font-medium text-white active:scale-95"
+                  className="rounded-lg bg-danger-800 px-3 py-1.5 text-[13px] font-medium text-white active:scale-95"
                 >
                   一斉連絡
                 </button>
@@ -377,7 +377,7 @@ export default function OverallTab({
               bodyClassName="overflow-y-auto"
             >
               {openAlerts.length === 0 ? (
-                <p className="text-[12px] text-neutral-500">
+                <p className="text-[13px] text-neutral-500">
                   緊急連絡はありません
                 </p>
               ) : (
@@ -391,7 +391,7 @@ export default function OverallTab({
                     />
                   ))}
                   {openAlerts.length > 5 && (
-                    <p className="pt-1.5 text-[12px] text-neutral-500">
+                    <p className="pt-1.5 text-[13px] text-neutral-500">
                       ほか{openAlerts.length - 5}件
                     </p>
                   )}
@@ -407,7 +407,7 @@ export default function OverallTab({
               bodyClassName="overflow-y-auto"
             >
               {unclaimed.length === 0 ? (
-                <p className="text-[12px] text-neutral-500">
+                <p className="text-[13px] text-neutral-500">
                   お預かり中の落とし物はありません
                 </p>
               ) : (
@@ -425,7 +425,7 @@ export default function OverallTab({
                             e.stopPropagation();
                             markLostItemClaimed(item.id);
                           }}
-                          className="rounded-lg border border-white/15 px-2.5 py-1 text-[12px] text-neutral-300 active:scale-95"
+                          className="rounded-lg border border-white/15 px-2.5 py-1 text-[13px] text-neutral-300 active:scale-95"
                         >
                           返却済み
                         </button>
@@ -433,7 +433,7 @@ export default function OverallTab({
                     />
                   ))}
                   {unclaimed.length > 5 && (
-                    <p className="pt-1.5 text-[12px] text-neutral-500">
+                    <p className="pt-1.5 text-[13px] text-neutral-500">
                       ほか{unclaimed.length - 5}件
                     </p>
                   )}
@@ -454,22 +454,22 @@ export default function OverallTab({
             className="shrink-0"
           >
             {currentEvent ? (
-              <div className="rounded-xl border border-org-700 bg-org-900/60 px-3 py-2.5">
-                <p className="text-[11px] tracking-[0.08em] text-org-300">
+              <div className="rounded-2xl border border-org-700 bg-org-900/60 px-3 py-2.5">
+                <p className="text-[12px] tracking-[0.08em] text-org-300">
                   いま進行中
                 </p>
                 <p className="mt-0.5 truncate text-[15px] font-medium text-neutral-100">
                   {currentEvent.name || "（未設定）"}
                 </p>
-                <p className="text-[12px] text-neutral-400">
+                <p className="text-[13px] text-neutral-400">
                   {currentEvent.startAt}
                   {currentEvent.endAt ? `〜${currentEvent.endAt}` : ""}
                   {currentEvent.venue ? ` ・ ${currentEvent.venue}` : ""}
                 </p>
               </div>
             ) : (
-              <div className="rounded-xl border border-white/10 px-3 py-2.5">
-                <p className="text-[12px] text-neutral-500">
+              <div className="rounded-2xl border border-white/10 px-3 py-2.5">
+                <p className="text-[13px] text-neutral-500">
                   {isShowingToday
                     ? "いま進行中のイベントはありません"
                     : "この日の予定を表示しています"}
@@ -479,7 +479,7 @@ export default function OverallTab({
 
             {nextEvent && (
               <div className="mt-2 flex items-center gap-2 px-1">
-                <span className="shrink-0 text-[11px] tracking-[0.08em] text-neutral-500">
+                <span className="shrink-0 text-[12px] tracking-[0.08em] text-neutral-500">
                   つぎ
                 </span>
                 <span className="shrink-0 font-mono text-[13px] text-neutral-300">
@@ -489,7 +489,7 @@ export default function OverallTab({
                   {nextEvent.name || "（未設定）"}
                 </span>
                 {nextEvent.delayed && (
-                  <span className="ml-auto shrink-0 text-[12px] text-warn-600">
+                  <span className="ml-auto shrink-0 text-[13px] text-warn-600">
                     遅延
                   </span>
                 )}
@@ -506,7 +506,7 @@ export default function OverallTab({
             bodyClassName="overflow-y-auto"
           >
             {busyBooths.length === 0 ? (
-              <p className="text-[12px] text-neutral-500">
+              <p className="text-[13px] text-neutral-500">
                 いま混んでいる企画はありません
               </p>
             ) : (
@@ -520,7 +520,7 @@ export default function OverallTab({
                     }`}
                     right={
                       <span
-                        className="text-[12px] font-medium"
+                        className="text-[13px] font-medium"
                         style={{ color: crowdInfo(level).color }}
                       >
                         {crowdInfo(level).label}
@@ -542,7 +542,7 @@ export default function OverallTab({
                   e.stopPropagation();
                   setFloat("announcement");
                 }}
-                className="rounded-lg bg-org-500 px-3 py-1.5 text-[12px] font-medium text-neutral-950 active:scale-95"
+                className="rounded-lg bg-org-500 px-3 py-1.5 text-[13px] font-medium text-neutral-950 active:scale-95"
               >
                 ＋ 新規
               </button>
@@ -551,7 +551,7 @@ export default function OverallTab({
             bodyClassName="overflow-y-auto"
           >
             {allAnnouncements.length === 0 ? (
-              <p className="text-[12px] text-neutral-500">
+              <p className="text-[13px] text-neutral-500">
                 まだ送信していません
               </p>
             ) : (
@@ -619,7 +619,7 @@ export default function OverallTab({
           onClick={() => setConfirmOpen(false)}
         >
           <div
-            className="w-full max-w-sm rounded-xl border border-white/12 bg-neutral-900/95 p-4 backdrop-blur-xl shadow-[0_24px_70px_rgba(0,0,0,0.65)]"
+            className="w-full max-w-sm rounded-2xl border border-white/12 bg-neutral-900/95 p-4 backdrop-blur-xl shadow-[0_24px_70px_rgba(0,0,0,0.65)]"
             onClick={(e) => e.stopPropagation()}
           >
             <p className="mb-4 text-center text-base font-medium">
@@ -631,7 +631,7 @@ export default function OverallTab({
               <button
                 onClick={applySwitch}
                 disabled={updating}
-                className="flex-1 rounded-lg bg-emerald-500 p-3 text-sm font-medium text-white active:scale-95 disabled:opacity-50"
+                className="flex-1 rounded-lg bg-org-500 p-3 text-sm font-medium text-neutral-950 active:scale-95 disabled:opacity-50"
               >
                 {updating ? "切り替え中..." : "切り替える"}
               </button>

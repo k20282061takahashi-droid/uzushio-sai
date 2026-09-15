@@ -91,7 +91,7 @@ export function BoothPicker({
         </button>
         <button
           onClick={() => onChange(new Set())}
-          className="rounded-lg bg-neutral-950/70 px-3.5 py-2 text-sm text-neutral-300 active:scale-95"
+          className="rounded-lg bg-neutral-950/72 px-3.5 py-2 text-sm text-neutral-300 active:scale-95"
         >
           選択を解除
         </button>
@@ -115,7 +115,7 @@ export function BoothPicker({
               >
                 <span
                   className={`inline-block h-3 w-3 rounded-sm border ${
-                    allOn ? "border-emerald-400 bg-emerald-400" : "border-white/30"
+                    allOn ? "border-org-500 bg-emerald-400" : "border-white/30"
                   }`}
                 />
                 {location}
@@ -127,7 +127,7 @@ export function BoothPicker({
                 {list.map((b) => (
                   <label
                     key={b.id}
-                    className="flex cursor-pointer items-center gap-1.5 rounded px-1 py-0.5 text-xs text-neutral-300 hover:bg-neutral-950/70"
+                    className="flex cursor-pointer items-center gap-1.5 rounded px-1 py-0.5 text-xs text-neutral-300 hover:bg-neutral-950/72"
                   >
                     <input
                       type="checkbox"
@@ -246,7 +246,7 @@ function VisitorRulesEditor() {
           <button
             onClick={submit}
             disabled={saving || !heading.trim()}
-            className="flex-1 rounded-lg bg-emerald-500 p-3 text-sm font-medium text-white active:scale-95 disabled:opacity-40"
+            className="flex-1 rounded-lg bg-org-500 p-3 text-sm font-medium text-neutral-950 active:scale-95 disabled:opacity-40"
           >
             {saving ? "保存中..." : editingId ? "保存する" : "追加する"}
           </button>
@@ -259,7 +259,7 @@ function VisitorRulesEditor() {
             </button>
           )}
         </div>
-        {done && <p className="mt-2 text-sm text-emerald-400">保存しました</p>}
+        {done && <p className="mt-2 text-sm text-org-500">保存しました</p>}
       </section>
 
       {/* 右：一覧 */}
@@ -274,7 +274,7 @@ function VisitorRulesEditor() {
             {rules.map((rule, i) => (
               <li
                 key={rule.id}
-                className="rounded-lg border border-white/10 bg-neutral-950/70 p-3"
+                className="rounded-lg border border-white/10 bg-neutral-950/72 p-3"
               >
                 <p className="text-sm font-bold">{rule.heading}</p>
                 <p className="mt-1 line-clamp-2 whitespace-pre-line text-[13px] text-neutral-400">
@@ -492,7 +492,7 @@ export default function AnnouncementFloat({
 
           {/* 企画担当者向けのときだけ、宛先を選べるようにする */}
           {target === "staff" && !editingId && (
-            <div className="mb-3 rounded-lg border border-white/10 bg-neutral-950/70 p-3">
+            <div className="mb-3 rounded-lg border border-white/10 bg-neutral-950/72 p-3">
               <p className="mb-2 text-xs font-medium text-neutral-300">送り先</p>
               <div className="mb-3 flex gap-2">
                 <button
@@ -536,7 +536,7 @@ export default function AnnouncementFloat({
             <button
               onClick={submit}
               disabled={saving || !canSubmit}
-              className="flex-1 rounded-lg bg-emerald-500 p-2.5 text-sm font-medium text-white active:scale-95 disabled:opacity-40"
+              className="flex-1 rounded-lg bg-org-500 p-2.5 text-sm font-medium text-neutral-950 active:scale-95 disabled:opacity-40"
             >
               {saving ? "保存中..." : editingId ? "保存する" : "送信する"}
             </button>
@@ -550,7 +550,7 @@ export default function AnnouncementFloat({
             )}
           </div>
           {done && (
-            <p className="mt-2 text-xs text-emerald-400">保存しました</p>
+            <p className="mt-2 text-xs text-org-500">保存しました</p>
           )}
         </section>
 
@@ -571,7 +571,7 @@ export default function AnnouncementFloat({
                     className={`rounded-lg border p-3 text-sm ${
                       a.pinned
                         ? "border-amber-400/30 bg-amber-400/10"
-                        : "border-white/10 bg-neutral-950/70"
+                        : "border-white/10 bg-neutral-950/72"
                     }`}
                   >
                     <div className="flex items-start gap-2">

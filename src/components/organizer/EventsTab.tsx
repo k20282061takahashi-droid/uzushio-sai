@@ -40,16 +40,16 @@ function HighlightCard({
 }) {
   return (
     <div
-      className={`flex min-h-[92px] flex-1 items-center gap-4 rounded-xl border p-4 ${
+      className={`flex min-h-[92px] flex-1 items-center gap-4 rounded-2xl border p-4 ${
         tone === "now"
-          ? "border-emerald-400/40 bg-emerald-400/10"
-          : "border-white/10 bg-neutral-950/70"
+          ? "border-org-500/40 bg-org-900/50"
+          : "border-white/10 bg-neutral-950/72"
       }`}
     >
       <div className="min-w-0 flex-1">
         <p
           className={`text-[13px] font-bold ${
-            tone === "now" ? "text-emerald-300" : "text-neutral-400"
+            tone === "now" ? "text-org-300" : "text-neutral-400"
           }`}
         >
           {label}
@@ -178,7 +178,7 @@ function DelayForm({
         </label>
       </div>
 
-      <div className="mt-3 rounded-lg bg-neutral-950/70 p-3 text-sm text-neutral-300">
+      <div className="mt-3 rounded-lg bg-neutral-950/72 p-3 text-sm text-neutral-300">
         <p className="mb-1 text-xs font-medium text-neutral-400">
           来場者に流れるお知らせ（自動）
         </p>
@@ -199,7 +199,7 @@ function DelayForm({
 
       {/* すでに遅延を知らせている場合は、取り消しもできるようにする */}
       {event.delayed && (
-        <div className="mt-3 rounded-lg border border-white/10 bg-neutral-950/70 p-3">
+        <div className="mt-3 rounded-lg border border-white/10 bg-neutral-950/72 p-3">
           <p className="mb-2 text-xs text-neutral-400">
             遅延を取り消すと、来場者に送ったお知らせを削除し、
             開始時刻をもとの{event.originalStartAt ?? "予定"}に戻します。
@@ -361,7 +361,7 @@ function EventEditForm({
         <button
           onClick={submit}
           disabled={saving || !name || !startAt}
-          className="flex-1 rounded-lg bg-emerald-500 p-3 text-sm font-medium text-white active:scale-95 disabled:opacity-40"
+          className="flex-1 rounded-lg bg-org-500 p-3 text-sm font-medium text-neutral-950 active:scale-95 disabled:opacity-40"
         >
           {saving ? "保存中..." : creating ? "追加する" : "保存する"}
         </button>
@@ -481,7 +481,7 @@ export default function EventsTab({ onDataUpdate }: { onDataUpdate: () => void }
         <button
           onClick={() => setCreating(true)}
           disabled={!day}
-          className="w-full rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-bold text-white active:scale-95 disabled:opacity-40 sm:ml-auto sm:w-auto"
+          className="w-full rounded-lg bg-org-500 px-4 py-2.5 text-sm font-bold text-neutral-950 active:scale-95 disabled:opacity-40 sm:ml-auto sm:w-auto"
         >
           ＋ イベントを追加
         </button>

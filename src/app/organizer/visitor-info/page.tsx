@@ -119,7 +119,7 @@ export default function OrganizerVisitorInfoPage() {
         <h1 className="text-[15px] font-medium tracking-[0.08em] text-neutral-100">
           渦潮祭
         </h1>
-        <p className="text-[12px] tracking-[0.14em] text-neutral-500">
+        <p className="text-[13px] tracking-[0.14em] text-neutral-500">
           ORGANIZER ・ 来場者の皆さんへ
         </p>
       </div>
@@ -128,7 +128,7 @@ export default function OrganizerVisitorInfoPage() {
         ← 運営ダッシュボードへ戻る
       </Link>
 
-      <section className="rounded-xl border border-white/12 bg-neutral-950/70 p-4">
+      <section className="rounded-2xl border border-white/12 bg-neutral-950/70 p-4">
         <h2 className="mb-3 text-sm font-medium text-neutral-300">
           来場者の皆さんへ（校内ルール・注意事項）
         </h2>

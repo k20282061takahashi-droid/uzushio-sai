@@ -307,6 +307,36 @@ body {
   letter-spacing: 0.01em;
 }
 
+/* ---- 文字の大きさと色の底上げ（2026-09-15） ----
+   運営画面は iPad を机に置いて、少し離れて見ることが多い。
+   もとの 12px / 14px では小さかったので、この画面の中だけ1段上げている。
+   各ファイルの text-xs / text-sm をぜんぶ書き換えて回らずに済むよう、
+   ここでまとめて意味を変えている。 */
+.organizer-ui .text-xs {
+  font-size: 13px;
+  line-height: 1.5;
+}
+.organizer-ui .text-sm {
+  font-size: 14.5px;
+  line-height: 1.55;
+}
+
+/* 文字の色も、暗い画面で薄く沈まないよう少し明るくする。
+   3階層（主・副・補助）のうち、副と補助だけを上げている。 */
+.organizer-ui {
+  --color-neutral-400: #adadad;
+  --color-neutral-500: #909090;
+}
+
+/* 入力欄は、どこに書けるのかがすぐ分かるように枠をはっきりさせる */
+.organizer-ui :is(input, select, textarea) {
+  background-color: rgba(0, 0, 0, 0.35);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+.organizer-ui :is(input, select, textarea):focus {
+  border-color: var(--color-org-700);
+}
+
 /* input や select はフォントを自動で引き継がないので、個別に指定する */
 .organizer-ui input,
 .organizer-ui select,
@@ -322,14 +352,37 @@ body {
   outline-offset: 2px;
 }
 
-/* スクロールバーも細いモノクロにそろえる */
+/* スクロールバー。つまみだけ少し色を入れて、どこまでスクロールできるかを
+   分かりやすくする（細いままなので、じゃまにはならない） */
 .organizer-ui ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
 }
 .organizer-ui ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.16);
+  background: rgba(47, 199, 212, 0.28);
   border-radius: 999px;
+}
+.organizer-ui ::-webkit-scrollbar-thumb:hover {
+  background: rgba(47, 199, 212, 0.45);
+}
+
+/* 文字を選んだときの色もそろえる */
+.organizer-ui ::selection {
+  background: rgba(47, 199, 212, 0.3);
+}
+
+/* 日本語は行間がせまいと詰まって見える。運営画面は情報量が多いので、
+   ここでまとめて少し広げておく。 */
+.organizer-ui {
+  line-height: 1.6;
+}
+
+/* ボタンは押したことが分かるように、少しだけ動かす */
+.organizer-ui button {
+  transition:
+    background-color 0.12s ease,
+    border-color 0.12s ease,
+    color 0.12s ease;
 }
 .organizer-ui ::-webkit-scrollbar-track {
   background: transparent;

@@ -126,7 +126,7 @@ export default function BulkImportFloat({
     >
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <section>
-          <div className="mb-2 rounded-lg border border-white/10 bg-neutral-950/70 p-3 text-xs text-neutral-400">
+          <div className="mb-2 rounded-lg border border-white/10 bg-neutral-950/72 p-3 text-xs text-neutral-400">
             <p className="mb-1 font-medium text-neutral-300">貼り付け方</p>
             <p>
               1行につき1つの企画。行のはじめが<strong className="text-neutral-200">クラス名</strong>
@@ -225,7 +225,7 @@ export default function BulkImportFloat({
           )}
 
           {result && (
-            <div className="mt-3 rounded-lg bg-emerald-500/15 px-3 py-2 text-xs text-emerald-200">
+            <div className="mt-3 rounded-lg bg-org-500/15 px-3 py-2 text-xs text-org-300">
               {result.created}件を登録しました。
               {result.skipped.length > 0 &&
                 `（${result.skipped.length}件は登録済みのため飛ばしました）`}
@@ -235,7 +235,7 @@ export default function BulkImportFloat({
           <button
             onClick={submit}
             disabled={saving || rows.length === 0}
-            className="mt-3 w-full rounded-lg bg-emerald-500 p-3 text-sm font-medium text-white active:scale-95 disabled:opacity-40"
+            className="mt-3 w-full rounded-lg bg-org-500 p-3 text-sm font-medium text-neutral-950 active:scale-95 disabled:opacity-40"
           >
             {saving
               ? "登録中..."
