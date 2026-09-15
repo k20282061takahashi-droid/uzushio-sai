@@ -8,10 +8,12 @@ import DetailSheet from "@/components/DetailSheet";
 import BoothDetail from "@/components/BoothDetail";
 import { subscribeVisitorBooths, type Booth } from "@/lib/booth";
 import {
+  AREA_NAMES,
   placeBooths,
   crowdLevelOfBooth,
   type PlacedBooth,
 } from "@/lib/boothPlacement";
+import IsoFloorStack from "@/components/IsoFloorStack";
 import {
   floorplanRatio,
   floorplanSrc,
@@ -58,6 +60,9 @@ function MapContent() {
     areas.find((a) => a.id === initialArea)?.goTo ? "gym" : initialArea,
   );
   const [activeFloor, setActiveFloor] = useState(4);
+  // 地図の見せ方。「立体」は階を重ねて建物ぜんぶを見る、「平面」は1つの階を広く見る。
+  // 階がある棟では、まず建物の形が分かる立体から始める。
+  const [viewMode, setViewMode] = useState<"iso" | "plan">("iso");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [booths, setBooths] = useState<Booth[]>([]);
   // 色の説明。最初は開いておき、地図に触れたら畳む
@@ -96,6 +101,8 @@ function MapContent() {
   }
 
   const showFloors = hasFloors(activeArea);
+  // 階が無い場所（体育館など）は、重ねるものが無いので必ず平面
+  const isIso = showFloors && viewMode === "iso";
   const floors = floorsFor(activeArea);
   const floor = showFloors ? activeFloor : undefined;
 
@@ -110,6 +117,17 @@ function MapContent() {
   );
   // 図面に薄く敷く部屋名（教室名）。企画が無い部屋も出す目印になる
   const roomLabels = roomsFor(activeArea, floor);
+
+  // 立体表示の階ボタンに出す「その階の企画の数」
+  const boothCountByFloor = useMemo(() => {
+    const areaName = AREA_NAMES[activeArea];
+    const counts: Record<number, number> = {};
+    for (const b of booths) {
+      if (b.location !== areaName || b.floor == null) continue;
+      counts[b.floor] = (counts[b.floor] ?? 0) + 1;
+    }
+    return counts;
+  }, [booths, activeArea]);
 
   // 企画名を上下ジグザグに振り分けるための「段」を決める。
   // 教室は横一列に並ぶので、隣同士でラベルがぶつかる。左から順に
@@ -148,6 +166,31 @@ function MapContent() {
           className="absolute inset-x-0 bottom-0"
           style={{ top: headerH }}
         >
+        {isIso ? (
+          // 立体表示。階を重ねて建物ぜんぶを見せる。
+          // ピンは重なって読めなくなるので出さず、階ごとの企画の数だけ出す。
+          <div
+            className="h-full w-full bg-kosei-50"
+            style={{ padding: "var(--map-pad-y) var(--map-pad-x)" }}
+          >
+            <div ref={frameRef} className="h-full w-full">
+              <IsoFloorStack
+                area={activeArea}
+                floors={floors}
+                activeFloor={activeFloor}
+                boothCountByFloor={boothCountByFloor}
+                onSelectFloor={(f) => {
+                  // 階を押したら、その階の平面図をすぐ開く。
+                  // 立体のままにしておくより、目的の教室に早くたどり着ける。
+                  setActiveFloor(f);
+                  setViewMode("plan");
+                }}
+                width={planSize?.width ?? 320}
+                height={planSize?.height ?? 213}
+              />
+            </div>
+          </div>
+        ) : (
         <PannableZoom
           className="h-full w-full bg-kosei-50"
           onInteract={() => setLegendOpen(false)}
@@ -287,11 +330,14 @@ function MapContent() {
             </div>
           )}
         </PannableZoom>
+        )}
         </div>
 
-        {/* 色の見方。最初は開いておき、地図に触れたら畳む */}
+        {/* 色の見方。最初は開いておき、地図に触れたら畳む。
+            立体表示にはピンが無いので出さない。 */}
         <div
           className="absolute z-20"
+          hidden={isIso}
           style={{
             top: `calc(${headerH}px + var(--gap-page))`,
             right: "var(--gap-page)",
@@ -375,17 +421,39 @@ function MapContent() {
               </button>
             ))}
           </div>
+          {/* 階がある棟だけ、見せ方を選べるようにする */}
+          {showFloors && (
+            <div className="pointer-events-auto mx-auto mt-2 flex max-w-md justify-center gap-2">
+              {(["iso", "plan"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  onClick={() => setViewMode(mode)}
+                  style={{ fontSize: "clamp(0.625rem, 3vw, 0.8125rem)" }}
+                  className={`pressable rounded-full border-2 px-4 py-1.5 font-heading font-black ${
+                    viewMode === mode
+                      ? "border-kosei-800 bg-kosei-600 text-white shadow-[0_3px_0_var(--color-kosei-800)]"
+                      : "border-kosei-700 bg-white text-kosei-700 shadow-[0_3px_0_var(--color-kosei-700)]"
+                  }`}
+                >
+                  {mode === "iso" ? "立体" : "平面"}
+                </button>
+              ))}
+            </div>
+          )}
+
           <p
             className="hide-on-short pointer-events-none mt-1.5 text-center font-bold text-kosei-600"
             style={{ fontSize: "clamp(0.625rem, 3vw, 0.75rem)" }}
           >
-            {rooms.length === 0
-              ? "このフロアに企画はありません"
-              : "ピンチ／Ctrl+ホイールで拡大縮小、ドラッグで移動できます"}
+            {isIso
+              ? "見たい階を押すと、その階の地図がひらきます"
+              : rooms.length === 0
+                ? "このフロアに企画はありません"
+                : "ピンチ／Ctrl+ホイールで拡大縮小、ドラッグで移動できます"}
           </p>
         </div>
 
-        {showFloors && (
+        {showFloors && !isIso && (
           <FloorSlider
             floors={floors}
             value={activeFloor}
