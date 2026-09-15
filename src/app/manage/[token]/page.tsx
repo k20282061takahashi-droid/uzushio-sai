@@ -658,8 +658,22 @@ export default function BoothManagePage() {
                 {/* 5つを横一列の正方形にならべる。
                     左が空いている・右が混んでいる、と場所で覚えられるので、
                     接客をしながらでも文字を読まずに押せる。
-                    選んだものだけ、うすい色（パステル）で塗る。 */}
-                <div className="grid grid-cols-5 gap-1.5">
+                    選んだものだけ、うすい色（パステル）で塗る。
+
+                    文字が途中で切れないようにする工夫
+                    ----------------------------------
+                    ボタンの横幅は画面の広さで変わる（iPhoneとiPadで違う）。
+                    文字の大きさをpxで固定すると、せまい画面で入りきらず切れる。
+                    そこで「この5つの並び」を基準の箱（コンテナ）にして、
+                    箱の幅から文字の大きさを計算している（cqw = 箱の幅の1%）。
+                    ・広い画面 … 17pxまで大きくする
+                    ・せまい画面 … 自動で小さくして、必ず1行に収める
+                    アイコン（棒グラフ）も文字に合わせて em で指定してあるので、
+                    文字と同じ割合で大きくなる。 */}
+                <div
+                  className="grid grid-cols-5 gap-1.5"
+                  style={{ containerType: "inline-size" }}
+                >
                   {CROWD_LEVELS.map((c) => {
                     const chosen = crowdLevel === c.level;
                     return (
@@ -671,24 +685,40 @@ export default function BoothManagePage() {
                         aria-pressed={chosen}
                         style={{
                           aspectRatio: "1 / 1",
+                          // 指で押しやすい大きさを確保する。
+                          // width を100%にしておかないと、せまい画面で
+                          // 「高さ68px→正方形なので幅も68px」となって
+                          // ボタン同士が重なってしまう。
+                          width: "100%",
+                          minHeight: "68px",
                           backgroundColor: chosen ? c.soft : undefined,
                           borderColor: chosen ? c.color : undefined,
                           color: chosen ? c.color : undefined,
                         }}
-                        className={`chunk flex flex-col items-center justify-center gap-1 rounded-2xl border-2 px-0.5 ${
+                        className={`chunk flex flex-col items-center justify-center gap-1.5 rounded-2xl border-2 px-0 ${
                           chosen
                             ? "shadow-[0_4px_0_rgba(0,0,0,0.18)]"
                             : "border-kosei-300 bg-white text-kosei-600"
                         } disabled:border-kosei-200 disabled:bg-kosei-50 disabled:text-kosei-300 disabled:shadow-none`}
                       >
-                        {/* 混みぐあいの目安。左から順に点が増える */}
-                        <span className="flex items-end gap-[2px]" aria-hidden>
+                        {/* 混みぐあいの目安。左から順に棒が増える。
+                            大きさは em（下の文字の大きさが基準）なので、
+                            文字が大きくなれば棒も同じだけ大きくなる。 */}
+                        <span
+                          className="flex items-end"
+                          aria-hidden
+                          style={{
+                            fontSize: "clamp(11px, calc(6.2cqw - 2px), 17px)",
+                            gap: "0.2em",
+                          }}
+                        >
                           {[1, 2, 3, 4, 5].map((n) => (
                             <span
                               key={n}
-                              className="w-[3px] rounded-full"
+                              className="rounded-full"
                               style={{
-                                height: `${4 + n * 1.6}px`,
+                                width: "0.32em",
+                                height: `${0.45 + n * 0.2}em`,
                                 backgroundColor:
                                   n <= c.level ? "currentColor" : "transparent",
                                 outline:
@@ -700,7 +730,12 @@ export default function BoothManagePage() {
                             />
                           ))}
                         </span>
-                        <span className="font-pop text-[11px] leading-tight">
+                        <span
+                          className="font-pop whitespace-nowrap leading-tight"
+                          style={{
+                            fontSize: "clamp(11px, calc(6.2cqw - 2px), 17px)",
+                          }}
+                        >
                           {c.short}
                         </span>
                       </button>

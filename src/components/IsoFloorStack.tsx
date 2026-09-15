@@ -28,6 +28,16 @@ const FIT_SCALE = 0.72;
 // 階のラベルを図と同じ高さに並べるために使う。
 const LABEL_STEP = FLOOR_GAP * Math.cos((TILT_DEG * Math.PI) / 180) * FIT_SCALE;
 
+// 階ボタンの、上下のならび間隔（最低これだけは空ける）。
+//
+// なぜ必要か
+// ----------
+// 立体の絵に合わせた LABEL_STEP は約31pxしかなく、ボタンの高さ（約45px）より
+// せまい。そのままだとボタン同士が重なって、となりの階を押してしまう。
+// 指で押す部分は最低でも44pxほしいので、間隔もそれに合わせて広げる。
+const MIN_BUTTON_STEP = 58;
+const BUTTON_STEP = Math.max(LABEL_STEP, MIN_BUTTON_STEP);
+
 export default function IsoFloorStack({
   area,
   floors,
@@ -99,7 +109,8 @@ export default function IsoFloorStack({
       </div>
 
       {/* 階のボタン。押すとその階の平面図にうつる。
-          立体の絵と同じ高さに並ぶよう、1つぶんの間隔を計算して置いている。 */}
+          立体の絵と同じ高さに並べたいが、それだとボタンが重なって押しにくいので、
+          最低 MIN_BUTTON_STEP だけは間を空ける。 */}
       <div className="pointer-events-none absolute inset-0 flex items-center">
         <div className="relative w-full">
           {floors.map((floor, i) => {
@@ -107,12 +118,12 @@ export default function IsoFloorStack({
             const count = boothCountByFloor[floor] ?? 0;
             // 真ん中を0として、上の階ほど上に置く
             const middle = (floors.length - 1) / 2;
-            const offset = (i - middle) * LABEL_STEP;
+            const offset = (i - middle) * BUTTON_STEP;
             return (
               <button
                 key={floor}
                 onClick={() => onSelectFloor(floor)}
-                className={`pointer-events-auto absolute left-0 flex -translate-y-1/2 items-center gap-1.5 rounded-full border-2 px-3 py-1.5 font-heading text-sm font-black transition-transform active:scale-95 ${
+                className={`pointer-events-auto absolute left-0 flex min-h-[46px] -translate-y-1/2 items-center gap-2 whitespace-nowrap rounded-full border-2 px-4 py-2 font-heading text-base font-black transition-transform active:scale-95 ${
                   active
                     ? "border-kosei-800 bg-kosei-600 text-white shadow-[0_3px_0_var(--color-kosei-800)]"
                     : "border-kosei-700 bg-white text-kosei-700 shadow-[0_3px_0_var(--color-kosei-700)]"
@@ -122,7 +133,7 @@ export default function IsoFloorStack({
                 {floorLabel(floor)}
                 {count > 0 && (
                   <span
-                    className={`rounded-full px-1.5 text-[11px] ${
+                    className={`rounded-full px-2 py-0.5 text-[13px] ${
                       active ? "bg-white/25" : "bg-kosei-100 text-kosei-700"
                     }`}
                   >
