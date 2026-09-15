@@ -124,6 +124,30 @@ export function compareByClass(a: string, b: string): number {
   );
 }
 
+// 渦潮祭の開催日数。ここと同じ数だけ日が入っていれば「毎日やる」とみなす。
+// 3日開催になったらこの数字を直す。
+const FESTIVAL_DAY_COUNT = 2;
+
+// その企画が、指定した日にやっているか。
+// openDays が空のときは「どちらの日もやる」という意味。
+export function isOpenOnDay(booth: Booth, day: string): boolean {
+  if (booth.openDays.length === 0) return true;
+  return booth.openDays.includes(day);
+}
+
+// 「9/19のみ」のような案内。毎日やる企画は null（何も出さない）。
+export function openDayLabel(booth: Booth): string | null {
+  const days = [...booth.openDays].sort();
+  if (days.length === 0 || days.length >= FESTIVAL_DAY_COUNT) return null;
+  const text = days
+    .map((d) => {
+      const [, month, day] = d.split("-");
+      return month && day ? `${Number(month)}/${Number(day)}` : d;
+    })
+    .join("・");
+  return `${text}のみ`;
+}
+
 // 待ち時間（分）。待ち時間の仕組みを使わない企画は null。
 // ※ 2025年までのやり方。表示には crowdLevelOf を使う。
 export function waitMinutesOf(booth: Booth): number | null {

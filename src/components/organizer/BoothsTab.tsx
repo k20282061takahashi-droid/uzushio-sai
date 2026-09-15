@@ -16,6 +16,7 @@ import {
   createBooth,
   deleteBooth,
   subscribeBooths,
+  subscribeFestivalDays,
   updateBooth,
 } from "@/lib/booth";
 import { saveSignboard, loadSignboard } from "@/lib/signboard";
@@ -170,12 +171,18 @@ function BoothDetailForm({
   booth: Booth;
   onClose: () => void;
 }) {
+  // 開催日の選択肢（9/19・9/20）を出すために、文化祭の日程を読む
+  const [festivalDays, setFestivalDays] = useState<string[]>([]);
+  useEffect(() => subscribeFestivalDays(setFestivalDays), []);
+
   const [projectName, setProjectName] = useState(booth.projectName ?? "");
   const [name, setName] = useState(booth.name);
   const [description, setDescription] = useState(booth.description);
   const [genre, setGenre] = useState<BoothGenre | "">(booth.genre ?? "");
   const [type, setType] = useState<BoothType>(booth.type);
   const [hasWaiting, setHasWaiting] = useState(booth.hasWaiting);
+  // 開催する日。空なら「両日ともやる」
+  const [openDays, setOpenDays] = useState<string[]>(booth.openDays);
   const [timePerGroup, setTimePerGroup] = useState<number | "">(
     booth.timePerGroup ?? "",
   );
@@ -253,6 +260,7 @@ function BoothDetailForm({
       genre: genre || null,
       type,
       hasWaiting,
+      openDays,
       timePerGroup: timePerGroup === "" ? null : Number(timePerGroup),
     });
     setSaving(false);
@@ -449,6 +457,57 @@ function BoothDetailForm({
             />
           </label>
 
+          {/* 開催する日。1日だけの企画のために用意している。
+              何も選ばない＝両日やる、という意味にしている。 */}
+          <div className="mt-3 rounded-lg border border-white/10 bg-neutral-950/70 p-3">
+            <p className="mb-2 text-sm">開催する日</p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setOpenDays([]);
+                  setSaved(false);
+                }}
+                className={`rounded-lg border px-3 py-1.5 text-sm ${
+                  openDays.length === 0
+                    ? "border-emerald-400 bg-emerald-400/15 text-emerald-200"
+                    : "border-white/10 bg-neutral-950 text-neutral-300"
+                }`}
+              >
+                両日
+              </button>
+              {festivalDays.map((day, i) => {
+                const chosen = openDays.length === 1 && openDays[0] === day;
+                const [, month, d] = day.split("-");
+                return (
+                  <button
+                    key={day}
+                    type="button"
+                    onClick={() => {
+                      setOpenDays([day]);
+                      setSaved(false);
+                    }}
+                    className={`rounded-lg border px-3 py-1.5 text-sm ${
+                      chosen
+                        ? "border-emerald-400 bg-emerald-400/15 text-emerald-200"
+                        : "border-white/10 bg-neutral-950 text-neutral-300"
+                    }`}
+                  >
+                    {i + 1}日目（{Number(month)}/{Number(d)}）だけ
+                  </button>
+                );
+              })}
+            </div>
+            <p className="mt-1.5 text-[13px] text-neutral-400">
+              1日だけの企画は、来場者の一覧に「{festivalDays[0]
+                ? `${Number(festivalDays[0].split("-")[1])}/${Number(
+                    festivalDays[0].split("-")[2],
+                  )}のみ`
+                : "9/19のみ"}
+              」と出ます。
+            </p>
+          </div>
+
           <div className="mt-3 rounded-lg border border-white/10 bg-neutral-950/70 p-3">
             <label className="flex items-center gap-2 text-sm">
               <input
@@ -463,7 +522,8 @@ function BoothDetailForm({
               待ち時間の仕組みを使う
             </label>
             <p className="mt-1 text-[13px] text-neutral-400">
-              入れると、企画担当者が待ちグループ数を入力でき、来場者のマップに待ち時間が出ます。
+              入れると、企画担当者が混みぐあい（5段階）を選べるようになり、来場者のマップに色で出ます。
+              入れない企画は「混雑の情報なし」の色になります。
             </p>
             {hasWaiting && (
               <label className="mt-2 block">

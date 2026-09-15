@@ -103,6 +103,9 @@ export type Booth = {
   // 運営がドラッグで動かしたときだけ入る。未設定なら部屋名の中心に置く。
   pinX: number | null;
   pinY: number | null;
+  // 開催する日（"2026-09-19" の形）。
+  // 空のときは「どちらの日もやる」という意味。1日だけの企画のときに使う。
+  openDays: string[];
   // 混雑のぐあいを出す企画かどうか。展示のように並ばない企画は false。
   hasWaiting: boolean;
   // 企画担当者が選んだ混雑のぐあい（1〜5）。まだ選んでいなければ null。
@@ -140,6 +143,9 @@ function docToBooth(d: {
     roomName: data.roomName ?? null,
     pinX: typeof data.pinX === "number" ? data.pinX : null,
     pinY: typeof data.pinY === "number" ? data.pinY : null,
+    openDays: Array.isArray(data.openDays)
+      ? (data.openDays as string[]).filter((d) => typeof d === "string")
+      : [],
     hasWaiting: !!data.hasWaiting,
     crowdLevel:
       typeof data.crowdLevel === "number" &&
@@ -202,6 +208,9 @@ export async function getBoothByToken(token: string): Promise<Booth | null> {
     roomName: data.roomName ?? null,
     pinX: typeof data.pinX === "number" ? data.pinX : null,
     pinY: typeof data.pinY === "number" ? data.pinY : null,
+    openDays: Array.isArray(data.openDays)
+      ? (data.openDays as string[]).filter((d) => typeof d === "string")
+      : [],
     hasWaiting: !!data.hasWaiting,
     crowdLevel:
       typeof data.crowdLevel === "number" &&
@@ -241,6 +250,9 @@ export function subscribeBooths(
         roomName: data.roomName ?? null,
         pinX: typeof data.pinX === "number" ? data.pinX : null,
         pinY: typeof data.pinY === "number" ? data.pinY : null,
+        openDays: Array.isArray(data.openDays)
+          ? (data.openDays as string[]).filter((d) => typeof d === "string")
+          : [],
         hasWaiting: !!data.hasWaiting,
         crowdLevel:
           typeof data.crowdLevel === "number" &&
@@ -279,6 +291,7 @@ export async function updateBooth(
       Booth,
       | "description"
       | "genre"
+      | "openDays"
       | "crowdLevel"
       | "waitingGroups"
       | "timePerGroup"
@@ -859,6 +872,7 @@ export async function createBooth(input: NewBoothInput): Promise<string> {
     roomName: null,
     pinX: null,
     pinY: null,
+    openDays: [],
     hasWaiting: input.hasWaiting ?? false,
     crowdLevel: null,
     waitingGroups: 0,

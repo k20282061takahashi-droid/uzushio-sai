@@ -16,6 +16,7 @@ import {
   CLASS_GROUP_LABELS,
   classGroupOf,
   compareByClass,
+  openDayLabel,
 } from "@/lib/boothGrouping";
 import { matchesSearch } from "@/lib/searchText";
 import { pinLook } from "@/lib/waitColor";
@@ -201,8 +202,16 @@ function BoothsPageInner() {
                     {look.text}
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate font-heading text-base font-black text-kosei-800">
-                      {b.projectName || b.name}
+                    <span className="flex items-center gap-1.5">
+                      <span className="min-w-0 truncate font-heading text-base font-black text-kosei-800">
+                        {b.projectName || b.name}
+                      </span>
+                      {/* 片方の日しかやらない企画は、その場で分かるようにする */}
+                      {openDayLabel(b) && (
+                        <span className="shrink-0 rounded-full border border-warn-800 px-1.5 py-[1px] text-[10px] font-bold text-warn-800">
+                          {openDayLabel(b)}
+                        </span>
+                      )}
                     </span>
                     <span className="block truncate text-[13px] font-bold text-kosei-600">
                       {b.name}

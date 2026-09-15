@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { GENRE_LABELS, type Booth } from "@/lib/booth";
 import { crowdLevelOfBooth } from "@/lib/boothPlacement";
+import { openDayLabel } from "@/lib/boothGrouping";
 import { crowdInfo } from "@/lib/waitColor";
 import { loadSignboard } from "@/lib/signboard";
 
@@ -81,6 +82,13 @@ export default function BoothDetail({ booth }: { booth: Booth }) {
         ) : (
           <span className="rounded-full bg-success-600 px-3 py-1 text-sm font-bold text-white">
             開催中
+          </span>
+        )}
+
+        {/* 片方の日しかやらない企画は、混雑の表示のとなりに出す */}
+        {openDayLabel(booth) && (
+          <span className="rounded-full border-2 border-warn-800 px-3 py-1 text-sm font-bold text-warn-800">
+            {openDayLabel(booth)}
           </span>
         )}
 
