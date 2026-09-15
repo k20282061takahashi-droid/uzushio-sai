@@ -29,6 +29,10 @@ import {
   subscribeVisitorAnnouncements,
 } from "@/lib/booth";
 import { todayInJapan } from "@/lib/visits";
+import { crowdLevelOfBooth } from "@/lib/boothPlacement";
+import { isWaitingStale } from "@/lib/boothGrouping";
+import { crowdInfo } from "@/lib/waitColor";
+import { Card, Row, StatCard } from "./ui";
 
 type FloatKind =
   "none" | "emergency" | "staffAlert" | "announcement" | "timetable" | "lost";
@@ -43,55 +47,8 @@ function formatTime(ms: number | null): string {
   });
 }
 
-// カードの共通の見た目。押すとフロート画面が開く。
-function ClickableCard({
-  title,
-  badge,
-  badgeTone = "normal",
-  onClick,
-  children,
-  action,
-}: {
-  title: string;
-  badge?: string;
-  badgeTone?: "normal" | "alert";
-  onClick: () => void;
-  children: React.ReactNode;
-  action?: React.ReactNode;
-}) {
-  return (
-    <section
-      onClick={onClick}
-      className={`flex h-full cursor-pointer flex-col rounded-xl border p-4 transition-colors ${
-        badgeTone === "alert"
-          ? "border-red-500/45 bg-red-500/10 hover:bg-red-500/15"
-          : "border-white/12 bg-neutral-950/70 hover:border-white/25 hover:bg-white/[0.05]"
-      }`}
-    >
-      <div className="mb-2 flex shrink-0 items-center justify-between gap-2">
-        <h2 className="text-sm font-medium tracking-[0.04em] text-neutral-200">
-          {title}
-          {badge && (
-            <span
-              className={`ml-2 rounded-full px-3 py-1 text-[13px] ${
-                badgeTone === "alert"
-                  ? "bg-red-500 font-medium text-white"
-                  : "border border-white/15 text-neutral-300"
-              }`}
-            >
-              {badge}
-            </span>
-          )}
-        </h2>
-        {action}
-      </div>
-      <div className="min-h-0 flex-1 overflow-hidden">{children}</div>
-      <p className="mt-2 shrink-0 text-right text-[12px] text-neutral-500">
-        押すと詳しく見られます →
-      </p>
-    </section>
-  );
-}
+// カードの見た目は ./ui.tsx の Card / StatCard / Row にまとめてある。
+// （2026-09-15、ここにあった ClickableCard はそちらへ移した）
 
 export default function OverallTab({
   onDataUpdate,
@@ -185,6 +142,69 @@ export default function OverallTab({
     selectedDay && sortedDays.includes(selectedDay) ? selectedDay : autoDay;
   const todaysEvents = events.filter((e) => e.day === shownDay);
 
+  // いま進行中のイベントと、次に始まるイベント。
+  // 表示している日が今日のときだけ意味があるので、それ以外は null にする。
+  const nowMinutes = now
+    ? (() => {
+        const d = new Date(now);
+        return d.getHours() * 60 + d.getMinutes();
+      })()
+    : null;
+  const sortedTodaysEvents = [...todaysEvents].sort(
+    (a, b) => (parseTime(a.startAt) ?? 0) - (parseTime(b.startAt) ?? 0),
+  );
+  const isShowingToday = shownDay === today;
+  const currentEvent =
+    isShowingToday && nowMinutes !== null
+      ? (sortedTodaysEvents.find((e) => {
+          const start = parseTime(e.startAt);
+          const end = parseTime(e.endAt) ?? (start !== null ? start + 60 : null);
+          return (
+            e.status !== "cancelled" &&
+            start !== null &&
+            end !== null &&
+            start <= nowMinutes &&
+            nowMinutes < end
+          );
+        }) ?? null)
+      : null;
+  const nextEvent =
+    isShowingToday && nowMinutes !== null
+      ? (sortedTodaysEvents.find((e) => {
+          const start = parseTime(e.startAt);
+          return (
+            e.status !== "cancelled" && start !== null && start > nowMinutes
+          );
+        }) ?? null)
+      : (sortedTodaysEvents[0] ?? null);
+
+  // ------------------------------------------------------------------
+  // 「いま手を打つべきこと」をまとめて数える。
+  //
+  // 今までは緊急連絡・未更新・未設定がバラバラの場所に出ていて、
+  // 全部を見て回らないと安心できなかった。1つの数字にまとめて、
+  // ここが0なら大丈夫、という見方ができるようにする。
+  // ------------------------------------------------------------------
+  // 混みぐあいを長く更新していない企画（来場者に古い情報が出続けてしまう）
+  const staleBooths = now
+    ? booths.filter((b) => isWaitingStale(b, now))
+    : [];
+  // 企画名が入っていない企画（来場者の一覧にクラス名しか出ない）
+  const unsetBooths = booths.filter((b) => !b.projectName);
+  const attentionCount =
+    openAlerts.length + staleBooths.length + unsetBooths.length;
+
+  // 混んでいる企画。4（並ぶかも）以上を、混んでいる順に。
+  const busyBooths = booths
+    .filter((b) => b.status === "open")
+    .map((b) => ({ booth: b, level: crowdLevelOfBooth(b) }))
+    .filter(
+      (x): x is { booth: Booth; level: 4 | 5 } =>
+        x.level !== null && x.level >= 4,
+    )
+    .sort((a, b) => b.level - a.level)
+    .slice(0, 6);
+
   // 1日目・2日目を切り替えるボタン。開催日が2日以上あるときだけ出す。
   // カードの中に置くので、押してもカード全体のクリック（フロートを開く）が
   // 起きないように stopPropagation している。
@@ -215,80 +235,132 @@ export default function OverallTab({
   }
 
   return (
-    <div className="flex h-full flex-col gap-4">
-      {/* 上部バー */}
-      <section className="flex shrink-0 flex-col items-center gap-4 rounded-xl border border-white/10 bg-neutral-950/70 p-4 sm:flex-row sm:flex-wrap sm:justify-between">
-        <div className="w-full sm:w-auto">
-          <p className="text-xs text-neutral-400">
-            {phase === "before" ? "文化祭前" : "文化祭中"}
-          </p>
-          <button
-            onClick={() => setConfirmOpen(true)}
-            disabled={updating}
-            className={
-              phase === "before"
-                ? "mt-1 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-bold text-white active:scale-95 disabled:opacity-50"
-                : "mt-1 rounded-lg bg-neutral-900/75 px-4 py-2 text-sm font-bold active:scale-95 disabled:opacity-50"
-            }
-          >
-            {phase === "before" ? "文化祭を開始する" : "文化祭前の状態に戻す"}
-          </button>
-          {/* 開始前は、来場者には「文化祭まであと○日」だけが見える。
-              関係者が本番と同じ画面を確認するための入口を案内しておく。 */}
-          {phase === "before" && (
-            <p className="mt-2 text-[11px] leading-relaxed text-neutral-400">
-              いまは来場者に「文化祭まであと○日」だけが見えています。
-              <br />
-              本番と同じ画面を確認するには{" "}
-              <a
-                href="/test"
-                target="_blank"
-                rel="noreferrer"
-                className="underline decoration-neutral-500 underline-offset-2 hover:text-neutral-200"
+    <div className="flex h-full flex-col gap-3">
+      {/* ===== 上段：数字を見るだけの3枚 =====
+          本部の机から少し離れても読めるよう、数字を大きくしている。 */}
+      <div className="grid shrink-0 grid-cols-1 gap-3 sm:grid-cols-3">
+        {/* ❶ いま手を打つべきこと。ここが0なら安心、という一点にする */}
+        <StatCard
+          label="要対応"
+          value={attentionCount}
+          unit="件"
+          tone={attentionCount > 0 ? "alert" : "normal"}
+          onClick={
+            openAlerts.length > 0 ? () => setFloat("emergency") : undefined
+          }
+          sub={
+            attentionCount === 0 ? (
+              <span className="text-neutral-500">いまは大丈夫です</span>
+            ) : (
+              <span className="flex flex-wrap gap-x-3 gap-y-0.5">
+                {openAlerts.length > 0 && (
+                  <span className="text-danger-600">
+                    緊急 {openAlerts.length}
+                  </span>
+                )}
+                {staleBooths.length > 0 && (
+                  <span className="text-warn-600">
+                    混雑が未更新 {staleBooths.length}
+                  </span>
+                )}
+                {unsetBooths.length > 0 && (
+                  <span className="text-neutral-400">
+                    企画名が未入力 {unsetBooths.length}
+                  </span>
+                )}
+              </span>
+            )
+          }
+        />
+
+        {/* ❷ 来場者数 */}
+        <Card title="来場者数">
+          <VisitorCountPanel />
+        </Card>
+
+        {/* ❸ 開催の状態 */}
+        <Card
+          title="開催の状態"
+          tone={phase === "during" ? "accent" : "normal"}
+        >
+          <div className="flex h-full flex-col justify-between gap-2">
+            <div>
+              <p
+                className={`text-[1.75rem] font-medium leading-tight ${
+                  phase === "during" ? "text-org-500" : "text-neutral-100"
+                }`}
               >
-                /test
-              </a>{" "}
-              を開いてください（この端末だけ）。
-            </p>
-          )}
-        </div>
-
-        <VisitorCountPanel />
-
-        {/* 数字は白で統一し、色は見出しの小さな点だけに持たせる。
-            大きい数字が3色並ぶと、どれが重要なのか分からなくなるため。 */}
-        <div className="flex w-full justify-center gap-7 text-center sm:w-auto">
-          {[
-            { n: counts.open, label: "開催中", dot: "bg-emerald-400" },
-            { n: counts.break, label: "休憩中", dot: "bg-amber-400" },
-            { n: counts.closed, label: "終了", dot: "bg-neutral-600" },
-          ].map((c) => (
-            <div key={c.label}>
-              <p className="text-2xl font-medium tabular-nums text-neutral-100">
-                {c.n}
+                {phase === "before" ? "文化祭前" : "文化祭中"}
               </p>
-              <p className="flex items-center justify-center gap-1.5 text-xs text-neutral-400">
-                <span className={`h-1.5 w-1.5 rounded-full ${c.dot}`} />
-                {c.label}
-              </p>
+              <div className="mt-1 flex gap-4 text-[12px] text-neutral-400">
+                <span>
+                  開催中{" "}
+                  <span className="text-neutral-200 tabular-nums">
+                    {counts.open}
+                  </span>
+                </span>
+                <span>
+                  休憩{" "}
+                  <span className="text-neutral-200 tabular-nums">
+                    {counts.break}
+                  </span>
+                </span>
+                <span>
+                  終了{" "}
+                  <span className="text-neutral-200 tabular-nums">
+                    {counts.closed}
+                  </span>
+                </span>
+              </div>
             </div>
-          ))}
-        </div>
-      </section>
+            <div>
+              <button
+                onClick={() => setConfirmOpen(true)}
+                disabled={updating}
+                className={
+                  phase === "before"
+                    ? "w-full rounded-lg bg-org-500 px-4 py-2 text-sm font-medium text-neutral-950 active:scale-95 disabled:opacity-50"
+                    : "w-full rounded-lg border border-white/15 px-4 py-2 text-sm text-neutral-300 active:scale-95 disabled:opacity-50"
+                }
+              >
+                {phase === "before" ? "文化祭を開始する" : "文化祭前に戻す"}
+              </button>
+              {phase === "before" && (
+                <p className="mt-1.5 text-[11px] leading-relaxed text-neutral-500">
+                  来場者には「あと○日」だけが見えています。本番の画面は{" "}
+                  <a
+                    href="/test"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-org-300 underline underline-offset-2"
+                  >
+                    /test
+                  </a>
+                </p>
+              )}
+            </div>
+          </div>
+        </Card>
+      </div>
 
-      {/* 本体：左（緊急・連絡）／中央（企画の状況）／右（イベント・落とし物） */}
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-10">
-        {/* 左 */}
-        <div className="flex min-h-0 flex-col gap-4 lg:col-span-3">
-          <div className="min-h-[13rem] flex-1 lg:min-h-0">
-            <ClickableCard
+      {/* ===== 中段：作業する場所 ===== */}
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 lg:grid-cols-12">
+        {/* 左：いちばん長く見る「企画の状況」を最大に */}
+        <div className="flex min-h-0 flex-col gap-3 lg:col-span-7">
+          <div className="min-h-[24rem] flex-1 lg:min-h-0">
+            <BoothStatusList booths={booths} now={now} />
+          </div>
+
+          {/* 対応待ちのもの。0件なら静かに、1件でもあれば色がつく */}
+          <div className="grid shrink-0 grid-cols-1 gap-3 sm:grid-cols-2">
+            <Card
               title="緊急連絡"
               badge={
                 openAlerts.length > 0
                   ? `${openAlerts.length}件 未対応`
                   : undefined
               }
-              badgeTone={openAlerts.length > 0 ? "alert" : "normal"}
+              tone={openAlerts.length > 0 ? "alert" : "normal"}
               onClick={() => setFloat("emergency")}
               action={
                 <button
@@ -296,180 +368,211 @@ export default function OverallTab({
                     e.stopPropagation();
                     setFloat("staffAlert");
                   }}
-                  className="rounded-lg bg-red-500 px-3.5 py-2 text-sm font-bold text-white active:scale-95"
+                  className="rounded-lg bg-danger-800 px-3 py-1.5 text-[12px] font-medium text-white active:scale-95"
                 >
                   一斉連絡
                 </button>
               }
+              className="h-[11.5rem]"
+              bodyClassName="overflow-y-auto"
             >
               {openAlerts.length === 0 ? (
-                <p className="text-xs text-neutral-400">緊急連絡はありません</p>
-              ) : (
-                <ul className="space-y-1.5">
-                  {openAlerts.slice(0, 4).map((a) => (
-                    <li
-                      key={a.id}
-                      className="rounded-lg bg-red-500/15 px-3 py-2 text-sm"
-                    >
-                      <p className="truncate font-medium">{a.boothName}</p>
-                      {a.message && (
-                        <p className="truncate text-[13px] text-neutral-300">
-                          {a.message}
-                        </p>
-                      )}
-                    </li>
-                  ))}
-                  {openAlerts.length > 4 && (
-                    <li className="text-[13px] text-neutral-400">
-                      ほか{openAlerts.length - 4}件
-                    </li>
-                  )}
-                </ul>
-              )}
-            </ClickableCard>
-          </div>
-
-          <div className="min-h-[13rem] flex-1 lg:min-h-0">
-            <ClickableCard
-              title="連絡"
-              onClick={() => setFloat("announcement")}
-              action={
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setFloat("announcement");
-                  }}
-                  className="rounded-lg bg-emerald-500 px-3.5 py-2 text-sm font-bold text-white active:scale-95"
-                >
-                  ＋ 新規
-                </button>
-              }
-            >
-              {allAnnouncements.length === 0 ? (
-                <p className="text-xs text-neutral-400">まだ送信していません</p>
-              ) : (
-                <ul className="space-y-1.5">
-                  {allAnnouncements.slice(0, 5).map((a) => (
-                    <li
-                      key={a.id}
-                      className="rounded-lg bg-neutral-950/70 px-3 py-2 text-sm"
-                    >
-                      <p className="truncate font-medium">
-                        {a.pinned && (
-                          <PinIcon className="mr-1 inline h-4 w-4 text-amber-400" />
-                        )}
-                        {a.title}
-                      </p>
-                      <p className="text-[12px] text-neutral-400">
-                        {formatTime(a.createdAt)}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </ClickableCard>
-          </div>
-        </div>
-
-        {/* 中央 */}
-        <div className="min-h-[26rem] lg:min-h-0 lg:col-span-4">
-          <BoothStatusList booths={booths} now={now} />
-        </div>
-
-        {/* 右 */}
-        <div className="flex min-h-0 flex-col gap-4 lg:col-span-3">
-          <div className="min-h-[13rem] flex-1 lg:min-h-0">
-            <ClickableCard
-              title="イベントのタイムテーブル"
-              badge={shownDay || undefined}
-              action={dayTabs}
-              onClick={() => setFloat("timetable")}
-            >
-              {todaysEvents.length === 0 ? (
-                <p className="text-xs text-neutral-400">
-                  この日のイベントは登録されていません
+                <p className="text-[12px] text-neutral-500">
+                  緊急連絡はありません
                 </p>
               ) : (
-                <ul className="space-y-1">
-                  {[...todaysEvents]
-                    .sort(
-                      (a, b) =>
-                        (parseTime(a.startAt) ?? 0) -
-                        (parseTime(b.startAt) ?? 0),
-                    )
-                    .slice(0, 6)
-                    .map((e) => (
-                      <li
-                        key={e.id}
-                        className="flex items-center gap-2 rounded-lg bg-neutral-950/70 px-2 py-1 text-xs"
-                      >
-                        <span className="shrink-0 font-mono text-[13px] text-neutral-400">
-                          {e.startAt ?? "--:--"}
-                          {e.endAt ? `〜${e.endAt}` : ""}
-                        </span>
-                        <span className="truncate">
-                          {e.name || "（未設定）"}
-                        </span>
-                        {e.delayed && (
-                          <span className="ml-auto shrink-0 text-[12px] text-amber-300">
-                            遅延
-                          </span>
-                        )}
-                      </li>
-                    ))}
-                </ul>
+                <div>
+                  {openAlerts.slice(0, 5).map((a) => (
+                    <Row
+                      key={a.id}
+                      dot="bg-danger-600"
+                      title={a.boothName}
+                      sub={a.message || undefined}
+                    />
+                  ))}
+                  {openAlerts.length > 5 && (
+                    <p className="pt-1.5 text-[12px] text-neutral-500">
+                      ほか{openAlerts.length - 5}件
+                    </p>
+                  )}
+                </div>
               )}
-            </ClickableCard>
-          </div>
+            </Card>
 
-          <div className="min-h-[15rem] flex-1 lg:min-h-0">
-            <ClickableCard
+            <Card
               title="落とし物"
               badge={unclaimed.length > 0 ? `${unclaimed.length}件` : undefined}
               onClick={() => setFloat("lost")}
+              className="h-[11.5rem]"
+              bodyClassName="overflow-y-auto"
             >
               {unclaimed.length === 0 ? (
-                <p className="text-sm text-neutral-400">
+                <p className="text-[12px] text-neutral-500">
                   お預かり中の落とし物はありません
                 </p>
               ) : (
-                <ul className="space-y-2">
-                  {unclaimed.slice(0, 4).map((item) => (
-                    <li
+                <div>
+                  {unclaimed.slice(0, 5).map((item) => (
+                    <Row
                       key={item.id}
-                      className="flex items-center gap-3 rounded-lg bg-neutral-950/70 p-2"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium">
-                          {item.description || "（内容未入力）"}
-                        </p>
-                        <p className="truncate text-[13px] text-neutral-400">
-                          拾得: {item.foundLocation || "-"}
-                        </p>
-                        <p className="truncate text-[13px] text-neutral-400">
-                          保管: {item.storageLocation || "-"}
-                        </p>
-                      </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          markLostItemClaimed(item.id);
-                        }}
-                        className="shrink-0 self-center rounded-lg bg-neutral-900/90 px-4 py-2.5 text-sm font-medium active:scale-95"
-                      >
-                        返却済み
-                      </button>
-                    </li>
+                      title={item.description || "（内容未入力）"}
+                      sub={`拾得 ${item.foundLocation || "-"} ／ 保管 ${
+                        item.storageLocation || "-"
+                      }`}
+                      right={
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            markLostItemClaimed(item.id);
+                          }}
+                          className="rounded-lg border border-white/15 px-2.5 py-1 text-[12px] text-neutral-300 active:scale-95"
+                        >
+                          返却済み
+                        </button>
+                      }
+                    />
                   ))}
-                  {unclaimed.length > 4 && (
-                    <li className="text-[13px] text-neutral-400">
-                      ほか{unclaimed.length - 4}件
-                    </li>
+                  {unclaimed.length > 5 && (
+                    <p className="pt-1.5 text-[12px] text-neutral-500">
+                      ほか{unclaimed.length - 5}件
+                    </p>
                   )}
-                </ul>
+                </div>
               )}
-            </ClickableCard>
+            </Card>
           </div>
+        </div>
+
+        {/* 右：当日の判断に使うもの */}
+        <div className="flex min-h-0 flex-col gap-3 lg:col-span-5">
+          {/* ❺ いま進行中のイベント。時計と表を見比べる作業をなくす */}
+          <Card
+            title="イベントの進行"
+            badge={shownDay || undefined}
+            action={dayTabs}
+            onClick={() => setFloat("timetable")}
+            className="shrink-0"
+          >
+            {currentEvent ? (
+              <div className="rounded-xl border border-org-700 bg-org-900/60 px-3 py-2.5">
+                <p className="text-[11px] tracking-[0.08em] text-org-300">
+                  いま進行中
+                </p>
+                <p className="mt-0.5 truncate text-[15px] font-medium text-neutral-100">
+                  {currentEvent.name || "（未設定）"}
+                </p>
+                <p className="text-[12px] text-neutral-400">
+                  {currentEvent.startAt}
+                  {currentEvent.endAt ? `〜${currentEvent.endAt}` : ""}
+                  {currentEvent.venue ? ` ・ ${currentEvent.venue}` : ""}
+                </p>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-white/10 px-3 py-2.5">
+                <p className="text-[12px] text-neutral-500">
+                  {isShowingToday
+                    ? "いま進行中のイベントはありません"
+                    : "この日の予定を表示しています"}
+                </p>
+              </div>
+            )}
+
+            {nextEvent && (
+              <div className="mt-2 flex items-center gap-2 px-1">
+                <span className="shrink-0 text-[11px] tracking-[0.08em] text-neutral-500">
+                  つぎ
+                </span>
+                <span className="shrink-0 font-mono text-[13px] text-neutral-300">
+                  {nextEvent.startAt ?? "--:--"}
+                </span>
+                <span className="truncate text-[13px] text-neutral-200">
+                  {nextEvent.name || "（未設定）"}
+                </span>
+                {nextEvent.delayed && (
+                  <span className="ml-auto shrink-0 text-[12px] text-warn-600">
+                    遅延
+                  </span>
+                )}
+              </div>
+            )}
+          </Card>
+
+          {/* ❻ 混んでいる企画。案内係をどこへ動かすかの判断に直結する */}
+          <Card
+            title="混んでいる企画"
+            badge={busyBooths.length > 0 ? `${busyBooths.length}件` : undefined}
+            tone={busyBooths.length > 0 ? "warn" : "normal"}
+            className="min-h-[10rem] flex-1"
+            bodyClassName="overflow-y-auto"
+          >
+            {busyBooths.length === 0 ? (
+              <p className="text-[12px] text-neutral-500">
+                いま混んでいる企画はありません
+              </p>
+            ) : (
+              <div>
+                {busyBooths.map(({ booth, level }) => (
+                  <Row
+                    key={booth.id}
+                    title={booth.projectName || booth.name}
+                    sub={`${booth.name}${
+                      booth.location ? ` ・ ${booth.location}` : ""
+                    }`}
+                    right={
+                      <span
+                        className="text-[12px] font-medium"
+                        style={{ color: crowdInfo(level).color }}
+                      >
+                        {crowdInfo(level).label}
+                      </span>
+                    }
+                  />
+                ))}
+              </div>
+            )}
+          </Card>
+
+          {/* ❾ 連絡 */}
+          <Card
+            title="連絡"
+            onClick={() => setFloat("announcement")}
+            action={
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setFloat("announcement");
+                }}
+                className="rounded-lg bg-org-500 px-3 py-1.5 text-[12px] font-medium text-neutral-950 active:scale-95"
+              >
+                ＋ 新規
+              </button>
+            }
+            className="h-[11.5rem] shrink-0"
+            bodyClassName="overflow-y-auto"
+          >
+            {allAnnouncements.length === 0 ? (
+              <p className="text-[12px] text-neutral-500">
+                まだ送信していません
+              </p>
+            ) : (
+              <div>
+                {allAnnouncements.slice(0, 5).map((a) => (
+                  <Row
+                    key={a.id}
+                    title={
+                      <span className="flex items-center gap-1">
+                        {a.pinned && (
+                          <PinIcon className="h-3.5 w-3.5 shrink-0 text-warn-600" />
+                        )}
+                        <span className="truncate">{a.title}</span>
+                      </span>
+                    }
+                    sub={formatTime(a.createdAt)}
+                  />
+                ))}
+              </div>
+            )}
+          </Card>
         </div>
       </div>
 
