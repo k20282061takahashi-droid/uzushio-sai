@@ -12,6 +12,11 @@ import { todayInJapan } from "@/lib/visits";
 import { compareVenues } from "@/lib/boothGrouping";
 
 const PX_PER_MIN = 1.8;
+// 時刻をならべる左の列の幅
+const TIME_COL_WIDTH = 40;
+// 会場1つあたりの最低の幅。会場が増えてこの幅に収まらなくなったら、
+// 表を横にスクロールして見られるようにする（つぶれて読めなくなるのを防ぐ）。
+const MIN_COL_WIDTH = 116;
 const DEFAULT_START = 9 * 60; // 9:00
 const DEFAULT_END = 16 * 60; // 16:00
 
@@ -40,6 +45,8 @@ export default function TimelinePage() {
   const [allEvents, setAllEvents] = useState<FestivalEvent[]>([]);
   const [dayIndex, setDayIndex] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // 会場をひとつだけに絞って見るとき、その会場名。null は「すべての会場」
+  const [venueFilter, setVenueFilter] = useState<string | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const scrolled = useRef(false);
   const pickedInitialDay = useRef(false);
@@ -72,7 +79,7 @@ export default function TimelinePage() {
   );
 
   // 表示する時間の幅は、その日のイベントに合わせて自動で決める
-  const { axisStart, axisEnd, hourMarks, venues } = useMemo(() => {
+  const { axisStart, axisEnd, hourMarks, allVenues } = useMemo(() => {
     let min = DEFAULT_START;
     let max = DEFAULT_END;
     for (const e of events) {
@@ -90,9 +97,19 @@ export default function TimelinePage() {
       axisStart: min,
       axisEnd: max,
       hourMarks: marks,
-      venues: uniqueVenues.length > 0 ? uniqueVenues : ["会場未定"],
+      allVenues: uniqueVenues.length > 0 ? uniqueVenues : ["会場未定"],
     };
   }, [events]);
+
+  // 会場をひとつ選んでいるときは、その列だけを出す
+  const venues =
+    venueFilter && allVenues.includes(venueFilter) ? [venueFilter] : allVenues;
+  const shownEvents = venueFilter
+    ? events.filter((e) => (e.venue || "会場未定") === venueFilter)
+    : events;
+
+  // 表の中身の幅。画面より広くなったら横スクロールになる
+  const boardMinWidth = TIME_COL_WIDTH + venues.length * MIN_COL_WIDTH;
 
   const totalHeight = (axisEnd - axisStart) * PX_PER_MIN;
 
@@ -109,7 +126,8 @@ export default function TimelinePage() {
 
     const timer = setTimeout(() => {
       const rect = el.getBoundingClientRect();
-      const lineY = rect.top + window.scrollY + (nowMin - axisStart) * PX_PER_MIN;
+      const lineY =
+        rect.top + window.scrollY + (nowMin - axisStart) * PX_PER_MIN;
       window.scrollTo({
         top: Math.max(0, lineY - window.innerHeight / 2),
         behavior: "smooth",
@@ -138,7 +156,10 @@ export default function TimelinePage() {
           {days.map((day, i) => (
             <button
               key={day}
-              onClick={() => setDayIndex(i)}
+              onClick={() => {
+                setDayIndex(i);
+                setVenueFilter(null);
+              }}
               className={`pressable flex-1 rounded-full border-2 py-2 font-heading text-sm font-black ${
                 i === dayIndex
                   ? "border-kosei-800 bg-kosei-600 text-white shadow-[0_3px_0_var(--color-kosei-800)]"
@@ -157,135 +178,191 @@ export default function TimelinePage() {
         </p>
       ) : (
         <>
-          {venues.length > 1 && (
-            <div className="mb-2 flex text-center text-xs font-bold text-kosei-600">
-              <div style={{ width: 40 }} />
-              {venues.map((v) => (
-                <div key={v} className="flex-1">
-                  {v}
-                </div>
-              ))}
+          {/* 会場が多いときの絞り込み。押した会場だけを大きく見られる */}
+          {allVenues.length > 2 && (
+            <div
+              className="animate-fade-in-up -mx-4 mb-3 overflow-x-auto px-4"
+              style={{ animationDelay: "60ms" }}
+            >
+              <div className="flex w-max gap-2 pb-1">
+                <button
+                  onClick={() => setVenueFilter(null)}
+                  className={`pressable shrink-0 rounded-full border-2 px-3 py-1.5 font-heading text-xs font-black ${
+                    venueFilter === null
+                      ? "border-kosei-800 bg-kosei-600 text-white"
+                      : "border-kosei-600 bg-white text-kosei-700"
+                  }`}
+                >
+                  すべての会場
+                </button>
+                {allVenues.map((v) => (
+                  <button
+                    key={v}
+                    onClick={() => setVenueFilter(v)}
+                    className={`pressable shrink-0 rounded-full border-2 px-3 py-1.5 font-heading text-xs font-black ${
+                      venueFilter === v
+                        ? "border-kosei-800 bg-kosei-600 text-white"
+                        : "border-kosei-600 bg-white text-kosei-700"
+                    }`}
+                  >
+                    {v}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
-          <div
-            className="animate-fade-in-up flex"
-            style={{ animationDelay: "80ms" }}
-          >
-            {/* 時間軸 */}
-            <div className="shrink-0" style={{ width: 40 }}>
-              {hourMarks.map((h) => (
-                <div
-                  key={h}
-                  style={{ height: 60 * PX_PER_MIN }}
-                  className="relative"
-                >
-                  <span className="absolute -top-2 right-1 text-xs font-bold text-kosei-500">
-                    {formatTime(h)}
-                  </span>
-                </div>
-              ))}
-            </div>
+          {/* 画面に収まらない数の会場があるときだけ、スクロールできることを伝える */}
+          {venues.length > 3 && (
+            <p className="mb-1 text-[11px] font-bold text-kosei-500">
+              横にスクロールすると、ほかの会場も見られます ↔
+            </p>
+          )}
 
-            {/* イベントの枠 */}
-            <div
-              ref={gridRef}
-              className="relative flex-1 rounded-lg border-l-2 border-kosei-200"
-              style={{ height: totalHeight }}
-            >
-              {hourMarks.map((h) => (
-                <div
-                  key={h}
-                  className="absolute inset-x-0 border-t-2 border-kosei-100"
-                  style={{ top: (h - axisStart) * PX_PER_MIN }}
-                />
-              ))}
-
-              {events.map((ev, i) => {
-                const start = toMinutes(ev.startAt) ?? axisStart;
-                const end = toMinutes(ev.endAt) ?? start + 50;
-                const colIndex = venues.indexOf(ev.venue || "会場未定");
-                const colWidth = 100 / venues.length;
-                const cancelled = ev.status === "cancelled";
-                const boxHeight = Math.max(24, (end - start) * PX_PER_MIN - 2);
-                // 枠が低いと時刻・名前の2行が入りきらず文字が隠れてしまうため、
-                // 短いイベントは時刻＋名前を1行にまとめてコンパクトに表示する
-                const compact = boxHeight < 44;
-                return (
-                  <button
-                    key={ev.id}
-                    onClick={() => setSelectedId(ev.id)}
-                    className={`animate-fade-in-up absolute overflow-hidden rounded-xl border-2 px-2 py-1 text-left transition-transform active:scale-[0.97] ${
-                      cancelled
-                        ? "border-inkgray-400 bg-inkgray-50"
-                        : ev.delayed
-                          ? "border-warn-800 bg-warn-50"
-                          : "border-kosei-700 bg-white"
-                    }`}
-                    style={{
-                      top: (start - axisStart) * PX_PER_MIN + 1,
-                      height: boxHeight,
-                      left: `${colIndex * colWidth}%`,
-                      width: `${colWidth}%`,
-                      animationDelay: `${80 + i * 40}ms`,
-                    }}
-                  >
-                    {compact ? (
-                      <p className="flex items-center gap-1.5 truncate text-xs">
-                        <span className="shrink-0 text-[10px] font-bold text-kosei-600">
-                          {formatTime(start)}
-                        </span>
-                        <span className="truncate font-heading font-black text-kosei-800">
-                          {ev.name || "（名称未定）"}
-                        </span>
-                        {cancelled && (
-                          <span className="shrink-0 text-[10px] font-bold text-danger-800">
-                            中止
-                          </span>
-                        )}
-                        {!cancelled && ev.delayed && (
-                          <span className="shrink-0 text-[10px] font-bold text-warn-800">
-                            遅れ
-                          </span>
-                        )}
-                      </p>
-                    ) : (
-                      <>
-                        <p className="text-[10px] font-bold text-kosei-600">
-                          {formatTime(start)}〜{formatTime(end)}
-                        </p>
-                        <p className="truncate font-heading text-sm font-black text-kosei-800">
-                          {ev.name || "（名称未定）"}
-                        </p>
-                        {cancelled && (
-                          <p className="text-[10px] font-bold text-danger-800">
-                            中止
-                          </p>
-                        )}
-                        {!cancelled && ev.delayed && (
-                          <p className="text-[10px] font-bold text-warn-800">
-                            開始遅れ
-                          </p>
-                        )}
-                      </>
-                    )}
-                  </button>
-                );
-              })}
-
-              {/* 現在時刻の赤い線 */}
-              {showNowLine && nowMin !== null && (
-                <div
-                  className="pointer-events-none absolute inset-x-0 z-10 flex items-center"
-                  style={{ top: (nowMin - axisStart) * PX_PER_MIN }}
-                >
-                  <span className="-ml-1.5 h-3 w-3 shrink-0 rounded-full bg-red-500" />
-                  <span className="h-[2px] flex-1 bg-red-500" />
-                  <span className="ml-1 shrink-0 rounded bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
-                    {formatTime(nowMin)}
-                  </span>
+          {/* 会場が増えても列がつぶれないよう、はみ出す分は横スクロールにする。
+              左の時刻の列はスクロールしても動かないので、いつでも時間が分かる。 */}
+          <div className="-mx-4 overflow-x-auto px-4 pb-2">
+            <div style={{ minWidth: boardMinWidth }}>
+              {venues.length > 1 && (
+                <div className="mb-2 flex text-center text-xs font-bold text-kosei-600">
+                  <div
+                    className="sticky left-0 z-20 shrink-0 bg-kosei-50"
+                    style={{ width: TIME_COL_WIDTH }}
+                  />
+                  {venues.map((v) => (
+                    <div key={v} className="flex-1 truncate px-1">
+                      {v}
+                    </div>
+                  ))}
                 </div>
               )}
+
+              <div
+                className="animate-fade-in-up flex"
+                style={{ animationDelay: "80ms" }}
+              >
+                {/* 時間軸 */}
+                <div
+                  className="sticky left-0 z-20 shrink-0 bg-kosei-50"
+                  style={{ width: TIME_COL_WIDTH }}
+                >
+                  {hourMarks.map((h) => (
+                    <div
+                      key={h}
+                      style={{ height: 60 * PX_PER_MIN }}
+                      className="relative"
+                    >
+                      <span className="absolute -top-2 right-1 text-xs font-bold text-kosei-500">
+                        {formatTime(h)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* イベントの枠 */}
+                <div
+                  ref={gridRef}
+                  className="relative flex-1 rounded-lg border-l-2 border-kosei-200"
+                  style={{ height: totalHeight }}
+                >
+                  {hourMarks.map((h) => (
+                    <div
+                      key={h}
+                      className="absolute inset-x-0 border-t-2 border-kosei-100"
+                      style={{ top: (h - axisStart) * PX_PER_MIN }}
+                    />
+                  ))}
+
+                  {shownEvents.map((ev, i) => {
+                    const start = toMinutes(ev.startAt) ?? axisStart;
+                    const end = toMinutes(ev.endAt) ?? start + 50;
+                    const colIndex = venues.indexOf(ev.venue || "会場未定");
+                    const colWidth = 100 / venues.length;
+                    const cancelled = ev.status === "cancelled";
+                    const boxHeight = Math.max(
+                      24,
+                      (end - start) * PX_PER_MIN - 2,
+                    );
+                    // 枠が低いと時刻・名前の2行が入りきらず文字が隠れてしまうため、
+                    // 短いイベントは時刻＋名前を1行にまとめてコンパクトに表示する
+                    const compact = boxHeight < 44;
+                    return (
+                      <button
+                        key={ev.id}
+                        onClick={() => setSelectedId(ev.id)}
+                        className={`animate-fade-in-up absolute overflow-hidden rounded-xl border-2 px-2 py-1 text-left transition-transform active:scale-[0.97] ${
+                          cancelled
+                            ? "border-inkgray-400 bg-inkgray-50"
+                            : ev.delayed
+                              ? "border-warn-800 bg-warn-50"
+                              : "border-kosei-700 bg-white"
+                        }`}
+                        style={{
+                          top: (start - axisStart) * PX_PER_MIN + 1,
+                          height: boxHeight,
+                          left: `${colIndex * colWidth}%`,
+                          width: `${colWidth}%`,
+                          animationDelay: `${80 + i * 40}ms`,
+                        }}
+                      >
+                        {compact ? (
+                          <p className="flex items-center gap-1.5 truncate text-xs">
+                            <span className="shrink-0 text-[10px] font-bold text-kosei-600">
+                              {formatTime(start)}
+                            </span>
+                            <span className="truncate font-heading font-black text-kosei-800">
+                              {ev.name || "（名称未定）"}
+                            </span>
+                            {cancelled && (
+                              <span className="shrink-0 text-[10px] font-bold text-danger-800">
+                                中止
+                              </span>
+                            )}
+                            {!cancelled && ev.delayed && (
+                              <span className="shrink-0 text-[10px] font-bold text-warn-800">
+                                遅れ
+                              </span>
+                            )}
+                          </p>
+                        ) : (
+                          <>
+                            <p className="text-[10px] font-bold text-kosei-600">
+                              {formatTime(start)}〜{formatTime(end)}
+                            </p>
+                            <p className="truncate font-heading text-sm font-black text-kosei-800">
+                              {ev.name || "（名称未定）"}
+                            </p>
+                            {cancelled && (
+                              <p className="text-[10px] font-bold text-danger-800">
+                                中止
+                              </p>
+                            )}
+                            {!cancelled && ev.delayed && (
+                              <p className="text-[10px] font-bold text-warn-800">
+                                開始遅れ
+                              </p>
+                            )}
+                          </>
+                        )}
+                      </button>
+                    );
+                  })}
+
+                  {/* 現在時刻の赤い線 */}
+                  {showNowLine && nowMin !== null && (
+                    <div
+                      className="pointer-events-none absolute inset-x-0 z-10 flex items-center"
+                      style={{ top: (nowMin - axisStart) * PX_PER_MIN }}
+                    >
+                      <span className="-ml-1.5 h-3 w-3 shrink-0 rounded-full bg-red-500" />
+                      <span className="h-[2px] flex-1 bg-red-500" />
+                      <span className="ml-1 shrink-0 rounded bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                        {formatTime(nowMin)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </>
@@ -319,8 +396,8 @@ export default function TimelinePage() {
                   <>
                     <br />
                     <span className="font-normal">
-                      もとの予定 {selected.originalStartAt} →{" "}
-                      {selected.startAt} 開始
+                      もとの予定 {selected.originalStartAt} → {selected.startAt}{" "}
+                      開始
                     </span>
                   </>
                 )}
