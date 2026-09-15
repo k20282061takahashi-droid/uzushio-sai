@@ -23,15 +23,22 @@ export type CrowdLevelInfo = {
   label: string;
   /** 地図のピンなど、せまい場所に出す短い言葉 */
   short: string;
+  /** 濃い色。白い文字をのせる小さなピンなどに使う */
   color: string;
+  /**
+   * うすい色（パステル）。企画担当者が選ぶボタンのように、面が広くて
+   * 長く見ているところに使う。濃い色で塗ると目が疲れるため。
+   * この上には color の濃い文字をのせる（読みやすさのため）。
+   */
+  soft: string;
 };
 
 export const CROWD_LEVELS: CrowdLevelInfo[] = [
-  { level: 1, label: "すぐ入れる", short: "すぐ", color: "#1F7690" },
-  { level: 2, label: "ちょっと混んでる", short: "少し混", color: "#2E8B8B" },
-  { level: 3, label: "少し待つ", short: "少し待", color: "#C67F16" },
-  { level: 4, label: "並ぶかも", short: "並ぶ", color: "#B85C1E" },
-  { level: 5, label: "結構並ぶ", short: "混雑", color: "#B33A30" },
+  { level: 1, label: "すぐ入れる", short: "すぐ", color: "#1F7690", soft: "#CFE7EF" },
+  { level: 2, label: "ちょっと混んでる", short: "少し混", color: "#2E8B8B", soft: "#CFE8E6" },
+  { level: 3, label: "少し待つ", short: "少し待", color: "#C67F16", soft: "#F6E3C0" },
+  { level: 4, label: "並ぶかも", short: "並ぶ", color: "#B85C1E", soft: "#F5D9C4" },
+  { level: 5, label: "結構並ぶ", short: "混雑", color: "#B33A30", soft: "#F3D0CB" },
 ];
 
 export const PIN_COLORS = {

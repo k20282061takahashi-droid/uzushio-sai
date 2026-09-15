@@ -655,9 +655,11 @@ export default function BoothManagePage() {
                   選んだ内容は、そのまま来場者の地図に出ます
                 </p>
 
-                {/* 接客をしながらでも押せるよう、5つを縦に大きく並べる。
-                    数を数える必要がないので、見た感じで選べる。 */}
-                <div className="flex flex-col gap-2">
+                {/* 5つを横一列の正方形にならべる。
+                    左が空いている・右が混んでいる、と場所で覚えられるので、
+                    接客をしながらでも文字を読まずに押せる。
+                    選んだものだけ、うすい色（パステル）で塗る。 */}
+                <div className="grid grid-cols-5 gap-1.5">
                   {CROWD_LEVELS.map((c) => {
                     const chosen = crowdLevel === c.level;
                     return (
@@ -665,29 +667,58 @@ export default function BoothManagePage() {
                         key={c.level}
                         onClick={() => chooseCrowd(c.level)}
                         disabled={savingWait || booth.status !== "open"}
+                        aria-label={c.label}
                         aria-pressed={chosen}
-                        style={
+                        style={{
+                          aspectRatio: "1 / 1",
+                          backgroundColor: chosen ? c.soft : undefined,
+                          borderColor: chosen ? c.color : undefined,
+                          color: chosen ? c.color : undefined,
+                        }}
+                        className={`chunk flex flex-col items-center justify-center gap-1 rounded-2xl border-2 px-0.5 ${
                           chosen
-                            ? {
-                                backgroundColor: c.color,
-                                boxShadow: "0 6px 0 rgba(0,0,0,0.45)",
-                              }
-                            : undefined
-                        }
-                        className={`chunk font-pop min-h-[3.75rem] rounded-2xl border-2 px-4 text-lg ${
-                          chosen
-                            ? "border-white text-kosei-800"
-                            : "border-kosei-300 bg-kosei-50 text-kosei-700"
+                            ? "shadow-[0_4px_0_rgba(0,0,0,0.18)]"
+                            : "border-kosei-300 bg-white text-kosei-600"
                         } disabled:border-kosei-200 disabled:bg-kosei-50 disabled:text-kosei-300 disabled:shadow-none`}
                       >
-                        <span className="flex items-center justify-center gap-2">
-                          {chosen && <span aria-hidden>✓</span>}
-                          {c.label}
+                        {/* 混みぐあいの目安。左から順に点が増える */}
+                        <span className="flex items-end gap-[2px]" aria-hidden>
+                          {[1, 2, 3, 4, 5].map((n) => (
+                            <span
+                              key={n}
+                              className="w-[3px] rounded-full"
+                              style={{
+                                height: `${4 + n * 1.6}px`,
+                                backgroundColor:
+                                  n <= c.level ? "currentColor" : "transparent",
+                                outline:
+                                  n <= c.level
+                                    ? "none"
+                                    : "1px solid currentColor",
+                                opacity: n <= c.level ? 1 : 0.3,
+                              }}
+                            />
+                          ))}
+                        </span>
+                        <span className="font-pop text-[11px] leading-tight">
+                          {c.short}
                         </span>
                       </button>
                     );
                   })}
                 </div>
+
+                {/* いま選ばれているものを、はっきり言葉で出す。
+                    正方形の中の短い言葉だけだと、押し間違いに気づけないため。 */}
+                <p className="font-pop mt-3 text-center text-lg">
+                  {crowdLevel !== null ? (
+                    <span style={{ color: crowdInfo(crowdLevel).color }}>
+                      {crowdInfo(crowdLevel).label}
+                    </span>
+                  ) : (
+                    <span className="text-kosei-500">えらんでください</span>
+                  )}
+                </p>
 
                 {booth.status !== "open" ? (
                   <p className="font-read mt-3 text-center text-sm text-kosei-600">
