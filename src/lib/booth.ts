@@ -17,6 +17,7 @@ import {
   where,
 } from "firebase/firestore";
 import { db } from "./firebase";
+import { type CrowdLevel } from "./waitColor";
 
 export type BoothType =
   "alumni" | "shop" | "class" | "grade" | "club" | "info" | "volunteer";
@@ -102,7 +103,12 @@ export type Booth = {
   // 運営がドラッグで動かしたときだけ入る。未設定なら部屋名の中心に置く。
   pinX: number | null;
   pinY: number | null;
+  // 混雑のぐあいを出す企画かどうか。展示のように並ばない企画は false。
   hasWaiting: boolean;
+  // 企画担当者が選んだ混雑のぐあい（1〜5）。まだ選んでいなければ null。
+  crowdLevel: CrowdLevel | null;
+  // ↓ 2025年までのやり方（待っている組数 × 1組あたりの時間）。
+  //    2026年からは crowdLevel を使うが、過去のデータを表示できるよう残している。
   waitingGroups: number | null;
   timePerGroup: number | null;
   genre: BoothGenre | null;
@@ -135,6 +141,12 @@ function docToBooth(d: {
     pinX: typeof data.pinX === "number" ? data.pinX : null,
     pinY: typeof data.pinY === "number" ? data.pinY : null,
     hasWaiting: !!data.hasWaiting,
+    crowdLevel:
+      typeof data.crowdLevel === "number" &&
+      data.crowdLevel >= 1 &&
+      data.crowdLevel <= 5
+        ? (data.crowdLevel as CrowdLevel)
+        : null,
     waitingGroups:
       typeof data.waitingGroups === "number"
         ? Math.max(0, data.waitingGroups)
@@ -191,6 +203,12 @@ export async function getBoothByToken(token: string): Promise<Booth | null> {
     pinX: typeof data.pinX === "number" ? data.pinX : null,
     pinY: typeof data.pinY === "number" ? data.pinY : null,
     hasWaiting: !!data.hasWaiting,
+    crowdLevel:
+      typeof data.crowdLevel === "number" &&
+      data.crowdLevel >= 1 &&
+      data.crowdLevel <= 5
+        ? (data.crowdLevel as CrowdLevel)
+        : null,
     waitingGroups:
       typeof data.waitingGroups === "number"
         ? Math.max(0, data.waitingGroups)
@@ -224,6 +242,12 @@ export function subscribeBooths(
         pinX: typeof data.pinX === "number" ? data.pinX : null,
         pinY: typeof data.pinY === "number" ? data.pinY : null,
         hasWaiting: !!data.hasWaiting,
+        crowdLevel:
+          typeof data.crowdLevel === "number" &&
+          data.crowdLevel >= 1 &&
+          data.crowdLevel <= 5
+            ? (data.crowdLevel as CrowdLevel)
+            : null,
         waitingGroups:
       typeof data.waitingGroups === "number"
         ? Math.max(0, data.waitingGroups)
@@ -255,6 +279,7 @@ export async function updateBooth(
       Booth,
       | "description"
       | "genre"
+      | "crowdLevel"
       | "waitingGroups"
       | "timePerGroup"
       | "isSetupDone"
@@ -835,6 +860,7 @@ export async function createBooth(input: NewBoothInput): Promise<string> {
     pinX: null,
     pinY: null,
     hasWaiting: input.hasWaiting ?? false,
+    crowdLevel: null,
     waitingGroups: 0,
     timePerGroup: null,
     genre: null,
@@ -870,7 +896,18 @@ export async function deleteBooth(id: string) {
   await deleteDoc(doc(db, "booths", id));
 }
 
+// 混雑のぐあい（1〜5）を保存する。企画担当者がボタンを押すたびに呼ばれる。
+// いつ押されたかも残して、長く更新されていない企画を運営が見つけられるようにする。
+export async function updateCrowdLevel(id: string, level: CrowdLevel) {
+  await updateDoc(doc(db, "booths", id), {
+    crowdLevel: level,
+    waitingUpdatedAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+}
+
 // 待ちグループ数を「◯にする」形で保存する。数を直接打ち込むとき用。
+// ※ 2025年までのやり方。2026年は updateCrowdLevel を使う。
 export async function updateWaitingGroups(id: string, waitingGroups: number) {
   await updateDoc(doc(db, "booths", id), {
     waitingGroups: Math.max(0, waitingGroups),

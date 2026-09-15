@@ -7,6 +7,7 @@ import {
   type Booth,
   type BoothStatus,
 } from "./booth";
+import { crowdLevelOfBooth } from "./boothPlacement";
 
 export type GroupKey = "none" | "location" | "floor" | "genre" | "type" | "status";
 export type SortKey = "name" | "wait" | "status" | "updated";
@@ -124,10 +125,15 @@ export function compareByClass(a: string, b: string): number {
 }
 
 // 待ち時間（分）。待ち時間の仕組みを使わない企画は null。
+// ※ 2025年までのやり方。表示には crowdLevelOf を使う。
 export function waitMinutesOf(booth: Booth): number | null {
   if (!booth.hasWaiting || !booth.timePerGroup) return null;
   return (booth.waitingGroups ?? 0) * booth.timePerGroup;
 }
+
+// 混雑のぐあい（1〜5）。運営画面でもここから引く。
+// 中身は boothPlacement にあるものと同じ。import 先を1つにまとめるための別名。
+export { crowdLevelOfBooth as crowdLevelOf } from "./boothPlacement";
 
 // この分数だけ待ちグループ数が更新されていなければ「要確認」とみなす。
 // 当日、更新を忘れると来場者に古い待ち時間が出続けてしまうため。
@@ -163,9 +169,9 @@ function groupLabelFor(booth: Booth, key: GroupKey): string {
 function compare(a: Booth, b: Booth, key: SortKey): number {
   switch (key) {
     case "wait": {
-      // 待ち時間が長い順。待ちの仕組みを使わない企画は後ろにまとめる
-      const wa = waitMinutesOf(a);
-      const wb = waitMinutesOf(b);
+      // 混んでいる順。混雑を出さない企画は後ろにまとめる
+      const wa = crowdLevelOfBooth(a);
+      const wb = crowdLevelOfBooth(b);
       if (wa === null && wb === null) return compareByClass(a.name, b.name);
       if (wa === null) return 1;
       if (wb === null) return -1;

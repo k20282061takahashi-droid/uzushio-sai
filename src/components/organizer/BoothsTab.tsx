@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { crowdInfo } from "@/lib/waitColor";
 import BoothFilterBar from "./BoothFilterBar";
 import BoothMapPicker from "./BoothMapPicker";
 import BulkImportFloat from "./BulkImportFloat";
@@ -22,7 +23,7 @@ import {
   groupAndSortBooths,
   isWaitingStale,
   STATUS_LABELS,
-  waitMinutesOf,
+  crowdLevelOf,
   type GroupKey,
   type SortKey,
 } from "@/lib/boothGrouping";
@@ -56,7 +57,7 @@ function BoothCard({
   onOpenDetail: () => void;
   stale: boolean;
 }) {
-  const minutes = waitMinutesOf(booth);
+  const level = crowdLevelOf(booth);
 
   return (
     <div
@@ -122,13 +123,16 @@ function BoothCard({
         </p>
 
         <div className="mt-auto flex items-center gap-2 pt-1">
-          {minutes !== null ? (
-            <span className="rounded bg-neutral-900/75 px-1.5 py-0.5 text-[12px] text-neutral-200">
-              待ち {minutes}分
+          {level !== null ? (
+            <span
+              className="rounded px-1.5 py-0.5 text-[12px] font-bold text-white"
+              style={{ backgroundColor: crowdInfo(level).color }}
+            >
+              {crowdInfo(level).label}
             </span>
           ) : (
             <span className="rounded bg-neutral-950/70 px-1.5 py-0.5 text-[12px] text-neutral-400">
-              待ち時間なし
+              {booth.hasWaiting ? "混雑 未入力" : "混雑を出さない企画"}
             </span>
           )}
           <button
@@ -255,7 +259,7 @@ function BoothDetailForm({
     setSaved(true);
   }
 
-  const minutes = waitMinutesOf(booth);
+  const level = crowdLevelOf(booth);
   // 差し替え直後はこの画面で選んだ画像を、それ以外は保存済みの画像を出す
   const shownSignboardUrl = newSignboardUrl ?? savedSignboard;
 
@@ -326,9 +330,13 @@ function BoothDetailForm({
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-neutral-400">待ち時間</span>
+              <span className="text-neutral-400">混雑のぐあい</span>
               <span>
-                {minutes !== null ? `約${minutes}分` : "待ち時間なし"}
+                {level !== null
+                  ? crowdInfo(level).label
+                  : booth.hasWaiting
+                    ? "未入力"
+                    : "出さない企画"}
               </span>
             </div>
             <div className="flex justify-between">

@@ -11,7 +11,7 @@ import {
   type AreaId,
 } from "@/lib/floorplan";
 import { pinLook } from "@/lib/waitColor";
-import { waitMinutesOf } from "@/lib/boothGrouping";
+import { crowdLevelOf } from "@/lib/boothGrouping";
 import { placeBooths } from "@/lib/boothPlacement";
 import { updateBooth, type Booth } from "@/lib/booth";
 import { useFitBox } from "@/lib/useFitBox";
@@ -371,8 +371,11 @@ export default function BoothMapPicker({
             const isDragging = dragging?.boothId === booth.id;
             const x = isDragging ? dragging.x : booth.x;
             const y = isDragging ? dragging.y : booth.y;
-            const minutes = waitMinutesOf(booth);
-            const look = pinLook(booth.status, minutes);
+            const look = pinLook(
+              booth.status,
+              crowdLevelOf(booth),
+              booth.hasWaiting,
+            );
             const isTarget = selectedBooth?.id === booth.id;
             return (
               <div

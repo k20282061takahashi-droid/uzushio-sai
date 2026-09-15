@@ -9,7 +9,7 @@ import BoothDetail from "@/components/BoothDetail";
 import { subscribeVisitorBooths, type Booth } from "@/lib/booth";
 import {
   placeBooths,
-  waitMinutesOfBooth,
+  crowdLevelOfBooth,
   type PlacedBooth,
 } from "@/lib/boothPlacement";
 import {
@@ -202,8 +202,11 @@ function MapContent() {
                 ))}
 
                 {rooms.map((room) => {
-                  const minutes = waitMinutesOfBooth(room);
-                  const look = pinLook(room.status, minutes);
+                  const look = pinLook(
+                    room.status,
+                    crowdLevelOfBooth(room),
+                    room.hasWaiting,
+                  );
                   // 少しでも拡大したら待ち時間の数字を出す
                   const showTime = scale >= SHOW_TIME_SCALE;
                   // 0段目・1段目。名前を上下（または上下2段）に振り分ける

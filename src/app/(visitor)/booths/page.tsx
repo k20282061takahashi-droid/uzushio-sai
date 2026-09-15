@@ -11,7 +11,7 @@ import {
   type Booth,
   type BoothGenre,
 } from "@/lib/booth";
-import { waitMinutesOfBooth } from "@/lib/boothPlacement";
+import { crowdLevelOfBooth } from "@/lib/boothPlacement";
 import {
   CLASS_GROUP_LABELS,
   classGroupOf,
@@ -84,10 +84,10 @@ function BoothsPageInner() {
     });
 
     if (sortKey === "wait") {
-      // 空いている順。待ち時間を出していない企画は後ろにまとめる
+      // 空いている順。混雑のぐあいを出していない企画は後ろにまとめる
       return list.sort((a, b) => {
-        const wa = waitMinutesOfBooth(a);
-        const wb = waitMinutesOfBooth(b);
+        const wa = crowdLevelOfBooth(a);
+        const wb = crowdLevelOfBooth(b);
         if (wa === null && wb === null) return compareByClass(a.name, b.name);
         if (wa === null) return 1;
         if (wb === null) return -1;
@@ -172,8 +172,7 @@ function BoothsPageInner() {
       ) : (
         <ul className="space-y-2 pb-4">
           {shown.map((b, i) => {
-            const minutes = waitMinutesOfBooth(b);
-            const look = pinLook(b.status, minutes);
+            const look = pinLook(b.status, crowdLevelOfBooth(b), b.hasWaiting);
             const place = [
               b.location,
               b.floor != null

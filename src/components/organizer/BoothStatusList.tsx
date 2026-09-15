@@ -1,13 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { crowdInfo } from "@/lib/waitColor";
 import BoothFilterBar from "./BoothFilterBar";
 import { BOOTH_TYPE_LABELS, type Booth } from "@/lib/booth";
 import {
   groupAndSortBooths,
   isWaitingStale,
   STATUS_LABELS,
-  waitMinutesOf,
+  crowdLevelOf,
   type GroupKey,
   type SortKey,
 } from "@/lib/boothGrouping";
@@ -98,7 +99,7 @@ export default function BoothStatusList({
             )}
             <div className="grid grid-cols-1 gap-x-6 xl:grid-cols-2">
               {group.booths.map((b) => {
-                const minutes = waitMinutesOf(b);
+                const level = crowdLevelOf(b);
                 const stale = now ? isWaitingStale(b, now) : false;
                 return (
                   <div
@@ -133,8 +134,8 @@ export default function BoothStatusList({
                           未更新
                         </span>
                       )}
-                      <span className="w-12 text-right tabular-nums text-neutral-300">
-                        {minutes !== null ? `${minutes}分` : ""}
+                      <span className="w-20 text-right text-neutral-300">
+                        {level !== null ? crowdInfo(level).label : ""}
                       </span>
                       <span className="w-11 text-right text-neutral-500">
                         {STATUS_LABELS[b.status]}

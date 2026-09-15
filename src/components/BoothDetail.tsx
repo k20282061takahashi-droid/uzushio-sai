@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { GENRE_LABELS, type Booth } from "@/lib/booth";
-import { waitMinutesOfBooth } from "@/lib/boothPlacement";
-import { waitColor } from "@/lib/waitColor";
+import { crowdLevelOfBooth } from "@/lib/boothPlacement";
+import { crowdInfo } from "@/lib/waitColor";
 import { loadSignboard } from "@/lib/signboard";
 
 // 地図のピンを押したときに下から出てくるカードの中身。
-// 出す順番：場所 → クラス名 → 企画名 → 待ち時間 → 写真 → 詳細説明
+// 出す順番：場所 → クラス名 → 企画名 → 混雑のぐあい → 写真 → 詳細説明
 export default function BoothDetail({ booth }: { booth: Booth }) {
-  const minutes = waitMinutesOfBooth(booth);
+  const level = crowdLevelOfBooth(booth);
 
   // 看板画像は企画データとは別に置いてあるので、このカードを開いたときだけ読む。
   // こうしないと、地図に出す企画一覧に全部の画像がぶら下がって重くなる。
@@ -65,12 +65,18 @@ export default function BoothDetail({ booth }: { booth: Booth }) {
           <span className="rounded-full bg-warn-600 px-3 py-1 text-sm font-bold text-white">
             休憩中
           </span>
-        ) : minutes !== null ? (
+        ) : level !== null ? (
           <span
             className="rounded-full px-3 py-1 text-sm font-bold text-white"
-            style={{ backgroundColor: waitColor(minutes) }}
+            style={{ backgroundColor: crowdInfo(level).color }}
           >
-            待ち時間 約{minutes}分
+            {crowdInfo(level).label}
+          </span>
+        ) : booth.hasWaiting ? (
+          // 混雑を出す企画だが、まだ一度も入力されていない。
+          // 「空いている」と勘違いされないよう、分からないことをそのまま書く。
+          <span className="rounded-full bg-inkgray-400 px-3 py-1 text-sm font-bold text-white">
+            混雑は確認中
           </span>
         ) : (
           <span className="rounded-full bg-success-600 px-3 py-1 text-sm font-bold text-white">

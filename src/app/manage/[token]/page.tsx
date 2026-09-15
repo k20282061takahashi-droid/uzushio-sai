@@ -20,8 +20,10 @@ import {
   sendEmergencyAlert,
   subscribeFestivalPhase,
   updateBooth,
-  adjustWaitingGroups,
+  updateCrowdLevel,
 } from "@/lib/booth";
+import { crowdLevelOfBooth } from "@/lib/boothPlacement";
+import { CROWD_LEVELS, crowdInfo, type CrowdLevel } from "@/lib/waitColor";
 import { saveSignboard, loadSignboard } from "@/lib/signboard";
 
 const GENRE_OPTIONS = Object.keys(GENRE_LABELS) as BoothGenre[];
@@ -40,10 +42,9 @@ function statusBadgeClass(booth: Booth): string {
 function visitorStatusLabel(booth: Booth): string {
   if (booth.status === "closed") return "終了";
   if (booth.status === "break") return "休憩中";
-  if (booth.hasWaiting && booth.timePerGroup) {
-    const minutes = (booth.waitingGroups ?? 0) * booth.timePerGroup;
-    return `待ち時間 ${minutes}分`;
-  }
+  const level = crowdLevelOfBooth(booth);
+  if (level !== null) return crowdInfo(level).label;
+  if (booth.hasWaiting) return "混雑は確認中";
   return "開催中";
 }
 
@@ -60,6 +61,9 @@ function formatSentAt(ms: number | null): string {
 // 件数が増えても全部たどれるよう、この枠の中だけをスクロールさせる。
 // ＋ と − は、フォントの文字だと細くて小さいので、太い角丸の棒で描く。
 // bg-current にしてあるので、ボタンの文字色（有効/無効）にそのまま追従する。
+// ＋−のマーク。2025年までの「待ちグループ数」の画面で使っていた。
+// 今は5段階のボタンに変えたので出番がないが、戻すときのために残している。
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function PlusMark() {
   return (
     <span
@@ -72,6 +76,7 @@ function PlusMark() {
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function MinusMark() {
   return (
     <span
@@ -168,14 +173,14 @@ export default function BoothManagePage() {
   const [projectName, setProjectName] = useState("");
   const [description, setDescription] = useState("");
   const [genre, setGenre] = useState<BoothGenre | "">("");
-  const [timePerGroup, setTimePerGroup] = useState<number | "">("");
   const [uploadingSignboard, setUploadingSignboard] = useState(false);
   const [signboardError, setSignboardError] = useState("");
   // 看板画像は別のコレクションにあるので、開いたときに読み込む
   const [signboard, setSignboard] = useState<string | null>(null);
   const [savingSetup, setSavingSetup] = useState(false);
 
-  const [waitingGroups, setWaitingGroups] = useState(0);
+  // いま選ばれている混みぐあい（1〜5）。まだ選んでいなければ null。
+  const [crowdLevel, setCrowdLevel] = useState<CrowdLevel | null>(null);
   const [savingWait, setSavingWait] = useState(false);
   const [changingStatus, setChangingStatus] = useState(false);
   const [confirmClose, setConfirmClose] = useState(false);
@@ -211,14 +216,14 @@ export default function BoothManagePage() {
           Date.now() - lastLocalEditAt.current < LOCAL_EDIT_GRACE_MS;
         if (!b) return null;
         if (prev && recentlyEdited) {
-          return { ...b, waitingGroups: prev.waitingGroups, status: prev.status };
+          return { ...b, crowdLevel: prev.crowdLevel, status: prev.status };
         }
         return b;
       });
       if (!b) return;
       const recentlyEdited =
         Date.now() - lastLocalEditAt.current < LOCAL_EDIT_GRACE_MS;
-      if (!recentlyEdited) setWaitingGroups(b.waitingGroups ?? 0);
+      if (!recentlyEdited) setCrowdLevel(crowdLevelOfBooth(b));
       setLastFetchedAt(
         new Intl.DateTimeFormat("ja-JP", {
           timeZone: "Asia/Tokyo",
@@ -254,8 +259,7 @@ export default function BoothManagePage() {
     setProjectName(booth.projectName ?? "");
     setDescription(booth.description);
     setGenre(booth.genre ?? "");
-    setTimePerGroup(booth.timePerGroup ?? "");
-    setWaitingGroups(booth.waitingGroups ?? 0);
+    setCrowdLevel(crowdLevelOfBooth(booth));
   }, [booth]);
 
   // 手で押す更新ボタン。購読で自動的に届くので普段は不要だが、
@@ -266,7 +270,7 @@ export default function BoothManagePage() {
     const fresh = await getBoothByToken(token);
     if (fresh) {
       setBooth(fresh);
-      setWaitingGroups(fresh.waitingGroups ?? 0);
+      setCrowdLevel(crowdLevelOfBooth(fresh));
       setLastFetchedAt(
         new Intl.DateTimeFormat("ja-JP", {
           timeZone: "Asia/Tokyo",
@@ -291,7 +295,6 @@ export default function BoothManagePage() {
       projectName,
       description,
       genre: genre === "" ? null : genre,
-      timePerGroup: timePerGroup === "" ? null : timePerGroup,
       isSetupDone,
     };
     await updateBooth(booth.id, fields);
@@ -337,19 +340,18 @@ export default function BoothManagePage() {
     }
   }
 
-  async function adjustWaiting(delta: number) {
+  // 混みぐあいのボタンを押したとき。
+  // 画面はすぐ切り替えて、保存はそのあと。接客の合間に押せるよう、待たせない。
+  async function chooseCrowd(level: CrowdLevel) {
     if (!booth) return;
-    // 0のときに「−1」を押しても何もしない（マイナスにしないため）
-    if (delta < 0 && waitingGroups <= 0) return;
-
+    // ボタンを押したときだけ動く処理。画面を描いている最中には呼ばれないので、
+    // ここで今の時刻を見ても問題ない（チェック機能が判別できないため印をつけている）。
+    // eslint-disable-next-line react-hooks/purity
     lastLocalEditAt.current = Date.now();
-    const next = Math.max(0, waitingGroups + delta);
-    // 画面はすぐ動かして、保存はデータベース側の足し算にまかせる。
-    // 2人が同時に押しても、どちらの操作も消えない。
-    setWaitingGroups(next);
+    setCrowdLevel(level);
     setSavingWait(true);
-    await adjustWaitingGroups(booth.id, delta);
-    setBooth({ ...booth, waitingGroups: next });
+    await updateCrowdLevel(booth.id, level);
+    setBooth({ ...booth, crowdLevel: level });
     setSavingWait(false);
   }
 
@@ -484,23 +486,15 @@ export default function BoothManagePage() {
                   />
                 </label>
   
+                {/* 2025年までは「1グループあたりの対応時間（分）」を入れてもらい、
+                    待ち組数と掛け算して待ち時間を出していた。
+                    2026年からは当日の画面で5段階から選ぶだけにしたので、
+                    ここでの入力は不要になった。 */}
                 {booth.hasWaiting && (
-                  <label className="mb-3 block">
-                    <span className="font-read mb-1.5 block text-sm text-white/70">
-                      1グループあたりの対応時間（分）
-                    </span>
-                    <input
-                      type="number"
-                      min={0}
-                      value={timePerGroup}
-                      onChange={(e) =>
-                        setTimePerGroup(
-                          e.target.value === "" ? "" : Number(e.target.value),
-                        )
-                      }
-                      className="w-full rounded-xl border-2 border-white/20 bg-black/40 p-3 text-base text-white placeholder:text-white/35"
-                    />
-                  </label>
+                  <p className="font-read mb-3 rounded-xl border-2 border-white/15 bg-black/30 p-3 text-sm text-white/70">
+                    この企画は、当日の画面で混みぐあい（5段階）を選ぶ形になっています。
+                    ここでの設定は要りません。
+                  </p>
                 )}
   
                 <div className="mb-3">
@@ -654,51 +648,58 @@ export default function BoothManagePage() {
 
             {booth.hasWaiting && (
               <section className="flex flex-col justify-center rounded-2xl border-2 border-white/15 bg-bbb-panel/88 p-4 lg:min-h-0 lg:flex-1">
-                <div className="flex items-center justify-between gap-2 sm:justify-center sm:gap-10">
-                  <button
-                    onClick={() => adjustWaiting(-1)}
-                    disabled={savingWait || booth.status !== "open"}
-                    aria-label="待っているグループを1つ減らす"
-                    className="chunk flex h-24 w-24 shrink-0 items-center justify-center rounded-[1.75rem] bg-bbb-yellow text-black shadow-[0_7px_0_#A98F00] disabled:bg-white/10 disabled:text-white/25 disabled:shadow-none sm:h-28 sm:w-28 lg:h-32 lg:w-32"
-                  >
-                    <MinusMark />
-                  </button>
-                  <div className="text-center">
-                    <p className="font-logo text-[12px] text-bbb-cyan">
-                      WAITING GROUPS
-                    </p>
-                    <p className="font-read mb-1 text-[12px] text-white/55">
-                      待っているグループ数
-                    </p>
-                    <p
-                      key={waitingGroups}
-                      className="animate-bump font-num min-w-[2.5ch] text-center text-7xl leading-none tabular-nums text-bbb-yellow sm:text-8xl"
-                    >
-                      {waitingGroups}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => adjustWaiting(1)}
-                    disabled={savingWait || booth.status !== "open"}
-                    aria-label="待っているグループを1つ増やす"
-                    className="chunk flex h-24 w-24 shrink-0 items-center justify-center rounded-[1.75rem] bg-bbb-yellow text-black shadow-[0_7px_0_#A98F00] disabled:bg-white/10 disabled:text-white/25 disabled:shadow-none sm:h-28 sm:w-28 lg:h-32 lg:w-32"
-                  >
-                    <PlusMark />
-                  </button>
+                <p className="font-read mb-1 text-center text-[13px] text-white/60">
+                  いまの混みぐあいを選んでください
+                </p>
+                <p className="font-read mb-3 text-center text-[12px] text-white/40">
+                  選んだ内容は、そのまま来場者の地図に出ます
+                </p>
+
+                {/* 接客をしながらでも押せるよう、5つを縦に大きく並べる。
+                    数を数える必要がないので、見た感じで選べる。 */}
+                <div className="flex flex-col gap-2">
+                  {CROWD_LEVELS.map((c) => {
+                    const chosen = crowdLevel === c.level;
+                    return (
+                      <button
+                        key={c.level}
+                        onClick={() => chooseCrowd(c.level)}
+                        disabled={savingWait || booth.status !== "open"}
+                        aria-pressed={chosen}
+                        style={
+                          chosen
+                            ? {
+                                backgroundColor: c.color,
+                                boxShadow: "0 6px 0 rgba(0,0,0,0.45)",
+                              }
+                            : undefined
+                        }
+                        className={`chunk font-pop min-h-[3.75rem] rounded-2xl border-2 px-4 text-lg ${
+                          chosen
+                            ? "border-white text-white"
+                            : "border-white/20 bg-white/[0.06] text-white/80"
+                        } disabled:border-white/10 disabled:bg-white/5 disabled:text-white/25 disabled:shadow-none`}
+                      >
+                        <span className="flex items-center justify-center gap-2">
+                          {chosen && <span aria-hidden>✓</span>}
+                          {c.label}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
+
                 {booth.status !== "open" ? (
                   <p className="font-read mt-3 text-center text-sm text-white/60">
                     {booth.status === "break"
                       ? "休憩中は変更できません"
                       : "終了しているため変更できません"}
                   </p>
-                ) : (
-                  booth.timePerGroup != null && (
-                    <p className="font-read mt-3 text-center text-sm text-white/60">
-                      待ち時間の目安 {waitingGroups * booth.timePerGroup}分
-                    </p>
-                  )
-                )}
+                ) : crowdLevel === null ? (
+                  <p className="font-read mt-3 text-center text-sm text-bbb-yellow">
+                    まだ選ばれていません。来場者には「確認中」と出ています
+                  </p>
+                ) : null}
               </section>
             )}
 

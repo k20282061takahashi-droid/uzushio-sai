@@ -1,42 +1,65 @@
-// 地図のピンの色と文字を決める。
+// 混雑のぐあいを表す5段階と、地図のピンの色を決める。
 //
-// 以前は待ち時間を緑→黄→赤の連続したグラデーションにしていたが、
-// 32分と38分の色の違いは人には読み取れず、色数が増えて地図が濁るだけだった。
-// 実際に判断へ使うのは「すぐ入れる／少し待つ／混んでいる」の3段階なので、
-// そこに絞っている。
+// なぜ5段階にしたか
+// ------------------
+// もとは「待っている組数」と「1組あたりの時間」から待ち時間（分）を計算していた。
+// けれど当日の担当者は接客をしながら入力するので、組数を数え続けるのは難しい。
+// 見た感じで5つから1つ選ぶだけなら、忙しくても押せる。
 //
-// 色はアプリのパレット（湖青）から取り、空いているほど湖青、
-// 混んでいるほど暖色になるようにした。赤と緑で表さない理由は2つある。
-//   ・赤と緑の区別がつきにくい人がいる（青と赤橙なら誰でも区別できる）
-//   ・空いている場所がアプリの色で埋まり、混んでいる場所だけが目立つ
-// 文字は白なので、背景には濃い段階（600〜800）だけを使っている。
+// 色について（大事な注意）
+// ------------------------
+// 5段階を色だけで見分けるのは、人の目には無理がある。となりあう段階の色は
+// どうしても似てしまう。そのため、ピンには色といっしょに短い言葉も出している。
+// 色は「だいたいの目安」、正確な判断は言葉、という役割分担にしている。
+//
+// 赤と緑で表していないのは、その2色の区別がつきにくい人がいるため。
+// 青 → 橙 → 赤 の並びなら、色の見え方に関わらず順番が分かる。
 
-export const WAIT_SOME = 10; // これ以上で「少し待つ」
-export const WAIT_BUSY = 25; // これ以上で「混んでいる」
+export type CrowdLevel = 1 | 2 | 3 | 4 | 5;
+
+export type CrowdLevelInfo = {
+  level: CrowdLevel;
+  /** 企画担当者が選ぶときの言葉 */
+  label: string;
+  /** 地図のピンなど、せまい場所に出す短い言葉 */
+  short: string;
+  color: string;
+};
+
+export const CROWD_LEVELS: CrowdLevelInfo[] = [
+  { level: 1, label: "すぐ入れる", short: "すぐ", color: "#1F7690" },
+  { level: 2, label: "ちょっと混んでる", short: "少し混", color: "#2E8B8B" },
+  { level: 3, label: "少し待つ", short: "少し待", color: "#C67F16" },
+  { level: 4, label: "並ぶかも", short: "並ぶ", color: "#B85C1E" },
+  { level: 5, label: "結構並ぶ", short: "混雑", color: "#B33A30" },
+];
 
 export const PIN_COLORS = {
-  soon: "#1F7690", // 湖青600  すぐ入れる
-  some: "#C67F16", // 注意800  少し待つ
-  busy: "#B33A30", // 警告800  混んでいる
-  open: "#12495A", // 湖青800  待ち時間を出していない企画
+  // 混雑のぐあいを出していない企画（対応していない／まだ入力がない）
+  unknown: "#5A6472",
   break: "#7A7A75", // 休憩中
   closed: "#9C9C97", // 終了
 } as const;
 
+export function crowdInfo(level: CrowdLevel): CrowdLevelInfo {
+  return CROWD_LEVELS[level - 1] ?? CROWD_LEVELS[0];
+}
+
 // 凡例（地図の右上に出す色の説明）
 export const PIN_LEGEND = [
-  { color: PIN_COLORS.soon, label: "すぐ入れる" },
-  { color: PIN_COLORS.some, label: `${WAIT_SOME}〜${WAIT_BUSY - 1}分まち` },
-  { color: PIN_COLORS.busy, label: `${WAIT_BUSY}分以上まち` },
-  { color: PIN_COLORS.open, label: "まちなし" },
+  ...CROWD_LEVELS.map((c) => ({ color: c.color, label: c.label })),
+  { color: PIN_COLORS.unknown, label: "混雑の情報なし" },
   { color: PIN_COLORS.closed, label: "休憩中・終了" },
 ];
 
-// 待ち時間(分)だけから色を出す（運営画面で使う）
-export function waitColor(minutes: number): string {
-  if (minutes >= WAIT_BUSY) return PIN_COLORS.busy;
-  if (minutes >= WAIT_SOME) return PIN_COLORS.some;
-  return PIN_COLORS.soon;
+// 古いデータ（待ち時間の分数）を5段階に直す。
+// 2026年より前のやり方で入力された企画を、そのまま表示できるようにするため。
+export function minutesToCrowdLevel(minutes: number): CrowdLevel {
+  if (minutes >= 30) return 5;
+  if (minutes >= 20) return 4;
+  if (minutes >= 10) return 3;
+  if (minutes >= 3) return 2;
+  return 1;
 }
 
 export type PinLook = {
@@ -47,17 +70,25 @@ export type PinLook = {
   faded: boolean;
 };
 
-// 企画の状態と待ち時間から、ピンの見た目をまとめて決める
+// 企画の状態と混雑のぐあいから、ピンの見た目をまとめて決める。
+//
+// hasWaiting は「この企画が混雑のぐあいを出すかどうか」。
+// 展示のように並ばない企画は false にしておく。
 export function pinLook(
   status: "open" | "break" | "closed",
-  minutes: number | null,
+  level: CrowdLevel | null,
+  hasWaiting: boolean,
 ): PinLook {
   if (status === "closed")
     return { bg: PIN_COLORS.closed, text: "終了", faded: true };
   if (status === "break")
     return { bg: PIN_COLORS.break, text: "休憩", faded: false };
-  if (minutes === null)
-    return { bg: PIN_COLORS.open, text: "開催", faded: false };
-  if (minutes <= 0) return { bg: PIN_COLORS.soon, text: "すぐ", faded: false };
-  return { bg: waitColor(minutes), text: `${minutes}分`, faded: false };
+  // 混雑のぐあいを出さない企画
+  if (!hasWaiting)
+    return { bg: PIN_COLORS.unknown, text: "開催", faded: false };
+  // 出す企画だが、まだ一度も入力されていない
+  if (level === null)
+    return { bg: PIN_COLORS.unknown, text: "確認中", faded: false };
+  const info = crowdInfo(level);
+  return { bg: info.color, text: info.short, faded: false };
 }
