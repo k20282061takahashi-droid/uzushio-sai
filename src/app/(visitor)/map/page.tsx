@@ -1,6 +1,6 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, Suspense } from "react";
 import PannableZoom from "@/components/PannableZoom";
 import FloorSlider from "@/components/FloorSlider";
@@ -24,11 +24,14 @@ import { pinLook, PIN_LEGEND } from "@/lib/waitColor";
 import { useFitBox } from "@/lib/useFitBox";
 import { useMeasuredHeight } from "@/lib/useMeasuredHeight";
 
-const areas: { id: AreaId; name: string }[] = [
+// 上に出す場所の選択肢。
+// 校庭はステージ企画が中心で、図面よりも「何時に何があるか」のほうが役に立つので、
+// 地図を出さずにタイムテーブルへ飛ばす（goTo にその行き先を書いておく）。
+const areas: { id: AreaId; name: string; goTo?: string }[] = [
   { id: "gym", name: "体育館" },
   { id: "senior", name: "高校棟" },
   { id: "junior", name: "中学棟" },
-  { id: "schoolyard", name: "校庭" },
+  { id: "schoolyard", name: "校庭", goTo: "/timeline" },
 ];
 
 
@@ -43,13 +46,17 @@ function shortName(name: string): string {
 }
 
 function MapContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const areaParam = searchParams.get("area");
   const initialArea: AreaId = areas.some((a) => a.id === areaParam)
     ? (areaParam as AreaId)
     : "gym";
 
-  const [activeArea, setActiveArea] = useState<AreaId>(initialArea);
+  const [activeArea, setActiveArea] = useState<AreaId>(
+    // 校庭が指定されたときは地図を出さないので、体育館から始める
+    areas.find((a) => a.id === initialArea)?.goTo ? "gym" : initialArea,
+  );
   const [activeFloor, setActiveFloor] = useState(4);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [booths, setBooths] = useState<Booth[]>([]);
@@ -61,6 +68,12 @@ function MapContent() {
 
   // 企画の情報をリアルタイムで受け取る（待ち時間もその場で変わる）
   useEffect(() => subscribeVisitorBooths(setBooths), []);
+
+  // ホームなどから「?area=schoolyard」で来たときは、そのままタイムテーブルへ送る
+  useEffect(() => {
+    const target = areas.find((a) => a.id === areaParam)?.goTo;
+    if (target) router.replace(target);
+  }, [areaParam, router]);
 
   // 地図をドラッグして動かしたときに、指を置いた場所のピンが
   // 誤ってタップ扱いになるのを防ぐ。押した位置から一定以上動いていたら
@@ -332,6 +345,11 @@ function MapContent() {
               <button
                 key={area.id}
                 onClick={() => {
+                  // 校庭のように、地図ではなく別の画面を見せる場所
+                  if (area.goTo) {
+                    router.push(area.goTo);
+                    return;
+                  }
                   setActiveArea(area.id);
                   // 棟を変えたとき、その棟に無い階が選ばれたままにならないように
                   const list = floorsFor(area.id);

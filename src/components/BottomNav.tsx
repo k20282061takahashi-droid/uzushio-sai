@@ -45,6 +45,8 @@ function SearchIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+// スタンプラリー用のアイコン。今年は使っていないが、来年のために残している。
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function StampIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" {...props}>
@@ -54,13 +56,16 @@ function StampIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+// 下のタブに出す画面。
+//
+// スタンプラリー（/stamp）は2026年は実施しないため、ここから外している。
+// 画面・処理はそのまま残してあるので、来年やるときはこの行を戻せば復活する。
+//   { href: "/stamp", label: "スタンプ", Icon: StampIcon },
 const items = [
   { href: "/", label: "ホーム", Icon: HomeIcon },
   { href: "/booths", label: "さがす", Icon: SearchIcon },
   { href: "/map", label: "マップ", Icon: MapIcon },
-  // 5つ並ぶので「タイムテーブル」では横幅に収まらない。中身はイベントの予定表。
   { href: "/timeline", label: "イベント", Icon: TimelineIcon },
-  { href: "/stamp", label: "スタンプ", Icon: StampIcon },
 ];
 
 export default function BottomNav() {

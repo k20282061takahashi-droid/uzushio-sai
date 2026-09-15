@@ -14,9 +14,9 @@ import { compareVenues } from "@/lib/boothGrouping";
 const PX_PER_MIN = 1.8;
 // 時刻をならべる左の列の幅
 const TIME_COL_WIDTH = 40;
-// 会場1つあたりの最低の幅。会場が増えてこの幅に収まらなくなったら、
-// 表を横にスクロールして見られるようにする（つぶれて読めなくなるのを防ぐ）。
-const MIN_COL_WIDTH = 116;
+// 画面に一度に並べられる会場の数。これを超えると1列が細くなって字がつぶれるので、
+// 会場がこれより多いときは、最初から1会場だけを選んで見せる。
+const MAX_COLUMNS = 2;
 const DEFAULT_START = 9 * 60; // 9:00
 const DEFAULT_END = 16 * 60; // 16:00
 
@@ -101,15 +101,21 @@ export default function TimelinePage() {
     };
   }, [events]);
 
-  // 会場をひとつ選んでいるときは、その列だけを出す
-  const venues =
-    venueFilter && allVenues.includes(venueFilter) ? [venueFilter] : allVenues;
-  const shownEvents = venueFilter
-    ? events.filter((e) => (e.venue || "会場未定") === venueFilter)
+  // 会場をひとつ選んでいるときは、その列だけを出す。
+  // まだ選んでいなくて会場が多いときは、勝手に1つ目を選んだことにする
+  // （たくさん並べると1列が細くなって、企画名が読めなくなるため）。
+  const effectiveFilter =
+    venueFilter && allVenues.includes(venueFilter)
+      ? venueFilter
+      : allVenues.length > MAX_COLUMNS
+        ? allVenues[0]
+        : null;
+  const venues = effectiveFilter ? [effectiveFilter] : allVenues;
+  const shownEvents = effectiveFilter
+    ? events.filter((e) => (e.venue || "会場未定") === effectiveFilter)
     : events;
 
-  // 表の中身の幅。画面より広くなったら横スクロールになる
-  const boardMinWidth = TIME_COL_WIDTH + venues.length * MIN_COL_WIDTH;
+
 
   const totalHeight = (axisEnd - axisStart) * PX_PER_MIN;
 
@@ -179,28 +185,32 @@ export default function TimelinePage() {
       ) : (
         <>
           {/* 会場が多いときの絞り込み。押した会場だけを大きく見られる */}
-          {allVenues.length > 2 && (
+          {allVenues.length > 1 && (
             <div
               className="animate-fade-in-up -mx-4 mb-3 overflow-x-auto px-4"
               style={{ animationDelay: "60ms" }}
             >
               <div className="flex w-max gap-2 pb-1">
-                <button
-                  onClick={() => setVenueFilter(null)}
-                  className={`pressable shrink-0 rounded-full border-2 px-3 py-1.5 font-heading text-xs font-black ${
-                    venueFilter === null
-                      ? "border-kosei-800 bg-kosei-600 text-white"
-                      : "border-kosei-600 bg-white text-kosei-700"
-                  }`}
-                >
-                  すべての会場
-                </button>
+                {/* 会場が少ないときだけ「すべての会場」を出す。
+                    多いときに全部並べても細くなって読めないため。 */}
+                {allVenues.length <= MAX_COLUMNS && (
+                  <button
+                    onClick={() => setVenueFilter(null)}
+                    className={`pressable shrink-0 rounded-full border-2 px-3 py-1.5 font-heading text-xs font-black ${
+                      effectiveFilter === null
+                        ? "border-kosei-800 bg-kosei-600 text-white"
+                        : "border-kosei-600 bg-white text-kosei-700"
+                    }`}
+                  >
+                    すべての会場
+                  </button>
+                )}
                 {allVenues.map((v) => (
                   <button
                     key={v}
                     onClick={() => setVenueFilter(v)}
                     className={`pressable shrink-0 rounded-full border-2 px-3 py-1.5 font-heading text-xs font-black ${
-                      venueFilter === v
+                      effectiveFilter === v
                         ? "border-kosei-800 bg-kosei-600 text-white"
                         : "border-kosei-600 bg-white text-kosei-700"
                     }`}
@@ -212,21 +222,12 @@ export default function TimelinePage() {
             </div>
           )}
 
-          {/* 画面に収まらない数の会場があるときだけ、スクロールできることを伝える */}
-          {venues.length > 3 && (
-            <p className="mb-1 text-[11px] font-bold text-kosei-500">
-              横にスクロールすると、ほかの会場も見られます ↔
-            </p>
-          )}
-
-          {/* 会場が増えても列がつぶれないよう、はみ出す分は横スクロールにする。
-              左の時刻の列はスクロールしても動かないので、いつでも時間が分かる。 */}
-          <div className="-mx-4 overflow-x-auto px-4 pb-2">
-            <div style={{ minWidth: boardMinWidth }}>
+          <div>
+            <div>
               {venues.length > 1 && (
                 <div className="mb-2 flex text-center text-xs font-bold text-kosei-600">
                   <div
-                    className="sticky left-0 z-20 shrink-0 bg-kosei-50"
+                    className="shrink-0"
                     style={{ width: TIME_COL_WIDTH }}
                   />
                   {venues.map((v) => (
@@ -243,7 +244,7 @@ export default function TimelinePage() {
               >
                 {/* 時間軸 */}
                 <div
-                  className="sticky left-0 z-20 shrink-0 bg-kosei-50"
+                  className="shrink-0"
                   style={{ width: TIME_COL_WIDTH }}
                 >
                   {hourMarks.map((h) => (

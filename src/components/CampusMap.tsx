@@ -150,7 +150,8 @@ export default function CampusMap() {
         return (
           <Link
             key={b.id}
-            href={`/map?area=${b.id}`}
+            // 校庭はステージ企画が中心なので、地図ではなくタイムテーブルへ送る
+            href={b.id === "schoolyard" ? "/timeline" : `/map?area=${b.id}`}
             className="absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1 transition-transform duration-150 ease-out active:scale-90"
             style={{ left: `${labelLeftPct}%`, top: `${labelTopPct}%` }}
           >
