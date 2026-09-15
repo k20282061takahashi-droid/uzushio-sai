@@ -1,5 +1,10 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { initializeFirestore, getFirestore } from "firebase/firestore";
+import {
+  initializeFirestore,
+  getFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+} from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getAnalytics, isSupported, type Analytics } from "firebase/analytics";
 
@@ -18,11 +23,31 @@ export const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
 // 学校の制限されたWi-Fi等、ストリーミング接続を塞ぐネットワークでも
 // 確実に繋がるようlong pollingを強制する
+//
+// あわせて、読み込んだデータを端末の中に保存しておく（オフラインキャッシュ）。
+// 文化祭の当日は数百人が同じWi-Fi・電波を使うため通信が詰まりやすく、
+// 何も保存していないと画面が真っ白のまま待たされる。
+// 保存しておけば、前に見た企画・イベント・お知らせがすぐに表示され、
+// 通信が復活したときに自動で最新に差し替わる。
+//
+// persistentMultipleTabManager は「同じ端末で複数のタブを開いても
+// 保存したデータを共有できる」ようにする設定。
 export const db = (() => {
   try {
-    return initializeFirestore(app, { experimentalForceLongPolling: true });
+    return initializeFirestore(app, {
+      experimentalForceLongPolling: true,
+      localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager(),
+      }),
+    });
   } catch {
-    return getFirestore(app);
+    // プライベートブラウズなど、端末にデータを保存できない環境では
+    // 保存なしで動かす（表示はできるが、オフラインでは待たされる）。
+    try {
+      return initializeFirestore(app, { experimentalForceLongPolling: true });
+    } catch {
+      return getFirestore(app);
+    }
   }
 })();
 

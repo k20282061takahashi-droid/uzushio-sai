@@ -1,3 +1,4 @@
+import OfflineNotice from "@/components/OfflineNotice";
 import OpeningScreen from "@/components/OpeningScreen";
 import SwirlBackground from "@/components/SwirlBackground";
 import VisitorShell from "@/components/VisitorShell";
@@ -18,6 +19,9 @@ export default function VisitorLayout({
       <SwirlBackground />
       {/* アプリを開いた最初に出るオープニング演出。この間に本体が読み込まれる */}
       <OpeningScreen />
+      {/* 通信が弱いときに「保存した情報を表示しています」と知らせる。
+          オフライン対応の仕組み（public/sw.js）の登録もここで行う。 */}
+      <OfflineNotice />
       {/* 文化祭が始まる前は、中身のかわりに「あと○日」を出す（VisitorShell が判断する）。
           下のタブ・来場者数の記録・ホーム画面追加の案内も、その中で切り替わる。 */}
       <VisitorShell>{children}</VisitorShell>
