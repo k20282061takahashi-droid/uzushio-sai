@@ -81,14 +81,18 @@
   --color-danger-800: #B33A30;
 
   /* 企画担当者画面のビビッドカラー（黒地に映える色） */
-  --color-bbb-ink: #0A0A0A;
-  --color-bbb-panel: #17171A;
-  --color-bbb-yellow: #FDE021;
-  --color-bbb-cyan: #01C7DA;
-  --color-bbb-red: #E1131E;
-  --color-bbb-green: #00E02D;
-  --color-bbb-pink: #FF3A81;
-  --color-bbb-blue: #0071BD;
+  /* 企画担当者画面の色。
+     2026年から、来場者アプリと同じ湖青のパレットにそろえた。
+     担当者と来場者が同じ画面を見ながら話すことが多く、見た目が違うと
+     「これは何の画面か」の説明からになってしまうため。 */
+  --color-bbb-ink: #EAF6FA; /* 画面の地の色（湖青50） */
+  --color-bbb-panel: #FFFFFF; /* 枠の中の色 */
+  --color-bbb-yellow: #C67F16; /* 注意・強調（注意800） */
+  --color-bbb-cyan: #1F7690; /* ふつうのボタン（湖青600） */
+  --color-bbb-red: #B33A30; /* 終了など強い操作（危険800） */
+  --color-bbb-green: #2E8C50; /* 開催中・再開（成功800） */
+  --color-bbb-pink: #B85C1E;
+  --color-bbb-blue: #175A70;
 
 
   /* ミスト（企画担当者画面の背景・罫線。湖青をぐっと薄めた寒色グレー） */
@@ -383,7 +387,8 @@ body {
   position: relative;
   font-family: var(--font-noto-sans-jp), "Hiragino Sans", sans-serif;
   font-feature-settings: "palt" 1;
-  background-color: #0A0A0A;
+  background-color: var(--color-kosei-50);
+  color: var(--color-kosei-800);
 }
 
 /* 背景：コンクリートの壁にスプレーで落書きされた写真（事前に暗く加工済み）。
@@ -396,16 +401,18 @@ body {
   z-index: 0;
   pointer-events: none;
 }
+/* 2025年までは、コンクリートに落書きされた暗い写真を背景にしていた。
+   2026年からは来場者アプリと同じ明るい湖青にそろえたので、写真は使わない。
+   （画像ファイル public/manage-bg.webp は残してある） */
 .manage-ui::before {
-  background: url("/manage-bg.webp") center / cover no-repeat;
-  /* 落書きが見える強さ。濃すぎ／薄すぎのときはこの数字だけ変える */
+  background: var(--color-kosei-50);
   opacity: 1;
 }
 .manage-ui::after {
   background: linear-gradient(
     180deg,
-    rgba(10, 10, 10, 0.28) 0%,
-    rgba(10, 10, 10, 0.5) 100%
+    rgba(255, 255, 255, 0) 0%,
+    rgba(201, 234, 243, 0.45) 100%
   );
 }
 .manage-ui > * {
@@ -450,13 +457,13 @@ body {
 }
 
 .manage-ui :is(input, select, textarea):focus {
-  outline: 3px solid var(--color-bbb-yellow);
+  outline: 3px solid var(--color-kosei-600);
   outline-offset: 1px;
   border-color: transparent;
 }
 
 .manage-ui :is(button, a, label):focus-visible {
-  outline: 3px solid var(--color-bbb-yellow);
+  outline: 3px solid var(--color-kosei-600);
   outline-offset: 3px;
 }
 

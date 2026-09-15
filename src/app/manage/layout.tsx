@@ -6,7 +6,7 @@ export default function ManageLayout({
   // manage-ui は globals.css で定義しているクラス。
   // 企画担当者画面だけを「黒地＋ビビッドカラー＋極太フォント」にする。
   return (
-    <div className="manage-ui min-h-screen bg-bbb-ink text-white">
+    <div className="manage-ui min-h-screen bg-bbb-ink text-kosei-800">
       {children}
     </div>
   );
