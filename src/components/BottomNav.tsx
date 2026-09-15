@@ -94,10 +94,16 @@ export default function BottomNav() {
     >
       <div className="mx-auto max-w-md">
         <ul
-          className="grid grid-cols-5 gap-1 px-2 pt-2"
-          // 文字とアイコンの大きさを画面幅に合わせて連続的に変える。
-          // 320pxの小さい端末でも5つ並び、大きい端末では大きくなりすぎない。
-          style={{ fontSize: "clamp(0.5625rem, 2.7vw, 0.6875rem)" }}
+          className="grid gap-1 px-2 pt-2"
+          // 列の数は項目の数から決める。
+          // 「5列」と決め打ちにしていると、スタンプラリーのように項目を1つ
+          // 減らしたときに空いた列ぶんだけ左に寄ってしまうため。
+          style={{
+            gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))`,
+            // 文字とアイコンの大きさを画面幅に合わせて連続的に変える。
+            // 320pxの小さい端末でも並び、大きい端末では大きくなりすぎない。
+            fontSize: "clamp(0.5625rem, 2.7vw, 0.6875rem)",
+          }}
         >
           {items.map((item, index) => {
             const isActive = index === activeIndex;

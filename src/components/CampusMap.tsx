@@ -83,51 +83,88 @@ export default function CampusMap() {
   }
 
   return (
+    // カードは正方形。上半分が校内図、下半分が建物の一覧。
+    // 図だけだと押せる場所が分かりにくく、指も入りづらいので、
+    // 下に「押すための行」を用意して、どちらからでも行けるようにしている。
     <div className="relative w-full overflow-hidden rounded-3xl border-2 border-kosei-800 bg-white shadow-[0_5px_0_var(--color-kosei-800)]">
-      {/* 校内図そのもの。建物の名前はこの図の中に書かれている。 */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/floorplans/campus.svg"
-        alt="校内の全体図。体育館・高校棟・中学棟・校庭があります"
-        draggable={false}
-        className="block w-full select-none"
-        style={{ aspectRatio: `${VIEW_W}/${VIEW_H}` }}
-      />
+      <div className="flex w-full flex-col" style={{ aspectRatio: "1 / 1" }}>
+        {/* 上：校内図。建物の名前は図の中に書かれている。 */}
+        <div
+          className="relative w-full shrink-0"
+          style={{ aspectRatio: `${VIEW_W}/${VIEW_H}` }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/floorplans/campus.svg"
+            alt="校内の全体図。体育館・高校棟・中学棟・校庭があります"
+            draggable={false}
+            className="block w-full select-none"
+            style={{ aspectRatio: `${VIEW_W}/${VIEW_H}` }}
+          />
 
-      {AREAS.map((area) => {
-        const state = stateByArea.get(area.id);
-        return (
-          <Link
-            key={area.id}
-            href={area.goTo ?? `/map?area=${area.id}`}
-            aria-label={
-              area.goTo
-                ? `${area.name}のイベントを見る`
-                : `${area.name}の地図を見る`
-            }
-            className="absolute flex flex-col items-center justify-end gap-1 rounded-2xl pb-1 transition-all duration-150 ease-out hover:bg-kosei-800/5 active:scale-95 active:bg-kosei-800/10"
-            style={{
-              left: `${area.left}%`,
-              top: `${area.top}%`,
-              width: `${area.width}%`,
-              height: `${area.height}%`,
-            }}
-          >
-            {/* 混んでいるときだけ出す */}
-            {state?.busy && (
-              <span className="whitespace-nowrap rounded-full bg-accent-700 px-2 py-[1px] text-[10px] font-bold text-white shadow">
-                混雑中
-              </span>
-            )}
-            {/* 押せることが分かるように、企画の数を小さく出す */}
-            {state && state.count > 0 && (
-              <span className="whitespace-nowrap rounded-full border-2 border-kosei-700 bg-white/95 px-2 py-[1px] text-[10px] font-bold text-kosei-700">
-                {area.goTo ? "イベント" : `企画 ${state.count}`} ↗
-              </span>
-            )}
-          </Link>
-        );
-      })}
+          {AREAS.map((area) => {
+            const state = stateByArea.get(area.id);
+            return (
+              <Link
+                key={area.id}
+                href={area.goTo ?? `/map?area=${area.id}`}
+                aria-label={
+                  area.goTo
+                    ? `${area.name}のイベントを見る`
+                    : `${area.name}の地図を見る`
+                }
+                className="absolute flex flex-col items-center justify-end gap-1 rounded-2xl pb-1 transition-all duration-150 ease-out hover:bg-kosei-800/5 active:scale-95 active:bg-kosei-800/10"
+                style={{
+                  left: `${area.left}%`,
+                  top: `${area.top}%`,
+                  width: `${area.width}%`,
+                  height: `${area.height}%`,
+                }}
+              >
+                {state?.busy && (
+                  <span className="whitespace-nowrap rounded-full bg-accent-700 px-2 py-[1px] text-[10px] font-bold text-white shadow">
+                    混雑中
+                  </span>
+                )}
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* 下：建物の一覧。図の下にできた場所を使って、指で押しやすい行にする。 */}
+        <ul className="flex min-h-0 flex-1 flex-col justify-evenly border-t-2 border-kosei-200 px-2 py-1">
+          {AREAS.map((area) => {
+            const state = stateByArea.get(area.id);
+            return (
+              <li key={area.id} className="min-h-0">
+                <Link
+                  href={area.goTo ?? `/map?area=${area.id}`}
+                  className="pressable flex items-center gap-2 rounded-2xl px-2 py-1.5"
+                >
+                  <span className="font-heading text-sm font-black text-kosei-800">
+                    {area.name}
+                  </span>
+                  {state?.busy && (
+                    <span className="whitespace-nowrap rounded-full bg-accent-700 px-2 py-[1px] text-[10px] font-bold text-white">
+                      混雑中
+                    </span>
+                  )}
+                  <span className="ml-auto flex items-center gap-1.5 text-[11px] font-bold text-kosei-600">
+                    {area.goTo
+                      ? "イベントを見る"
+                      : state && state.count > 0
+                        ? `企画 ${state.count}件`
+                        : "地図を見る"}
+                    <span aria-hidden className="text-kosei-500">
+                      ↗
+                    </span>
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
     </div>
   );
 }
