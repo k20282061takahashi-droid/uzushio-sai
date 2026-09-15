@@ -1,166 +1,128 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { subscribeVisitorBooths, type Booth } from "@/lib/booth";
+import { AREA_NAMES, crowdLevelOfBooth } from "@/lib/boothPlacement";
+import { type AreaId } from "@/lib/floorplan";
 
-type Pt = [number, number];
+// ホーム画面の校内図。
+//
+// 2026-09-15：手で組み立てた立体の箱から、本物の校内図（SVG）に差し替えた。
+// 図は public/floorplans/campus.svg。建物の名前は図の中に書かれているので、
+// ここでは「押せる場所」と「今の混みぐあい」だけを図の上に重ねている。
+//
+// 図を新しいものに差し替えるときは
+//   1. public/floorplans/campus.svg を置き換える
+//   2. 図の縦横比が変わったら VIEW_W / VIEW_H を直す
+//   3. 建物の位置が変わったら、下の AREAS の数字（％）を直す
+// の3つだけで済む。
 
-function rawProj(gx: number, gy: number, gz: number): Pt {
-  // 2:1アイソメトリック投影（スケール1、原点0基準）
-  const x = gx - gy;
-  const y = (gx + gy) * 0.5 - gz;
-  return [x, y];
-}
+// 図の中の座標系（SVGの viewBox と同じ）
+const VIEW_W = 770;
+const VIEW_H = 390;
 
-function toPoints(pts: Pt[]) {
-  return pts.map((p) => p.join(",")).join(" ");
-}
-
-type Box = {
-  id: string;
+// 押せる場所。図の上での位置を、図の横幅・高さに対する％で持つ。
+// 建物どうしが少しだけ重なっているところは、押し間違えないように離してある。
+type Hotspot = {
+  id: AreaId;
   name: string;
-  gx: [number, number];
-  gy: [number, number];
-  h: number;
-  congested?: boolean;
+  /** 図の左上を0とした％ */
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+  /** 地図ではなく別の画面へ送る場所（校庭はタイムテーブルへ） */
+  goTo?: string;
 };
 
-const boxes: Box[] = [
-  { id: "gym", name: "体育館", gx: [0, 3], gy: [0, 1.4], h: 1.1, congested: true },
-  { id: "junior", name: "中学棟", gx: [3.6, 5.0], gy: [0, 1.4], h: 1.1 },
-  { id: "senior", name: "高校棟", gx: [0, 1.8], gy: [1.9, 3.5], h: 1.3, congested: true },
+const AREAS: Hotspot[] = [
+  { id: "gym", name: "体育館", left: 15.7, top: 3.3, width: 38.0, height: 29.7 },
+  { id: "senior", name: "高校棟", left: 2.9, top: 36.0, width: 28.2, height: 28.9 },
+  { id: "junior", name: "中学棟", left: 56.1, top: 19.3, width: 30.8, height: 46.6 },
+  {
+    id: "schoolyard",
+    name: "校庭",
+    left: 34.2,
+    top: 70.0,
+    width: 43.6,
+    height: 23.8,
+    goTo: "/timeline",
+  },
 ];
 
-const ground: Box = {
-  id: "schoolyard",
-  name: "校庭",
-  gx: [2.2, 5.0],
-  gy: [1.9, 3.9],
-  h: 0,
-};
+// この段階以上を「混んでいる」とみなす（4＝並ぶかも、5＝結構並ぶ）
+const BUSY_LEVEL = 4;
 
-function faceCorners(b: Box) {
-  const [gx0, gx1] = b.gx;
-  const [gy0, gy1] = b.gy;
-  const h = b.h;
-  const top: [number, number, number][] = [
-    [gx0, gy0, h],
-    [gx1, gy0, h],
-    [gx1, gy1, h],
-    [gx0, gy1, h],
-  ];
-  const leftFront: [number, number, number][] = [
-    [gx0, gy1, 0],
-    [gx1, gy1, 0],
-    [gx1, gy1, h],
-    [gx0, gy1, h],
-  ];
-  const rightFront: [number, number, number][] = [
-    [gx1, gy0, 0],
-    [gx1, gy1, 0],
-    [gx1, gy1, h],
-    [gx1, gy0, h],
-  ];
-  return { top, leftFront, rightFront };
-}
-
-const VIEW_W = 620;
-const VIEW_H = 340;
-const PAD = 24;
+type AreaState = { count: number; busy: boolean };
 
 export default function CampusMap() {
-  // 1) 全形状の生座標(スケール1)を集める
-  const allBoxes = [...boxes, ground];
-  const rawAll: Pt[] = [];
-  allBoxes.forEach((b) => {
-    const { top, leftFront, rightFront } = faceCorners(b);
-    [...top, ...(b.h > 0 ? [...leftFront, ...rightFront] : [])].forEach(
-      ([gx, gy, gz]) => rawAll.push(rawProj(gx, gy, gz))
+  const [booths, setBooths] = useState<Booth[]>([]);
+  useEffect(() => subscribeVisitorBooths(setBooths), []);
+
+  // 建物ごとに「企画がいくつあるか」「混んでいるか」を数える。
+  //
+  // 混んでいるかどうかは、1つでも混んでいれば混雑、とはしない。
+  // 57ある企画のうち1つが混んでいるだけで建物全体が「混雑中」に見えると、
+  // 来場者はその建物を避けてしまい、かえって混み方がかたよるため。
+  // 「混みぐあいを出している企画のうち、半分以上が混んでいる」ときだけ出す。
+  const stateByArea = new Map<AreaId, AreaState>();
+  for (const area of AREAS) {
+    const areaName = AREA_NAMES[area.id];
+    const inArea = booths.filter(
+      (b) => b.location === areaName && b.status !== "closed",
     );
-  });
-  const xs = rawAll.map((p) => p[0]);
-  const ys = rawAll.map((p) => p[1]);
-  const rawW = Math.max(...xs) - Math.min(...xs);
-  const rawH = Math.max(...ys) - Math.min(...ys);
-  const S = Math.min((VIEW_W - PAD * 2) / rawW, (VIEW_H - PAD * 2) / rawH);
-  const OX = PAD - Math.min(...xs) * S + (VIEW_W - PAD * 2 - rawW * S) / 2;
-  const OY = PAD - Math.min(...ys) * S + (VIEW_H - PAD * 2 - rawH * S) / 2;
-
-  const proj = (gx: number, gy: number, gz: number): Pt => {
-    const [rx, ry] = rawProj(gx, gy, gz);
-    return [OX + rx * S, OY + ry * S];
-  };
-
-  const buildFaces = (b: Box) => {
-    const c = faceCorners(b);
-    return {
-      top: c.top.map(([gx, gy, gz]) => proj(gx, gy, gz)),
-      leftFront: c.leftFront.map(([gx, gy, gz]) => proj(gx, gy, gz)),
-      rightFront: c.rightFront.map(([gx, gy, gz]) => proj(gx, gy, gz)),
-    };
-  };
-
-  const groundTop = faceCorners(ground).top.map(([gx, gy, gz]) =>
-    proj(gx, gy, gz)
-  );
-
-  function overallBbox(b: Box) {
-    const faces = buildFaces(b);
-    const pts = b.h > 0 ? [...faces.top, ...faces.leftFront, ...faces.rightFront] : faces.top;
-    const xs2 = pts.map((p) => p[0]);
-    const ys2 = pts.map((p) => p[1]);
-    return {
-      left: Math.min(...xs2),
-      top: Math.min(...ys2),
-      width: Math.max(...xs2) - Math.min(...xs2),
-      height: Math.max(...ys2) - Math.min(...ys2),
-    };
+    const levels = inArea
+      .map((b) => crowdLevelOfBooth(b))
+      .filter((l): l is NonNullable<typeof l> => l !== null);
+    const busyCount = levels.filter((l) => l >= BUSY_LEVEL).length;
+    stateByArea.set(area.id, {
+      count: inArea.length,
+      busy: levels.length >= 2 && busyCount * 2 >= levels.length,
+    });
   }
 
   return (
-    <div className="pressable relative w-full overflow-hidden rounded-3xl border-2 border-kosei-800 bg-kosei-700 shadow-[0_5px_0_var(--color-kosei-800)]">
-      <p className="absolute left-3 top-2 z-20 text-xs text-kosei-200">
-        ※ 校内図は仮モデル
-      </p>
-      <svg
-        viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
-        className="block w-full"
+    <div className="relative w-full overflow-hidden rounded-3xl border-2 border-kosei-800 bg-white shadow-[0_5px_0_var(--color-kosei-800)]">
+      {/* 校内図そのもの。建物の名前はこの図の中に書かれている。 */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/floorplans/campus.svg"
+        alt="校内の全体図。体育館・高校棟・中学棟・校庭があります"
+        draggable={false}
+        className="block w-full select-none"
         style={{ aspectRatio: `${VIEW_W}/${VIEW_H}` }}
-      >
-        <polygon
-          points={toPoints(groundTop)}
-          className="fill-kosei-500 stroke-kosei-800"
-          strokeWidth={1.5}
-        />
-        {boxes.map((b) => {
-          const { top, leftFront, rightFront } = buildFaces(b);
-          return (
-            <g key={b.id}>
-              <polygon points={toPoints(leftFront)} className="fill-kosei-400 stroke-kosei-800" strokeWidth={1.5} />
-              <polygon points={toPoints(rightFront)} className="fill-kosei-600 stroke-kosei-800" strokeWidth={1.5} />
-              <polygon points={toPoints(top)} className="fill-kosei-100 stroke-kosei-800" strokeWidth={1.5} />
-            </g>
-          );
-        })}
-      </svg>
+      />
 
-      {[...boxes, ground].map((b) => {
-        const box = overallBbox(b);
-        const labelTopPct = ((box.top + box.height * (b.h > 0 ? 0.6 : 0.5)) / VIEW_H) * 100;
-        const labelLeftPct = ((box.left + box.width / 2) / VIEW_W) * 100;
+      {AREAS.map((area) => {
+        const state = stateByArea.get(area.id);
         return (
           <Link
-            key={b.id}
-            // 校庭はステージ企画が中心なので、地図ではなくタイムテーブルへ送る
-            href={b.id === "schoolyard" ? "/timeline" : `/map?area=${b.id}`}
-            className="absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1 transition-transform duration-150 ease-out active:scale-90"
-            style={{ left: `${labelLeftPct}%`, top: `${labelTopPct}%` }}
+            key={area.id}
+            href={area.goTo ?? `/map?area=${area.id}`}
+            aria-label={
+              area.goTo
+                ? `${area.name}のイベントを見る`
+                : `${area.name}の地図を見る`
+            }
+            className="absolute flex flex-col items-center justify-end gap-1 rounded-2xl pb-1 transition-all duration-150 ease-out hover:bg-kosei-800/5 active:scale-95 active:bg-kosei-800/10"
+            style={{
+              left: `${area.left}%`,
+              top: `${area.top}%`,
+              width: `${area.width}%`,
+              height: `${area.height}%`,
+            }}
           >
-            <span className="whitespace-nowrap rounded-full border-2 border-kosei-800 bg-white px-3 py-1 font-heading text-sm font-bold text-kosei-800">
-              {b.name}
-            </span>
-            {b.congested && (
-              <span className="whitespace-nowrap rounded-full bg-accent-700 px-2 py-[1px] text-[10px] font-bold text-white">
+            {/* 混んでいるときだけ出す */}
+            {state?.busy && (
+              <span className="whitespace-nowrap rounded-full bg-accent-700 px-2 py-[1px] text-[10px] font-bold text-white shadow">
                 混雑中
+              </span>
+            )}
+            {/* 押せることが分かるように、企画の数を小さく出す */}
+            {state && state.count > 0 && (
+              <span className="whitespace-nowrap rounded-full border-2 border-kosei-700 bg-white/95 px-2 py-[1px] text-[10px] font-bold text-kosei-700">
+                {area.goTo ? "イベント" : `企画 ${state.count}`} ↗
               </span>
             )}
           </Link>
